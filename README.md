@@ -1,0 +1,1 @@
+Superiour/Safe/Super Encryption of Modleica Libraries and Artifacts (name is tentative)

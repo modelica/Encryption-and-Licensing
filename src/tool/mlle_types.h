@@ -1,0 +1,33 @@
+/*
+    Copyright (C) 2015 Modelon AB
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the BSD style license.
+
+     This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    BSD_License.txt file for more details.
+
+    You should have received a copy of the BSD_License.txt file
+    along with this program. If not, contact Modelon AB <http://www.modelon.com>.
+*/
+
+#ifndef MLLE_TYPES_H_
+#define MLLE_TYPES_H_
+
+
+#include <openssl/ssl.h>
+
+struct mlle_connections {
+    int fd_to_child;    // Pipes. Used instead of streams
+    int fd_from_child;  // that didn't work well with OpenSSL.
+    SSL *ssl;
+};
+
+enum pipe_end {
+    PIPE_READ_INDEX,
+    PIPE_WRITE_INDEX
+};
+
+#endif /* MLLE_TYPES_H_ */

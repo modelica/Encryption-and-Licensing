@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "mlle_lve.h"
 #include "mlle_ssl.h"
 #include "mlle_error.h"
 #include <openssl/ossl_typ.h>

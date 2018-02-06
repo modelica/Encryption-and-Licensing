@@ -22,7 +22,7 @@ if(NOT DEFINED OBFUSCATOR)
 endif()
 
 set(OBFUSCATOR_SRC_FOLDER ${CMAKE_SOURCE_DIR}/obfuscators/${OBFUSCATOR}/src)
-set(OBFUSCATOR_BIN_FOLDER ${CMAKE_CURRENT_BIN_DIR}/obfuscators/${OBFUSCATOR}/src)
+set(OBFUSCATOR_BIN_FOLDER ${CMAKE_CURRENT_BINARY_DIR}/obfuscators/${OBFUSCATOR}/src)
 # Check that given obfuscator exists, else list available ones
 if(NOT EXISTS ${OBFUSCATOR_SRC_FOLDER}/CMakeLists.txt)
     if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/${OBFUSCATOR}/src/CMakeLists.txt)

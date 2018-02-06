@@ -18,6 +18,7 @@
 
 
 #include "mlle_types.h"
+#include "mlle_lve.h"
 
 // Forward declaration to avoid compiler warnings.
 struct mlle_error;

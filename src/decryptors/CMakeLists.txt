@@ -22,7 +22,7 @@ if(NOT DEFINED DECRYPTOR)
 endif()
 
 set(DECRYPTOR_SRC_FOLDER ${CMAKE_SOURCE_DIR}/decryptors/${DECRYPTOR}/src)
-set(DECRYPTOR_BIN_FOLDER ${CMAKE_CURRENT_BIN_DIR}/decryptors/${DECRYPTOR}/src)
+set(DECRYPTOR_BIN_FOLDER ${CMAKE_CURRENT_BINARY_DIR}/decryptors/${DECRYPTOR}/src)
 # Check that given decryptor exists, else list available ones
 if(NOT EXISTS ${DECRYPTOR_SRC_FOLDER}/CMakeLists.txt)
     if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/${DECRYPTOR}/src/CMakeLists.txt)

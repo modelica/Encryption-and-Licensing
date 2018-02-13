@@ -134,7 +134,7 @@ int main(int argc, char **argv)
     CRYPTO_cleanup_all_ex_data();
     ERR_free_strings();
 
-    return 1;
+    return 0;
 }
 
 

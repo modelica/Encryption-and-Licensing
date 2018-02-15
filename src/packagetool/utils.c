@@ -1194,7 +1194,7 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
  #ifdef linux
     DIR *d;
     struct dirent *dir;
-    char searchPath[MAX_PATH_LENGTH];
+    char searchPath[MAX_PATH_LENGTH + 1];
 
     FILE *fd = NULL;
     struct stat info;

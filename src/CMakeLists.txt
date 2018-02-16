@@ -85,7 +85,7 @@ if(WIN32)
     set(tool_platform_c     ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_spawn_windows.c)
 else()
     # Values for Linux, etc
-    set(openssl_conf_cmd    ./config)
+    set(openssl_conf_cmd    ./config shared)
     set(openssl_conf_extra  make depend)
     set(openssl_make        make)
     set(openssl_crypto_lib  libcrypto.a)

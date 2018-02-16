@@ -357,6 +357,7 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         # DESTINATION include)
 
 # Install OpenSSL libs as well, since they are needed by tool lib
+get_target_property(TOOL_LOC tool LOCATION)
 get_target_property(SSL_LOC ssl LOCATION)
 get_target_property(CRYPTO_LOC crypto LOCATION)
-install(FILES ${SSL_LOC} ${CRYPTO_LOC} DESTINATION lib)
+install(FILES ${TOOL_LOC} ${SSL_LOC} ${CRYPTO_LOC} DESTINATION lib)

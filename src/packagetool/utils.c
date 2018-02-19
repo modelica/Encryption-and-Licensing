@@ -781,7 +781,7 @@ int traverseDirectoryLinux(char *filename, char *path, FileMode filemode)
                             {
                                 path_len = strlen(searchPath) + 1;
                                 pathToIcon = malloc(path_len);
-                                strcpy(pathToIcon, searchPath, path_len);
+                                strcpy(pathToIcon, searchPath);
                             }
 
                             result = 1;

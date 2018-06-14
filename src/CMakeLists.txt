@@ -125,10 +125,10 @@ include_directories(${openssl_dir}/include
                     ${CMAKE_CURRENT_BINARY_DIR})
 
 
-# Compile obfuscate program.
+# Compile obfuscate program. 
 add_executable(obfuscate 
-               embedfile/obfuscate.c 
-               embedfile/obfuscate_utils.c)
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate.c 
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate_utils.c)
 target_link_libraries(obfuscate 
                       ssl 
                       crypto 
@@ -136,8 +136,8 @@ target_link_libraries(obfuscate
 
 # Compile the randomize key program.
 add_executable(randomize_key 
-               embedfile/randomize_key.c 
-               embedfile/obfuscate_utils.c)
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/randomize_key.c 
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate_utils.c)
 target_link_libraries(randomize_key 
                       ssl 
                       crypto 

@@ -41,7 +41,8 @@ if(NOT EXISTS ${LICENSE_MANAGER_SRC_FOLDER}/CMakeLists.txt)
             endif()
         endforeach()
         if(found)
-            message(FATAL_ERROR "No such license manager: ${LICENSE_MANAGER}
+            message(FATAL_ERROR "No such license manager: ${LICENSE_MANAGER} ${CMAKE_SOURCE_DIR}/license_managers
+            Searched folders: ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_SOURCE_DIR}/license_managers
     Available license managers are: ${dirlist}")
         else()
             message(FATAL_ERROR "No license manager found!")

@@ -52,6 +52,16 @@ else("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
     set(BITS64 0)
     set(BITS 32)
 endif()
+
+# the following commands are needed to fix a problem with the libraries
+# for linux 64 bits
+if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+	  message(STATUS "x86_64 architecture detected - setting flag -fPIC")
+	  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+	  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+	  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
+endif()
+
 # - OS
 if(WIN32)
     # Values for Windows

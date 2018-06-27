@@ -42,8 +42,8 @@ mlle_spawn(const char *exec_name,
 {
     //int flags;
 
-    const int stdin_fileno = _fileno(stdin);
-    const int stdout_fileno = _fileno(stdout);
+    const int stdin_fileno = 0;
+    const int stdout_fileno = 1;
     int status = 0;
     int parent_to_child_pipe_fd[2] = { -1, -1 };
     int child_to_parent_pipe_fd[2] = { -1, -1 };

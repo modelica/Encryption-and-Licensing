@@ -52,6 +52,16 @@ else("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
     set(BITS64 0)
     set(BITS 32)
 endif()
+
+# the following commands are needed to fix a problem with the libraries
+# for linux 64 bits
+if(not WIN32)
+	  message(STATUS "x86_64 architecture detected - setting flag -fPIC")
+	  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+	  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+	  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
+endif()
+
 # - OS
 if(WIN32)
     # Values for Windows
@@ -125,10 +135,10 @@ include_directories(${openssl_dir}/include
                     ${CMAKE_CURRENT_BINARY_DIR})
 
 
-# Compile obfuscate program.
+# Compile obfuscate program. 
 add_executable(obfuscate 
-               embedfile/obfuscate.c 
-               embedfile/obfuscate_utils.c)
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate.c 
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate_utils.c)
 target_link_libraries(obfuscate 
                       ssl 
                       crypto 
@@ -136,8 +146,8 @@ target_link_libraries(obfuscate
 
 # Compile the randomize key program.
 add_executable(randomize_key 
-               embedfile/randomize_key.c 
-               embedfile/obfuscate_utils.c)
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/randomize_key.c 
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate_utils.c)
 target_link_libraries(randomize_key 
                       ssl 
                       crypto 
@@ -247,13 +257,13 @@ set(MLLE_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(MLLE_THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/../ThirdParty") # TODO: Need to be included?
 
 # - License manager
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINARY_DIR}/license_managers)
 
 # - Decryptor
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
 # - Obfuscator
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/obfuscators)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/obfuscators ${CMAKE_CURRENT_BINARY_DIR}/obfuscators)
 
 
 

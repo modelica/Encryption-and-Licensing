@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 #include "mlle_types.h"
 #include "mlle_error.h"
 #include "mlle_spawn.h"
@@ -79,7 +80,7 @@ mlle_spawn(const char *exec_name,
         close(child_to_parent_pipe_fd[PIPE_WRITE_INDEX]);
 
         execl(exec_name, exec_name, (char *) NULL);
-        fprintf(stderr, "execl() failed.\n");
+        fprintf(stderr, "execl() failed for %s. Error: %s\n", exec_name, strerror(errno));
         _exit(4);
         break;
 

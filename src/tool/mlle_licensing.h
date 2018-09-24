@@ -51,12 +51,6 @@ struct mlle_connections *
 mlle_start_executable(const char *exec_name,
                       struct mlle_error **error);
 
-struct mlle_connections *                      
-_mlle_start_executable(const char *exec_name,
-                      const char *obf_data,
-                      size_t obf_data_len,
-                      struct mlle_error **error);
-
 void
 mlle_connections_free(struct mlle_connections **connections);
 

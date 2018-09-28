@@ -95,21 +95,30 @@ int mlle_read_command(SSL *ssl,
 
     // The SSL buffer can hold at most 16 kb of data.
     messageBuffer = calloc(SSL_RECORD_SIZE, 1);
+    if (messageBuffer == NULL) 
+    {
+        mlle_error_set_literal(error, 1, 1, "Failed to allocate memory for the message buffer");
+        return 0;
+    }
 
     // Read data from SSL.
     bytesRead = ssl_read_message(ssl, &messageBuffer);
 
     // Check for error.
-    if (bytesRead < 0)
+    if (bytesRead < 0 || bytesRead > SSL_RECORD_SIZE) 
     {
         ssl_get_error_string(bytesRead, error_msg, ERROR_SIZE);
-
         mlle_error_set_literal(error, 1, 1, error_msg);
         return 0;
     }
 
     // Create a temporary array.
     token_buffer = calloc(bytesRead + 1, 1);
+    if (token_buffer == NULL) 
+    {
+        mlle_error_set_literal(error, 1, 1, "Failed to allocate memory for the token buffer");
+        return 0;
+    }
     memcpy(token_buffer, messageBuffer, bytesRead);
     token_buffer[bytesRead - 1] = 0;
 

@@ -19,6 +19,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <process.h>
+#include <errno.h>
 #include "mlle_types.h"
 #include "mlle_error.h"
 #include "mlle_spawn.h"
@@ -45,6 +46,10 @@ mlle_spawn(const char *exec_name,
     const int stdin_fileno = 0;
     const int stdout_fileno = 1;
     int status = 0;
+    int stdin_open = 1;
+    int stdout_open = 1;
+    char buffer[250];
+    errno_t error_flag;
     int parent_to_child_pipe_fd[2] = { -1, -1 };
     int child_to_parent_pipe_fd[2] = { -1, -1 };
     int tmp_fd_for_stdin_stream = -1;
@@ -74,13 +79,25 @@ mlle_spawn(const char *exec_name,
      */
     tmp_fd_for_stdin_stream = _dup(stdin_fileno);
     if (tmp_fd_for_stdin_stream == -1) {
-        mlle_error_set_literal(error, 1, 1, "_dup() failed.");
-        return NULL;
+        _get_errno(&error_flag);
+        if (error_flag == EBADF) {
+            stdin_open = 0;
+        } else {
+            sprintf(buffer,"Failed to duplicate STDIN stream (errno: %d).", error_flag);
+            mlle_error_set_literal(error, 1, 1, buffer);
+            return NULL;
+        }
     }
     tmp_fd_for_stdout_stream = _dup(stdout_fileno);
     if (tmp_fd_for_stdout_stream == -1) {
-        mlle_error_set_literal(error, 1, 1, "_dup() failed.");
-        return NULL;
+        _get_errno(&error_flag);
+        if (error_flag == EBADF) {
+            stdout_open = 0;
+        } else {
+            sprintf(buffer,"Failed to duplicate STDOUT stream (errno: %d).", error_flag);
+            mlle_error_set_literal(error, 1, 1, buffer);
+            return NULL;
+        }
     }
 
     /* Associate the FDs of the ends of the pipes that the child will use with
@@ -90,12 +107,16 @@ mlle_spawn(const char *exec_name,
      */
     status = _dup2(parent_to_child_pipe_fd[PIPE_READ_INDEX], stdin_fileno);
     if (status == -1) {
-        mlle_error_set_literal(error, 1, 1, "_dup2() failed.");
+        _get_errno(&error_flag);
+        sprintf(buffer,"Failed to duplicate (and close) STDIN stream (errno: %d).", error_flag);
+        mlle_error_set_literal(error, 1, 1, buffer);
         return NULL;
     }
     status = _dup2(child_to_parent_pipe_fd[PIPE_WRITE_INDEX], stdout_fileno);
     if (status == -1) {
-        mlle_error_set_literal(error, 1, 1, "_dup2() failed.");
+        _get_errno(&error_flag);
+        sprintf(buffer,"Failed to duplicate (and close) STDOUT stream (errno: %d).", error_flag);
+        mlle_error_set_literal(error, 1, 1, buffer);
         return NULL;
     }
     /* Close the ends of the pipe that this process won't use. */
@@ -105,27 +126,38 @@ mlle_spawn(const char *exec_name,
     /* Start new process. */
     child_handle = _spawnl(_P_NOWAIT, exec_name, exec_name, (char *) NULL);
     if (child_handle == -1) {
-        mlle_error_set_literal(error, 1, 1, "_spawnl() failed.");
+        mlle_error_set_literal(error, 1, 1, "Failed to create a new process.");
         return NULL;
     }
 
     /* Reassociate the usual FD numbers for stdin and stdout with the original
      * stdin and stdout file streams.
      */
-    status = _dup2(tmp_fd_for_stdin_stream, stdin_fileno);
-    if (status == -1) {
-        mlle_error_set_literal(error, 1, 1, "_dup2() failed.");
-        return NULL;
+    if (stdin_open) {
+        status = _dup2(tmp_fd_for_stdin_stream, stdin_fileno);
+        if (status == -1) {
+            _get_errno(&error_flag);
+            sprintf(buffer,"Failed to reassociate STDIN stream (errno: %d).", error_flag);
+            mlle_error_set_literal(error, 1, 1, buffer);
+            return NULL;
+        }
+        
+        /* Close the temporary FDs for stdin and stdout. */
+        _close(tmp_fd_for_stdin_stream);
     }
-    status = _dup2(tmp_fd_for_stdout_stream, stdout_fileno);
-    if (status == -1) {
-        mlle_error_set_literal(error, 1, 1, "_dup2() failed.");
-        return NULL;
+    
+    if (stdout_open) {
+        status = _dup2(tmp_fd_for_stdout_stream, stdout_fileno);
+        if (status == -1) {
+            _get_errno(&error_flag);
+            sprintf(buffer,"Failed to reassociate STDOUT stream (errno: %d).", error_flag);
+            mlle_error_set_literal(error, 1, 1, buffer);
+            return NULL;
+        }
+        
+        /* Close the temporary FDs for stdin and stdout. */
+        _close(tmp_fd_for_stdout_stream);
     }
-
-    /* Close the temporary FDs for stdin and stdout. */
-    _close(tmp_fd_for_stdin_stream);
-    _close(tmp_fd_for_stdout_stream);
 
     connections = calloc(1, sizeof(*connections));
     if (connections != NULL) {

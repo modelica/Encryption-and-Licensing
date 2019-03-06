@@ -52,18 +52,24 @@ char *validArguments[MAX_ARGUMENTS] = {
 // This array contains the mandatory arguments that must be on the command line.
 // -------------------------------------------------------------------------------
 char *mandatoryArguments[NO_OF_MANDATORY_ARGUMENTS] = {
-    ARGUMENT_LIBRARY_PATH, 
-    ARGUMENT_LIBRARY_VERSION, 
+    ARGUMENT_LIBRARY_PATH,
+    ARGUMENT_LIBRARY_VERSION,
     ARGUMENT_LANGUAGE_VERSION
+};
+
+
+// -------------------------------------------------------------------------------
+// This array contains arguments that does not require a value.
+// -------------------------------------------------------------------------------
+char *helpArguments[NO_HELP_ARGUMENTS] = {
+    ARGUMENT_HELP,
+    ARGUMENT_SHORT_HELP
 };
 
 // -----------------------------------------------------------------------
 // This array contains the arguments and its value from the command line.
 // -----------------------------------------------------------------------
 char *manifestData[2][MAX_ARGUMENTS];
-
-
-
 
 /***********************************
  * Get the value from an argument.
@@ -423,5 +429,77 @@ char *getLibraryName()
     }
 
     return number;
+}
+
+/**************************************
+ * Check if any of the argument is a request for help
+ *************************************/
+int helpRequested(int noOfArguments, char **arguments)
+{
+    char *key = NULL;
+    int i     = 0;
+    int j     = 0;
+
+    for (i = 1; i < noOfArguments; i++)
+    {
+        key = arguments[i];
+        for (int j = 0; j < NO_HELP_ARGUMENTS; j++) {
+            if (strcmp(helpArguments[j], key) == 0)
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/*********************************************************
+ * Print help information to output.
+ ********************************************************/
+void printArgumentHelp(void)
+{
+    printf("SYNOPSIS\n");
+    printf("    Usage: packagetool <-arg1> <value1> <-arg2> <value2> ...\n");
+    printf("DESCRIPTION\n");
+    printf("    mandatory:\n");
+    printf("        -%s\n",ARGUMENT_LANGUAGE_VERSION);
+    printf("                Version of the Modelica language the library uses.\n");
+    printf("        -%s\n", ARGUMENT_LIBRARY_PATH);
+    printf("                Path to the top-level directory. If this argument is missing or the path is wrong, "
+                           "the tool will abort since it’s not possible to build a container.\n");
+    printf("        -%s\n", ARGUMENT_LIBRARY_VERSION);
+    printf("                The version number of the library.\n");
+    printf("    optional:\n");
+    printf("        -%s\n", ARGUMENT_BUILD_NUMBER);
+    printf("                Build number of the library.\n");
+    printf("        -%s\n",ARGUMENT_COPYRIGHT);
+    printf("                Textual copyright information.\n");
+    printf("        -%s\n",ARGUMENT_BUILD_DATE);
+    printf("                Release date of the library.\n");
+    printf("        -%s\n",ARGUMENT_DEPENDENCIES_FILE);
+    printf("                Adds a list of libraries (in an xml file) that this library depends on. If the "
+                          "supplied path to the dependency-xml file is wrong the tool will abort.\n");
+    printf("        -%s\n",ARGUMENT_DESCRIPTION);
+    printf("                Description of the library.\n");
+    printf("        -%s\n", ARGUMENT_ENABLED);
+    printf("                If the library should be loaded by default.\n");
+    printf("        -%s\n",ARGUMENT_ENCRYPT);
+    printf("                If the value of this argument is true then LVEs must be copied to the .library directory of "
+                           "the source structure. If the path to copy from is wrong or LVEs are missing or have the wrong "
+                           "names the tool will abort.\n");
+    printf("        %s, %s\n",ARGUMENT_SHORT_HELP, ARGUMENT_HELP);
+    printf("                Print help information.\n");
+    printf("        -%s\n", ARGUMENT_ICON_PATH);
+    printf("                an icon to use for the library. If the supplied path to the icon file is wrong or the file"
+                           "can’t be located in the library structure the tool will abort.\n");
+    printf("        -%s\n",ARGUMENT_LICENSE);
+    printf("                Textual license information.\n");
+    printf("        -%s\n",ARGUMENT_TITLE);
+    printf("                Official title of the library.\n");
+    printf("        -%s\n",ARGUMENT_TOOLS_FILE);
+    printf("                Adds a list of Modelica tools (in an xml file) that this library is compatible with. If the "
+                           "supplied path to the tool-xml file is wrong the tool will abort.\n");
+    fflush(NULL);
 }
 

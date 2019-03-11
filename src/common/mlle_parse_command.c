@@ -15,7 +15,9 @@
 
 // Disable "deprecated" warning.
 #ifdef WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #endif
 
 #define _XOPEN_SOURCE 700
@@ -23,9 +25,10 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
 #include "mlle_protocol.h"
 #include "mlle_parse_command.h"
-#include "mlle_portability.h"
 
 #include <stdlib.h>
 

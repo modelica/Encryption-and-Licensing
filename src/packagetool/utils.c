@@ -235,7 +235,7 @@ int getCurrentDirectory(char **cwd)
 #ifdef WIN32
     if ( ( *cwd = _getcwd(NULL, 0)) == NULL)
 #else
-	if ( ( *cwd = getcwd(NULL, 0)) == NULL)
+    if ( ( *cwd = getcwd(NULL, 0)) == NULL)
 #endif
     {
         printf("Current working directory not found.\n");
@@ -340,12 +340,12 @@ int createLibraryFolder()
     snprintf(dotLibraryPath, dot_lib_path_len, "%s/.library", copied_src_path);
 
 #ifdef WIN32
-	// Create folder.
+    // Create folder.
     if (_mkdir(dotLibraryPath) < 0)
 #else
-	// Create folder with read/write/search permission for owner and group
-	// and read/search permissions for others.
-	if (mkdir(dotLibraryPath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
+    // Create folder with read/write/search permission for owner and group
+    // and read/search permissions for others.
+    if (mkdir(dotLibraryPath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
 #endif
     {
         printf("Error: Failed to create directory with path %s: %s\n", dotLibraryPath, strerror(errno));
@@ -408,14 +408,14 @@ int copyLVE()
         printf("Failed to allocate space for copied files.\n");
         return 0;
     }
-	
-	// Path to where executable is running from.
+    
+    // Path to where executable is running from.
     dir_path = getExecutableDirectory();
-	if (dir_path == NULL)
-	{
-		printf("Cannot exctract the executable path.\n");
-		return 0;
-	}
+    if (dir_path == NULL)
+    {
+        printf("Cannot exctract the executable path.\n");
+        return 0;
+    }
 
     for (i = 0; i < NO_OF_LVE; ++i)
     {
@@ -444,8 +444,8 @@ int copyLVE()
 
         free(path);
     }
-	free(dir_path);
-	
+    free(dir_path);
+    
     return 1;
 }
 
@@ -464,8 +464,8 @@ int copyFile(char *filename, char *pathFrom)
     FILE *fdRead,*fdWrite;
     size_t readBytes = 0;
     size_t writeBytes = 0;
-	    
-	// Copy to.
+        
+    // Copy to.
     path_len = strlen(getDotLibraryPath()) + strlen(filename) + 2;
     pathTo = malloc(path_len);
     snprintf(pathTo, path_len, "%s/%s", getDotLibraryPath(), filename);
@@ -517,11 +517,11 @@ int fileExists(char *pahtAndFilename)
 
 int prepareIconFile()
 {
-	// Is icon an argument.
-	if (getValueOf("icon") == NULL)
-	{
-		return 1;
-	}
+    // Is icon an argument.
+    if (getValueOf("icon") == NULL)
+    {
+        return 1;
+    }
 
     if (!locateIconFile())
     {
@@ -547,18 +547,18 @@ int locateIconFile()
 {
     FileMode filemode;
     char *filename = NULL;
-	char *value = NULL;
-	int result = 0;
-	int i = 0;
+    char *value = NULL;
+    int result = 0;
+    int i = 0;
 
-	// Get the icons path and file name.
-	value = getValueOf("icon");
+    // Get the icons path and file name.
+    value = getValueOf("icon");
 
-	// If no value, return and continue with the rest.
-	if (!value)
-	{
-	    return 1;
-	}
+    // If no value, return and continue with the rest.
+    if (!value)
+    {
+        return 1;
+    }
 
     // Extract filename from the path.
     filename = extractFilename(value);
@@ -570,16 +570,16 @@ int locateIconFile()
     // Result is always 1.
     result = traverseDirectoryWin32(filename, getCopiedSourcePath(), filemode);
 #else
-	result = traverseDirectoryLinux(filename, getCopiedSourcePath(), filemode);
+    result = traverseDirectoryLinux(filename, getCopiedSourcePath(), filemode);
 #endif
 
-	// Abort if we didn't find the file.
-	if (pathToIcon == NULL)
-	{
-	    result = 0;
-	}
+    // Abort if we didn't find the file.
+    if (pathToIcon == NULL)
+    {
+        result = 0;
+    }
 
-	return result;
+    return result;
 }
 
 
@@ -619,9 +619,9 @@ int deleteCopiedSourceFolder()
     else
     {
         if (system(command) == -1)
-	{
-		printf("Could not delete temporary folder.\n"); 
-	}
+    {
+        printf("Could not delete temporary folder.\n"); 
+    }
         free(command);
     }
 #endif
@@ -832,30 +832,30 @@ int traverseDirectoryLinux(char *filename, char *path, FileMode filemode)
 char *extractFilename(char *path)
 {
     char *name;
-	char *tmp;
+    char *tmp;
 
     name = strrchr(path, '/');
 
 #ifdef WIN32
-	// If WIN then path sep could be '\'
-	if (name == NULL) {
-		tmp = strrchr(path, '\\');
-	} else {
-		// Check if there were mixed '/' and '\'
-		tmp = strrchr(name, '\\');
-	}
-	if (tmp != NULL) {
-		name = tmp;
-	}
+    // If WIN then path sep could be '\'
+    if (name == NULL) {
+        tmp = strrchr(path, '\\');
+    } else {
+        // Check if there were mixed '/' and '\'
+        tmp = strrchr(name, '\\');
+    }
+    if (tmp != NULL) {
+        name = tmp;
+    }
 #endif
-	
-	if (name != NULL) {
-		++name;
-	} else {
-		name = path;
-	}
+    
+    if (name != NULL) {
+        ++name;
+    } else {
+        name = path;
+    }
 
-	return name;
+    return name;
 
 }
 
@@ -865,17 +865,17 @@ char *extractFilename(char *path)
 char *extractPath(char *pathAndFilename)
 {
     char *ptr1 = NULL;
-	char *ptr2 = NULL;
-	char *result = NULL;
-	size_t len = 0;
-	
-	// Safety check.
-	if (!pathAndFilename)
-	{
-		return NULL;
-	}
-	
-	ptr2 = pathAndFilename;
+    char *ptr2 = NULL;
+    char *result = NULL;
+    size_t len = 0;
+    
+    // Safety check.
+    if (!pathAndFilename)
+    {
+        return NULL;
+    }
+    
+    ptr2 = pathAndFilename;
 
 #ifdef WIN32
     ptr1 = strrchr(pathAndFilename, '\\');
@@ -1027,7 +1027,7 @@ int createZipArchive()
     char *cwd = NULL;
     char archivename[MAX_STRING] = {'\0'};
     char pathToZipfile[MAX_PATH_LENGTH] = {'\0'};
-	char currentDir[MAX_PATH_LENGTH] = {'\0'};
+    char currentDir[MAX_PATH_LENGTH] = {'\0'};
     int encrypted = 0;
 
     // Get last folder name in library path. This will
@@ -1077,7 +1077,7 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
     struct stat info;
     char *data = NULL;
     size_t bytes = 0;
-	int index = 0;
+    int index = 0;
     char *comment = "Modelica_archive";
     long buffertSize = 0;
     char zipPath[MAX_PATH_LENGTH] = {'\0'};
@@ -1152,15 +1152,15 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
                     // Remove the tmp path.
                     removeTmpFolderName(searchPath, zipPath, MAX_PATH_LENGTH);
 
-					// On Windows we must change backward slash to forward slash 
-					// otherwise the zip library fails to add the file.
-					for (index = 0; index <= (signed)strlen(zipPath); ++index)
-					{
-						if (zipPath[index] == '\\')
-						{
-							zipPath[index] = '/';
-						}
-					}
+                    // On Windows we must change backward slash to forward slash 
+                    // otherwise the zip library fails to add the file.
+                    for (index = 0; index <= (signed)strlen(zipPath); ++index)
+                    {
+                        if (zipPath[index] == '\\')
+                        {
+                            zipPath[index] = '/';
+                        }
+                    }
 
                     // Add file to zip archive.
                     result = mz_zip_add_mem_to_archive_file_in_place(archiveName, zipPath, data, buffertSize,
@@ -1208,7 +1208,7 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
 
     // Find all.
     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s", path);
-	//printf("**** searchPath %s\n", searchPath);
+    //printf("**** searchPath %s\n", searchPath);
 
     if ( (d = opendir(searchPath)) )
     {
@@ -1229,7 +1229,7 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
                      snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s/%s", path, dir->d_name);
                  }
 
-				//printf("zip: searchpath: %s\n", searchPath);
+                //printf("zip: searchpath: %s\n", searchPath);
  
                  // Have we found a folder?
                  if(dir->d_type == DT_DIR)
@@ -1245,7 +1245,7 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
                      // 1. Files are not encrypted.
                      // 2. Files are encrypted and the file is not a Modelica file(.mo).
                      // -----------------------------------------------------------------
-					//printf("Filename: %s, encrypted: %d\n", dir->d_name, encrypted);
+                    //printf("Filename: %s, encrypted: %d\n", dir->d_name, encrypted);
 
                      if ( (!encrypted) || ( (encrypted && !isModelicaFile(dir->d_name))) )
                      {
@@ -1276,8 +1276,8 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
                              return 0;
                          }
 
-						// Remove the tmp path.
-						removeTmpFolderName(searchPath, zipPath, MAX_PATH_LENGTH);
+                        // Remove the tmp path.
+                        removeTmpFolderName(searchPath, zipPath, MAX_PATH_LENGTH);
 
                          // Add file to zip archive.
                          result = mz_zip_add_mem_to_archive_file_in_place(archiveName, zipPath, data, buffertSize,
@@ -1313,7 +1313,7 @@ int cleanUpIconPath()
     char *tmpBuf = NULL;
     char *ptr1, *ptr2 = NULL;
     size_t path_len = 0;
-	int i = 0;
+    int i = 0;
 
     // Safety check.
     if (pathToIcon == NULL)
@@ -1347,13 +1347,13 @@ int cleanUpIconPath()
 #ifdef WIN32
     ptr2 = strchr(ptr1, '\\');
 
-	// replace '\\' with '/' according to spec
-	while (ptr2[i]) {    
+    // replace '\\' with '/' according to spec
+    while (ptr2[i]) {    
      if (ptr2[i] == '\\') {
-		 ptr2[i] = '/';
-	 }
-	 i++;
-	}
+         ptr2[i] = '/';
+     }
+     i++;
+    }
 #else
     ptr2 = strchr(ptr1, '/');
 #endif
@@ -1383,32 +1383,32 @@ int cleanUpIconPath()
  ****************************************************/
 int removeTmpFolderName(char *searchPath, char *zipPath, size_t zipPathLen)
 {
-	char *tmpDir = NULL;
-	char *ptr = NULL;
+    char *tmpDir = NULL;
+    char *ptr = NULL;
 
-	// Get the tmp string.
+    // Get the tmp string.
 #ifdef WIN32
     tmpDir = getenv("TEMP");
 #else
-	tmpDir = getenv("TMPDIR");
+    tmpDir = getenv("TMPDIR");
     if (tmpDir == NULL)
     {
         tmpDir = "/tmp";
     }
 #endif
 
-	// Clear the array. 
-	memset(&zipPath[0], 0, strlen(zipPath));
+    // Clear the array. 
+    memset(&zipPath[0], 0, strlen(zipPath));
 
-	ptr = searchPath;
-	ptr += strlen(tmpDir) + 1;
-	
-	if (ptr && *ptr)
-	{
-	    snprintf(zipPath, zipPathLen, "%s", ptr);
-	}
+    ptr = searchPath;
+    ptr += strlen(tmpDir) + 1;
+    
+    if (ptr && *ptr)
+    {
+        snprintf(zipPath, zipPathLen, "%s", ptr);
+    }
 
-	return 1;
+    return 1;
 }
 
 
@@ -1476,7 +1476,7 @@ int copyFolderStructure()
         return 0;
     }
 
-	// Create top folder.
+    // Create top folder.
     if (_mkdir(getCopiedSourcePath()) < -1)
     {
         printf("Failed to create temporary folder. Abort.\n");
@@ -1520,8 +1520,8 @@ int copyFolderStructure()
     // Copy files and folders to temporary folder on Windows.
     return (copyDirectoryWin32(copyFromPath, getCopiedSourcePath()));
 #else
-	// Copy files and folders to temporary folder on Linux
-	return (copyDirectoryLinux(copyFromPath, getCopiedSourcePath()));
+    // Copy files and folders to temporary folder on Linux
+    return (copyDirectoryLinux(copyFromPath, getCopiedSourcePath()));
 #endif
 }
 
@@ -1660,7 +1660,7 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
     // Find all.
     snprintf(searchPath, MAX_PATH_LENGTH, "%s", fromPath);
 
-	//printf("searchPath: %s\n", searchPath);
+    //printf("searchPath: %s\n", searchPath);
 
     if ( (d = opendir(searchPath)) )
     {

@@ -15,6 +15,9 @@
 
 #define _XOPEN_SOURCE 700
 #include <stddef.h>
+
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
 #include "mlle_protocol.h"
 
 const size_t mlle_nbr_tokens_for_form[MLLE_PROTOCOL_MSG_FORM_SIZE] = {

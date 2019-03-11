@@ -13,19 +13,15 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
-// Disable "deprecated" warning.
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #define _XOPEN_SOURCE 700
 #include <stdlib.h>
 #include <string.h>
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
 #include "mlle_lve.h"
 #include "mlle_io.h"
 #include "mlle_lve_file.h"
 #include "mlle_cr_decrypt.h"
-#include "mlle_portability.h"
 
 
 int
@@ -64,7 +60,6 @@ mlle_lve_file(struct mlle_lve_ctx *lve_ctx,
         error_msg = mlle_error_get_message(error);
         goto CLEANUP;
     }
-
     file_extension = strrchr(command->data, '.');
     if (file_extension != NULL)
         file_extension++;
@@ -73,7 +68,22 @@ mlle_lve_file(struct mlle_lve_ctx *lve_ctx,
     if (file_extension != NULL
         && strcasecmp(file_extension, MLLE_ENCRYPTED_MODELICA_FILE_EXTENSION) == 0)
     {
-        decrypted_size = mlle_cr_decrypt(file_buffer, file_size, file_buffer);
+        char *file_out_buffer = NULL;
+        char* tmp_buf = NULL;
+
+        file_out_buffer = malloc(file_size + 1);
+        if (file_out_buffer == NULL) {
+            error_code = MLLE_PROTOCOL_OTHER_ERROR;
+            error_msg = malloc(100 + path_size);
+            if (error_msg != NULL) {
+                snprintf(error_msg, 100 + path_size, "Could not allocate memory to decrypt file %s.", file_path);
+            }
+            goto CLEANUP;
+        }
+        decrypted_size = mlle_cr_decrypt(file_buffer, file_size, file_out_buffer);
+        tmp_buf = file_buffer;
+        file_buffer = file_out_buffer;
+        free(tmp_buf);
         if (decrypted_size < 0) {
             error_code = MLLE_PROTOCOL_OTHER_ERROR;
             error_msg = malloc(100 + path_size);
@@ -88,7 +98,7 @@ mlle_lve_file(struct mlle_lve_ctx *lve_ctx,
 
     /* Send file data. */
     mlle_send_length_form(lve_ctx->ssl, MLLE_PROTOCOL_FILECONT_CMD,
-            file_size, file_buffer);
+        file_size, file_buffer);
 
 CLEANUP:
     free(file_buffer);

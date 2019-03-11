@@ -13,6 +13,9 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include "mlle_ssl_lve.h"
 
 #include <stdio.h>
@@ -25,7 +28,6 @@
 #include <openssl/rsa.h>
 #include <openssl/x509v3.h>
 
-#include "mlle_portability.h"
 #include "private_key_lve.h"
 
 
@@ -51,12 +53,12 @@ static int cert_verify_callback(X509_STORE_CTX *ctx, void *arg)
     RSA *rsa = NULL;
 
     // Get the certificate.
-    if (ctx->cert)
+
+
+    x509 = X509_STORE_CTX_get0_cert(ctx);
+    if (x509 == NULL)
     {
-        if ( (x509 = ctx->cert) == NULL)
-        {
             return 0;
-        }
     }
 
     // Get public key with DER encoding.

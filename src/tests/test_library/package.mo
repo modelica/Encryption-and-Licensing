@@ -13,19 +13,10 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
-#define _XOPEN_SOURCE 700
-/* libcrypto-compat.h must be first */
-#include "libcrypto-compat.h"
-#include "mlle_lve.h"
-#include "mlle_lve_tools.h"
-#include "mlle_io.h"
+package test_library
 
-int
-mlle_lve_tools(struct mlle_lve_ctx *lve_ctx)
-{
-    // TODO Just temporary. Should sent back something else
-    // but nothing is implemented right now.
-    mlle_send_number_form(lve_ctx->ssl, MLLE_PROTOCOL_VERSION_CMD,
-                       4);
-    return 1;
-}
+model test
+    Real x = time;
+end test;
+
+end test_library;

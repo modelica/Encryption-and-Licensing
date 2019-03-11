@@ -16,7 +16,9 @@
 
 // Disable "deprecated" warning.
 #ifdef WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #endif
 
 #include <stdlib.h>
@@ -115,9 +117,15 @@ void read_file(char* file, char** buf, size_t* len) {
     size_t read;
     struct stat fileInfo;
     FILE *fp;
+    int staterr;
 
     // Get size of file.
-    stat(file, &fileInfo);
+    staterr = stat(file, &fileInfo);
+    if (staterr != 0) {
+        fprintf(stderr, "Could not get info on %s\n", *file);
+        fprintf(stderr, "ERROR [%d] %s", staterr, strerror(staterr));
+        exit(1);
+    }
     *len = fileInfo.st_size;
 
     *buf = (char*) calloc(*len + 1, 1);
@@ -127,12 +135,13 @@ void read_file(char* file, char** buf, size_t* len) {
     }
 
     // Open ssl-key file and read content to array.
-    fp = open_or_exit(file, "r");
+    // keys must have linux line endings, this must be checked in the build system
+    fp = open_or_exit(file, "rb");
     read = fread(*buf, *len, 1, fp);
     fclose(fp);
 
     if (read != 1) {
-        fprintf(stderr, "Error reading data from file: %s\n", file);
+        fprintf(stderr, "Error reading 1 block of %d bytes from file '%s'\nread = %d\n", *len, file, read);
         exit(1);
     }
 }

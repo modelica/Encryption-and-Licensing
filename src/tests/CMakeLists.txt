@@ -31,17 +31,17 @@ enable_testing()
 # Add path where find_library method can look for libraries.
 # ------------------------------------------------------------
 if (WIN32)
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program\ Files\ (x86)/check/lib")
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/LibraryEncryption/Build/openssl/lib")
+    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program\ Files\ (x86)/check/lib")
+    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/LibraryEncryption/Build/openssl/lib")
 else()
-	# Path to libcrypto.a and libssl.a.
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "/usr/lib/x86_64-linux-gnu/")
+    # Path to libcrypto.a and libssl.a.
+    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "/usr/lib/x86_64-linux-gnu/")
 endif()
 
 
 if (WIN32)
-	set(CHECK_INSTALL_DIR "C:/Program\ Files\ (x86)/check")	
-	include_directories(${CHECK_INSTALL_DIR}/include)
+    set(CHECK_INSTALL_DIR "C:/Program\ Files\ (x86)/check")    
+    include_directories(${CHECK_INSTALL_DIR}/include)
 else()
     include_directories("/usr/include/")    # Path to check.h and check_stdint.h.
 endif()
@@ -55,15 +55,15 @@ MESSAGE(STATUS "CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
 if (WIN32)
     find_library(CHECK_LIBRARY NAMES check ) #PATHS "C:/Program\ Files\ (x86)/check")
     find_library(COMPAT_LIBRARY NAMES compat ) #PATHS "C:/Program\ Files\ (x86)/check/")
-	
-	find_library(CRYPTO libeay32)       # Crypt library.
-	find_library(OPEN_SSL ssleay32)     # OpenSSL library.
+    
+    find_library(CRYPTO libeay32)       # Crypt library.
+    find_library(OPEN_SSL ssleay32)     # OpenSSL library.
 else()
     set(EXTRA_LIBS m rt pthread dl)
-	
-	find_library(CRYPTO libcrypto.a)    # Crypt library.
-	find_library(OPEN_SSL libssl.a)     # OpenSSL library.
-	find_library(CHECK_LIBRARY libcheck.a)  # Check library.
+    
+    find_library(CRYPTO libcrypto.a)    # Crypt library.
+    find_library(OPEN_SSL libssl.a)     # OpenSSL library.
+    find_library(CHECK_LIBRARY libcheck.a)  # Check library.
 endif()
 
 MESSAGE( STATUS "CRYPTO: " ${CRYPTO} )
@@ -82,9 +82,9 @@ endif()
 
 # Add libs to one variable.
 if (WIN32)
-	set(LIBS ${LIBS} ${CHECK_LIBRARY} ${COMPAT_LIBRARY})
+    set(LIBS ${LIBS} ${CHECK_LIBRARY} ${COMPAT_LIBRARY})
 else()
-	set(LIBS ${LIBS} ${CHECK_LIBRARY} )
+    set(LIBS ${LIBS} ${CHECK_LIBRARY} )
 endif()
 
 include_directories(../) 
@@ -101,8 +101,8 @@ if(WIN32)
     include_directories(${OPENSSL_DIR})
 else()
     # Linux
-	set(OPENSSL_DIR "/home/johan/Modelon/build/openssl/include/")
-	include_directories(${OPENSSL_DIR})
+    set(OPENSSL_DIR "/home/johan/Modelon/build/openssl/include/")
+    include_directories(${OPENSSL_DIR})
 endif()
   
 
@@ -138,9 +138,9 @@ add_library(lve
 add_executable(test_main test_main.c)
 
 if (WIN32)
-	target_link_libraries(test_main tool lve ${LIBS} ${OPEN_SSL} ${CRYPTO} ${WINSOCK_LIB})
+    target_link_libraries(test_main tool lve ${LIBS} ${OPEN_SSL} ${CRYPTO} ${WINSOCK_LIB})
 else()
-	target_link_libraries(test_main tool lve ${LIBS} ${OPEN_SSL} ${CRYPTO} ${EXTRA_LIBS})
+    target_link_libraries(test_main tool lve ${LIBS} ${OPEN_SSL} ${CRYPTO} ${EXTRA_LIBS})
 endif()
 
 add_test(test_main test_main)

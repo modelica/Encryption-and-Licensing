@@ -20,7 +20,7 @@ set(ENCRYPTION_KEY_H "${MLLE_BINARY_DIR}/random_key_file.h")
 add_custom_command(
     OUTPUT "${ENCRYPTION_KEY_H}"
     COMMAND randomize_key "${ENCRYPTION_KEY_H}" MLLE_CR_KEY
-    DEPENDS always_rebuild randomize_key
+    DEPENDS randomize_key openssl
     )
 
 

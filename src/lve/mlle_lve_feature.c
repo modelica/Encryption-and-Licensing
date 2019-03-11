@@ -13,13 +13,11 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
-// Disable "deprecated" warning.
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #define _XOPEN_SOURCE 700
 #include <stddef.h>
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include "mlle_lve.h"
 #include "mlle_protocol.h"
 #include "mlle_error.h"
@@ -72,7 +70,7 @@ mlle_lve_feature(struct mlle_lve_ctx *lve_ctx,
         mlle_send_string(lve_ctx->ssl, MLLE_PROTOCOL_NO_CMD,
                 mlle_error_get_message(error));
        mlle_error_free(&error);
-	
+    
         return 0;
     }
 }

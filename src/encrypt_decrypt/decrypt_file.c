@@ -13,11 +13,15 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #define _XOPEN_SOURCE 700
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>

@@ -13,11 +13,6 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
-// Disable "deprecated" warning.
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #define _XOPEN_SOURCE 700
 #include <stddef.h>
 #include <stdlib.h>
@@ -25,6 +20,9 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
 
 #include "mlle_lve.h"
 #include "mlle_protocol.h"

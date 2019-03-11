@@ -443,7 +443,8 @@ int helpRequested(int noOfArguments, char **arguments)
     for (i = 1; i < noOfArguments; i++)
     {
         key = arguments[i];
-        for (int j = 0; j < NO_HELP_ARGUMENTS; j++) {
+        for (int j = 0; j < NO_HELP_ARGUMENTS; j++)
+        {
             if (strcmp(helpArguments[j], key) == 0)
             {
                 return 1;
@@ -467,7 +468,7 @@ void printArgumentHelp(void)
     printf("                Version of the Modelica language the library uses.\n");
     printf("        -%s\n", ARGUMENT_LIBRARY_PATH);
     printf("                Path to the top-level directory. If this argument is missing or the path is wrong, "
-                           "the tool will abort since it’s not possible to build a container.\n");
+                           "the tool will abort since it's not possible to build a container.\n");
     printf("        -%s\n", ARGUMENT_LIBRARY_VERSION);
     printf("                The version number of the library.\n");
     printf("    optional:\n");
@@ -486,13 +487,13 @@ void printArgumentHelp(void)
     printf("                If the library should be loaded by default.\n");
     printf("        -%s\n",ARGUMENT_ENCRYPT);
     printf("                If the value of this argument is true then LVEs must be copied to the .library directory of "
-                           "the source structure. If the path to copy from is wrong or LVEs are missing or have the wrong "
-                           "names the tool will abort.\n");
+                           "the source structure. If the path to copy from is wrong or LVEs\n"
+                           "                are missing or have the wrong names the tool will abort.\n");
     printf("        %s, %s\n",ARGUMENT_SHORT_HELP, ARGUMENT_HELP);
     printf("                Print help information.\n");
     printf("        -%s\n", ARGUMENT_ICON_PATH);
-    printf("                an icon to use for the library. If the supplied path to the icon file is wrong or the file"
-                           "can’t be located in the library structure the tool will abort.\n");
+    printf("                An icon to use for the library. If the supplied path to the icon file is wrong or the file"
+                           "can't be located in the library structure the tool will abort.\n");
     printf("        -%s\n",ARGUMENT_LICENSE);
     printf("                Textual license information.\n");
     printf("        -%s\n",ARGUMENT_TITLE);

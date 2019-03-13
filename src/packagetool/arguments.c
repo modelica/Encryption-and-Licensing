@@ -443,7 +443,7 @@ int helpRequested(int noOfArguments, char **arguments)
     for (i = 1; i < noOfArguments; i++)
     {
         key = arguments[i];
-        for (int j = 0; j < NO_HELP_ARGUMENTS; j++)
+        for (j = 0; j < NO_HELP_ARGUMENTS; j++)
         {
             if (strcmp(helpArguments[j], key) == 0)
             {

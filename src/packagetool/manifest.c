@@ -417,11 +417,11 @@ char *extractPlatform(char *fileName)
         return platForm;
     }
 
-	// Step past '_'.
+    // Step past '_'.
     ++ptr1;
-	strcpy(platForm, ptr1);
+    strcpy(platForm, ptr1);
 
-	// Remove any ".exe" suffix
+    // Remove any ".exe" suffix
     ptr1 = strchr(platForm, '.');
     if (ptr1 != NULL)
     {

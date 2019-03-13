@@ -14,9 +14,6 @@
 */
 
 // Disable "deprecated" warning.
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 
 #define _XOPEN_SOURCE 700
 #include <assert.h>
@@ -25,12 +22,16 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+
+
 #include "mlle_error.h"
 
 #define DEFAULT_MSG_SIZE (2048)
 
 #ifdef _WIN32
 #define strdup(s) _strdup(s)
+#define _CRT_SECURE_NO_WARNINGS
+
 #endif
 
 struct mlle_error {
@@ -78,6 +79,7 @@ mlle_error_new_valist(int domain,
 
     message = calloc(DEFAULT_MSG_SIZE, 1);
     if (message != NULL) {
+#define _CRT_SECURE_NO_WARNINGS
         vsnprintf(message, DEFAULT_MSG_SIZE, format, args);
     }
     error->message = message;

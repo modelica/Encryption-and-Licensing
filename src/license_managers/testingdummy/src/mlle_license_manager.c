@@ -15,6 +15,10 @@
 
 #include <stddef.h>
 #include <string.h>
+
+/* mlle_portability.h must be first */
+#include "mlle_portability.h"
+
 #include "mlle_error.h"
 #include "mlle_license_manager.h"
 
@@ -47,7 +51,7 @@ mlle_license_checkout_feature(struct mlle_license *mlic,
                               const char *feature,
                               struct mlle_error **error)
 {
-    if (!strcmp(feature, "is_licensed")) {
+    if (!strcmp(feature, "test_licensed_feature")) {
         return 1;
     } else {
         *error = mlle_error_new(1, 3, "Feature not licensed");

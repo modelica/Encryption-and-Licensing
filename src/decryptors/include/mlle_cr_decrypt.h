@@ -16,7 +16,6 @@
 #ifndef MLLE_CR_DECRYPT_H_
 #define MLLE_CR_DECRYPT_H_
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

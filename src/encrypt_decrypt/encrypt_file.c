@@ -14,10 +14,14 @@
 */
 
 #define _XOPEN_SOURCE 700
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>

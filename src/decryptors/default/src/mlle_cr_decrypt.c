@@ -13,7 +13,10 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
+#include "libcrypto-compat.h"
+
 #define _XOPEN_SOURCE 700
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,8 +40,8 @@ int mlle_cr_decrypt(char* in,
                     char* out)
 {
     /* TODO: Enable better error messages. */
-    EVP_CIPHER_CTX c_ctx;
-    HMAC_CTX h_ctx;
+    EVP_CIPHER_CTX *c_ctx;
+    HMAC_CTX *h_ctx;
     unsigned char *iv_in;
     unsigned char *enc_in;
     unsigned char *mac_in;
@@ -55,8 +58,10 @@ int mlle_cr_decrypt(char* in,
     DECLARE_MLLE_CR_KEY();
 
     /* Init structures. */
-    EVP_CIPHER_CTX_init(&c_ctx);
-    HMAC_CTX_init(&h_ctx);
+    c_ctx = EVP_CIPHER_CTX_new(); 
+    h_ctx = HMAC_CTX_new(); 
+    EVP_CIPHER_CTX_init(c_ctx);
+    HMAC_CTX_init(h_ctx);
 
     /* Select algorithms and get parameters. */
     cipher = MLLE_CR_CIPHER;
@@ -72,28 +77,28 @@ int mlle_cr_decrypt(char* in,
 
     /* Set up decryption and HMAC calculation. */
     INITIALIZE_MLLE_CR_KEY();
-    if (!EVP_DecryptInit_ex(&c_ctx, cipher, NULL, MLLE_CR_KEY, iv_in))
+    if (!EVP_DecryptInit_ex(c_ctx, cipher, NULL, MLLE_CR_KEY, iv_in))
         goto error;
     mac = (unsigned char*) malloc(mac_len);
     if (!mac)
         goto error;
-    if (!HMAC_Init_ex(&h_ctx, MLLE_CR_KEY, MLLE_CR_KEY_LEN, hash, NULL))
+    if (!HMAC_Init_ex(h_ctx, MLLE_CR_KEY, MLLE_CR_KEY_LEN, hash, NULL))
         goto error;
-    if (!HMAC_Update(&h_ctx, iv_in, iv_len))
+    if (!HMAC_Update(h_ctx, iv_in, iv_len))
         goto error;
 
     /* Decrypt data. */
-    if (!EVP_DecryptUpdate(&c_ctx, out_u, &dec_len, enc_in, enc_len))
+    if (!EVP_DecryptUpdate(c_ctx, out_u, &dec_len, enc_in, enc_len))
         goto error;
     out_len = dec_len;
-    if (!EVP_DecryptFinal_ex(&c_ctx, out_u + out_len, &dec_len))
+    if (!EVP_DecryptFinal_ex(c_ctx, out_u + out_len, &dec_len))
         goto error;
     out_len += dec_len;
 
     /* Calculate and check HMAC. */
-    if (!HMAC_Update(&h_ctx, out_u, out_len))
+    if (!HMAC_Update(h_ctx, out_u, out_len))
         goto error;
-    if (!HMAC_Final(&h_ctx, mac, &mac_len))
+    if (!HMAC_Final(h_ctx, mac, &mac_len))
         goto error;
     if (memcmp(mac, mac_in, mac_len))
         goto error;
@@ -102,8 +107,9 @@ int mlle_cr_decrypt(char* in,
     /* Cleanup. */
 error:
     CLEAR_MLLE_CR_KEY();
-    EVP_CIPHER_CTX_cleanup(&c_ctx);
-    HMAC_CTX_cleanup(&h_ctx);
+    EVP_CIPHER_CTX_cleanup(c_ctx);
+    EVP_CIPHER_CTX_free(c_ctx);
+    HMAC_CTX_free(h_ctx);
     free(mac);
 
     return res;

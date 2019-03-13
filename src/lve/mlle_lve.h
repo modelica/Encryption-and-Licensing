@@ -20,6 +20,8 @@
 #define _XOPEN_SOURCE 700
 #include <stddef.h>
 #include <stdio.h>
+/* mlle_portability.h must be first */
+#include "mlle_portability.h"
 #include "mlle_protocol.h"
 #include "mlle_protocol_lve_state.h"
 #include <openssl/ssl.h>

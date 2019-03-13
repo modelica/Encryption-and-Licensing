@@ -17,18 +17,23 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include "mlle_lve.h"
 
 
 #ifdef _MSC_VER
-
-#include <windows.h>
 
 /*
  * If we compile using MSVC we have to use this main method signature to
  * prevent annoying command prompt pop ups when starting process from a
  * process with a GUI.
  */
+int main() {
+    return WinMain(0, 0,0, 0);
+}
 
 int
 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,

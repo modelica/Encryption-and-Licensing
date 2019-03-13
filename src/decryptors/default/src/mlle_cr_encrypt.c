@@ -18,6 +18,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/rand.h>
@@ -25,7 +28,6 @@
 #include "random_key_file.h"
 
 #ifdef _WIN32
-#include <Wincrypt.h>
 
 /* Arbitrary, but should be "enough". */
 #define WIN_PRNG_SEED_SIZE (256)
@@ -66,8 +68,8 @@ int mlle_cr_encrypt(FILE* in,
                     FILE* out)
 {
     /* TODO: Enable better error messages. */
-    EVP_CIPHER_CTX c_ctx;
-    HMAC_CTX h_ctx;
+    EVP_CIPHER_CTX *c_ctx;
+    HMAC_CTX *h_ctx;
     unsigned char *mac = NULL;
     unsigned char *iv = NULL;
     const EVP_CIPHER *cipher;
@@ -82,8 +84,9 @@ int mlle_cr_encrypt(FILE* in,
     DECLARE_MLLE_CR_KEY();
 
     /* Init structures. */
-    EVP_CIPHER_CTX_init(&c_ctx);
-    HMAC_CTX_init(&h_ctx);
+    c_ctx = EVP_CIPHER_CTX_new();
+    h_ctx = HMAC_CTX_new();
+    EVP_CIPHER_CTX_init(c_ctx);
 
     /* Select algorithms and get parameters. */
     cipher = MLLE_CR_CIPHER;
@@ -102,14 +105,14 @@ int mlle_cr_encrypt(FILE* in,
 
     /* Set up encryption and HMAC calculation. */
     INITIALIZE_MLLE_CR_KEY();
-    if (!EVP_EncryptInit_ex(&c_ctx, cipher, NULL, MLLE_CR_KEY, iv))
+    if (!EVP_EncryptInit_ex(c_ctx, cipher, NULL, MLLE_CR_KEY, iv))
         goto error;
     mac = (unsigned char*) malloc(mac_len);
     if (!mac)
         goto error;
-    if (!HMAC_Init_ex(&h_ctx, MLLE_CR_KEY, MLLE_CR_KEY_LEN, hash, NULL))
+    if (!HMAC_Init_ex(h_ctx, MLLE_CR_KEY, MLLE_CR_KEY_LEN, hash, NULL))
         goto error;
-    if (!HMAC_Update(&h_ctx, iv, iv_len))
+    if (!HMAC_Update(h_ctx, iv, iv_len))
         goto error;
 
     /* Process file. */
@@ -120,24 +123,24 @@ int mlle_cr_encrypt(FILE* in,
             goto error;
 
         /* Encrypt and write data. */
-        if (!EVP_EncryptUpdate(&c_ctx, crypt_buf, &crypt_len, read_buf, read_len))
+        if (!EVP_EncryptUpdate(c_ctx, crypt_buf, &crypt_len, read_buf, read_len))
             goto error;
         if (fwrite(crypt_buf, 1, crypt_len, out) < (size_t) crypt_len)
             goto error;
 
         /* Update HMAC calculation. */
-        if (!HMAC_Update(&h_ctx, read_buf, read_len))
+        if (!HMAC_Update(h_ctx, read_buf, read_len))
             goto error;
     }
 
     /* Finalize encryption and write final data. */
-    if (!EVP_EncryptFinal_ex(&c_ctx, crypt_buf, &crypt_len))
+    if (!EVP_EncryptFinal_ex(c_ctx, crypt_buf, &crypt_len))
         goto error;
     if (fwrite(crypt_buf, 1, crypt_len, out) < (size_t) crypt_len)
         goto error;
 
     /* Finalize HMAC calculation and write to file. */
-    if (!HMAC_Final(&h_ctx, mac, &mac_len))
+    if (!HMAC_Final(h_ctx, mac, &mac_len))
         goto error;
     if (fwrite(mac, mac_len, 1, out) < 1)
         goto error;
@@ -148,8 +151,8 @@ int mlle_cr_encrypt(FILE* in,
     /* Cleanup. */
 error:
     CLEAR_MLLE_CR_KEY();
-    EVP_CIPHER_CTX_cleanup(&c_ctx);
-    HMAC_CTX_cleanup(&h_ctx);
+    EVP_CIPHER_CTX_free(c_ctx);
+    HMAC_CTX_free(h_ctx);
     free(mac);
     free(iv);
 

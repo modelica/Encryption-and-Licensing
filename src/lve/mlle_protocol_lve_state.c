@@ -18,9 +18,12 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
+
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include "mlle_protocol.h"
 #include "mlle_protocol_lve_state.h"
-#include "mlle_portability.h"
 
 const enum mlle_lve_state
 mlle_lve_valid_command_for_state[MLLE_PROTOCOL_COMMAND_ID_SIZE][MLLE_LVE_STATE_SIZE] = {

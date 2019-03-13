@@ -100,12 +100,12 @@ int ssl_setup_tool(struct mlle_connections **lve, struct mlle_error **error)
         goto cleanup;
     }
 
-    // Connect SSL with read and write BIO.
-    SSL_set_bio(ssl, bioRead, bioWrite );
-
     // Set to non-blocking(1). 0 = blocking.
     BIO_set_nbio(bioWrite, 1);
     BIO_set_nbio(bioRead, 1);
+
+    // Connect SSL with read and write BIO.
+    SSL_set_bio(ssl, bioRead, bioWrite );
 
     // Run new handshakes in the background.
     SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
@@ -145,7 +145,8 @@ int tool_perform_handshake(struct mlle_connections **lve, struct mlle_error **er
     }
 
     // Try to connect with LVE (server).
-    if ( (result = SSL_connect((*lve)->ssl)) <= 0)
+    result = SSL_connect((*lve)->ssl);
+    if (result <= 0)
     {
         // Get reason for handshake error.
         errorCode = SSL_get_error((*lve)->ssl, result);

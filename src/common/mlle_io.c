@@ -13,12 +13,9 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
-// Disable "deprecated" warning.
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #define _XOPEN_SOURCE 700
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,11 +23,14 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include "mlle_protocol.h"
 #include "mlle_error.h"
 #include "mlle_io.h"
 #include "mlle_ssl.h"
-#include "mlle_portability.h"
 
 #ifdef _WIN32
 #define stat _stat
@@ -114,7 +114,7 @@ void mlle_send_simple_form(SSL *ssl,
 /*************************************************
  * Send message of form "<COMMAND> <NUMBER>LN".
  ************************************************/
-void mlle_send_number_form(SSL *ssl,
+int mlle_send_number_form(SSL *ssl,
                       enum mlle_protocol_command_id command_id,
                       long number)
 {
@@ -126,8 +126,9 @@ void mlle_send_number_form(SSL *ssl,
 
     if (result >= 0)
     {
-        ssl_write_message(ssl, output, strlen(output));
+        result = ssl_write_message(ssl, output, strlen(output));
     }
+    return result;
 }
 
 void

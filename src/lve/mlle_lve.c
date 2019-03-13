@@ -13,16 +13,14 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
-// Disable "deprecated" warning.
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #define _XOPEN_SOURCE 700
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include "mlle_error.h"
 #include "mlle_io.h"
 #include "mlle_parse_command.h"
@@ -158,7 +156,7 @@ mlle_lve_handle_command(struct mlle_lve_ctx *lve_ctx,
  *      lve_ctx - I/O and information about the connection.
  * 
  * Returns:
- *		Always 1 even when errors occurs.
+ *        Always 1 even when errors occurs.
  ***********************************************************/
 int mlle_lve_receive(struct mlle_lve_ctx *lve_ctx)
 {
@@ -169,7 +167,7 @@ int mlle_lve_receive(struct mlle_lve_ctx *lve_ctx)
     char error_msg[ERROR_SIZE] = { '\0' };
     char *messageBuffer = NULL;
     char *tokenBuffer = NULL;
-	FILE *fd = NULL;
+    FILE *fd = NULL;
 
     // Validate tools public key to see if it's trusted or not.
     mlle_lve_validate_pubkey(lve_ctx);
@@ -220,7 +218,7 @@ int mlle_lve_receive(struct mlle_lve_ctx *lve_ctx)
         messageBuffer = NULL;
 
         // Keep reading until shutdown signal is received or
-		// ssl_read_message returns LE_EOF (-1).
+        // ssl_read_message returns LE_EOF (-1).
         if (SSL_get_shutdown(lve_ctx->ssl) == 0)
         {
             // Wait for next message.

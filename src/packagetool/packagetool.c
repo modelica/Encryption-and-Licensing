@@ -68,7 +68,7 @@ void doWork(int argc, char **argv)
     // --------------------------------------------
     // Locate the icon file in the source folder.
     // --------------------------------------------
-	success = prepareIconFile();
+    success = prepareIconFile();
     if (!success) { return; }
 
     // -------------------------------------------

@@ -1,3 +1,200 @@
+// Disable "deprecated" warning.
+#ifdef WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include "test_tool.h"
+
+#define N_TEST_FILES 2 
+const char *FACIT_FILES[N_TEST_FILES]         = { "package.mo",  "binary.gif" };
+const char *FILES_NOT_ENCRYPTED[N_TEST_FILES] = { "package.mo",  "binary.gif" };
+const char *FILES_ENCRYPTED[N_TEST_FILES]     = { "package.moc", "binary.gif" };
+
+int main(int argc, char **argv)
+{
+    char lve_name[100] = "lve_not_set" ;
+
+    if(1 == argc){
+        snprintf (lve_name, sizeof(lve_name), "%s", "lve_linux64");
+    } else if (2 == argc) {
+        snprintf(lve_name, sizeof(lve_name), "%s", argv[1]);
+    } else {
+        printf("test_tool: Error: only one argument allowed, the name of the lve to use.\n") ;
+        exit(1) ;
+    }
+
+    printf("#test_tool: Info: using lve: '%s'.\n", lve_name) ;
+
+/*    
+    This test would fail as this test infrastructure
+        - starts an LVE, and non encrypted packages have no LVE
+
+    test_lib(
+        lve_name,
+        N_TEST_FILES,
+        "test_library_not_encrypted", FILES_NOT_ENCRYPTED,
+        "test_facit", FACIT_FILES
+        ) ;
+*/
+
+    test_lib(
+        lve_name,
+        N_TEST_FILES,
+        "test_library", FILES_ENCRYPTED,
+        "test_facit", FACIT_FILES
+        ) ;
+
+    return display_check_statistics();
+}
+
+void test_lib(
+const char * lve_name, 
+int number_of_files,
+const char * library_path, const char **library_files,
+const char * facit_path, const char **facit_files
+)
+{
+    struct mlle_connections *lve = NULL;
+    struct mlle_error *error = NULL;
+
+    char lve_path[1024] ;
+    snprintf(lve_path, sizeof(lve_path), "%s/.library/%s", library_path, lve_name);
+    
+    lve = mlle_start_executable(lve_path, &error);
+        
+    check_mlle(lve != NULL, "connect to  LVE", &error);
+    mlle_error_free(&error);
+
+    if (lve) {
+        int i = -1;
+        char library_cmd[1024];
+
+        check_mlle(mlle_tool_version(lve, 1, 6, &error), "VERSION 1.6", &error);
+        mlle_error_free(&error);
+
+        snprintf(library_cmd, sizeof(library_cmd), "SET LIBRARY PATH ('%s')", library_path);
+        check_mlle(mlle_tool_libpath(lve, library_path, &error), library_cmd, &error);
+        mlle_error_free(&error);
+
+        check_mlle(mlle_tool_feature(lve, "test_licensed_feature", &error), "LICENSED FEATURE", &error);
+        mlle_error_free(&error);
+
+        check_mlle(!mlle_tool_feature(lve, "test_not_licensed_feature", &error), "NOT LICENSED FEATURE", &error);
+        mlle_error_free(&error);
+
+        for (i = 0; i < number_of_files; i++) {
+            get_file_and_compare(library_files[i], facit_files[i], facit_path, lve);
+        }
+
+        mlle_connections_free(&lve);
+        }
+}
+
+void get_file_and_compare(const char* get_file,
+                         const char* correct_file,
+                         const char* lib_path,
+                         struct mlle_connections *lve)
+{
+    struct mlle_error *error = NULL; 
+    struct mlle_file_contents *file = NULL;
+
+    FILE *correct;
+    size_t size_file = 0;
+    size_t size_correct = 0;
+
+    char *file_buf = NULL;
+    char *correct_buf = NULL;
+    char correct_path[PATH_MAX+1];
+
+    int equals;
+    int i = 0;
+
+    char test_name[1000];
+    char test_error[1000];
+
+    snprintf (test_name, sizeof(test_name), "FILE('%s')", get_file);
+
+    file = mlle_tool_file(lve, get_file, &error);
+    check_mlle(file != NULL, test_name, &error);
+    mlle_error_free(&error);
+        
+    if (file) {
+        // Get contents from LVE
+        size_file = mlle_tool_get_file_size(file);
+        file_buf = malloc(size_file);
+        mlle_tool_read_bytes(file, file_buf, size_file);
+        mlle_file_contents_free(&file);
+
+        // Read facit file
+        snprintf(correct_path, PATH_MAX, "%s/%s", lib_path, correct_file);
+        correct = fopen(correct_path, "rb");
+        
+        snprintf (test_error, sizeof(test_error), "Could not open file '%s'", correct_path);
+        snprintf (test_name, sizeof(test_name), "open facit ('%s')", correct_path);
+        check(correct != NULL, test_name, test_error);
+            
+        if (correct == NULL)
+            return;
+
+        fseek(correct, 0, SEEK_END);
+        size_correct = ftell(correct);
+        correct_buf = malloc(size_correct);
+        fseek(correct, 0, SEEK_SET);
+        fread(correct_buf, 1, size_correct, correct);
+        fclose(correct);
+
+        check(size_file == size_correct, "sizes match", "");
+
+        equals = 1;
+        for (i = 0; equals && (size_t) i < size_file; i++) {
+            equals = file_buf[i] == correct_buf[i];
+        }
+
+        check(equals, "identical contents", "");
+
+        free(file_buf);
+        free(correct_buf);
+    }
+}
+
+void check_mlle(int success, char *test_name, struct mlle_error **error)
+{
+    if(NULL != *error)
+        check(success, test_name, mlle_error_get_message(*error));
+    else
+        check(success, test_name, NULL);
+}
+
+static int test_run = 0 ;
+static int test_ok  = 0 ;
+
+void check(int success, char *test_name, char *error)
+{
+    test_run++ ;
+    
+    if(NULL == test_name){
+        test_name = "test not named" ;
+    }
+
+    if (success) {
+        printf("ok %d - %s\n", test_run, test_name);
+        test_ok++;
+    } else if (error) {
+        printf("nok %d - %s\n", test_run, test_name);
+        printf("# %s\n", error);
+    } else {
+        printf("nok %d - %s\n", test_run, test_name);
+        printf("# no error message!\n");
+    }
+}
+
+int display_check_statistics(void)
+{
+    printf("\ntests: %d, ok: %d, fail: %d\n", test_run, test_ok, test_run - test_ok);
+
+    return test_run - test_ok ;    
+}
+
 /*
     Copyright (C) 2015 Modelon AB
 
@@ -13,191 +210,4 @@
     along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 
-// Disable "deprecated" warning.
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 
-#define _XOPEN_SOURCE 700
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <limits.h>
-#include "mlle_licensing.h"
-#include "mlle_portability.h"
-#include "mlle_ssl.h"
-#include "mlle_types.h"
-
-#include <openssl/err.h>
-#include <openssl/rsa.h>
-#include <openssl/x509v3.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-
-
-#define N_TEST_FILES 3
-const char* FILES[N_TEST_FILES] = { "test.mo", "test.moc", "binary.gif" };
-const char* CORRECT_FILES[N_TEST_FILES] = { "test.mo", "test.mo", "binary.gif" };
-
-
-void check(int success,
-           struct mlle_error *error)
-{
-    if (success) {
-        puts("Success!");
-    } else if (error) {
-        puts(mlle_error_get_message(error));
-    } else {
-        puts("Failure without error message!");
-    }
-}
-
-
-void get_file_and_compare(const char* get_file,
-                         const char* correct_file,
-                         const char* lib_path,
-                         struct mlle_connections *lve,
-                         struct mlle_error **error)
-{
-    struct mlle_file_contents *file = NULL;
-    FILE* correct;
-    size_t size_file = 0;
-    size_t size_correct = 0;
-    char *file_buf = NULL;
-    char *correct_buf = NULL;
-    char correct_path[PATH_MAX+1];
-    int equals;
-    int i = 0;
-
-    printf("\nGet file(\"%s\")\n", get_file);
-    file = mlle_tool_file(lve, get_file, error);
-    check(file != NULL, *error);
-    if (file) {
-        // Read contents from LVE
-        size_file = mlle_tool_get_file_size(file);
-        file_buf = malloc(size_file);
-        mlle_tool_read_bytes(file, file_buf, size_file);
-        mlle_file_contents_free(&file);
-
-        // Read correct file
-        snprintf(correct_path, PATH_MAX, "%s/%s", lib_path, correct_file);
-        correct = fopen(correct_path, "rb");
-        if (correct == NULL) {
-            printf("Could not open file \"%s\" for comparison.\n", correct_path);
-            return;
-        }
-        fseek(correct, 0, SEEK_END);
-        size_correct = ftell(correct);
-        correct_buf = malloc(size_correct);
-        fseek(correct, 0, SEEK_SET);
-        fread(correct_buf, 1, size_correct, correct);
-        fclose(correct);
-
-        // Compare contents
-        // TODO: more info on errors
-        equals = size_file == size_correct;
-        for (i = 0; equals && (size_t) i < size_file; i++) {
-            equals = file_buf[i] == correct_buf[i];
-        }
-        if (equals) {
-            puts("File contents match.\n");
-        } else {
-            puts("Failure: file contents do not match!\n");
-        }
-
-        free(file_buf);
-        free(correct_buf);
-    }
-    mlle_error_free(error);
-}
-
-
-// Try to run the commands using the methods in licensing.
-int tool_run_command_methods(struct mlle_connections *lve,
-        struct mlle_error **error)
-{
-    int success = 0;
-    int i = 0;
-    char *buf = NULL;
-    struct mlle_file_contents *file = NULL;
-    size_t size = 0;
-    size_t noOfBytes = 0;
-    char libPath[1024] = {'\0'};
-	
-	//FILE *fp = NULL;
-
-
-    if (getcwd(libPath, sizeof(libPath) - 10) != NULL)
-    {
-        strcat(libPath, "/testfiles");
-    }
-   
-
-    // -----------------------------
-    // Send command VERSION to LVE.
-    // -----------------------------
-    printf("\nSend command VERSION.\n");
-    success = mlle_tool_version(lve, 1, 6, error);
-    check(success, *error);
-    mlle_error_free(error);
-
-    // -------------------------
-    // Send command LIB to LVE.
-    // -------------------------
-    printf("\nSend command LIB.\n");
-    success = mlle_tool_libpath(lve, libPath, error);
-    check(success, *error);
-    mlle_error_free(error);
-
-    // -----------------------------
-    // Send command FEATURE to LVE.
-    // -----------------------------
-    printf("\nSend command FEATURE.\n");
-    success = mlle_tool_feature(lve, "is_licensed", error);
-    check(success, *error);
-    mlle_error_free(error);
-   
-	
-    // ---------------------------
-    // Retrieve files from LVE
-    // ---------------------------
-    for (i = 0; i < N_TEST_FILES; i++) {
-        get_file_and_compare(FILES[i], CORRECT_FILES[i], libPath, lve, error);
-    }
-
-
-    // -----------------------------------
-    // Send command FEATURE again to LVE.
-    // -----------------------------------
-    printf("\nSend command FEATURE.\n");
-    success = mlle_tool_feature(lve, "MATLAB", error);
-    check(success, *error);
-    mlle_error_free(error);
-
-
-    return 1;
-}
-
-int
-main(void)
-{
-    struct mlle_connections *lve = NULL;
-    struct mlle_error *error = NULL;
-	
-    // Startup LVE, setup SSL and start communication.
-    puts("mlle_start_executable()");
-    lve = mlle_start_executable("./lve", &error);
-    check(lve != NULL, error);
-    mlle_error_free(&error);
-
-    if (lve) {
-        // Start sending commands to LVE.
-        tool_run_command_methods(lve, &error);
-
-        // Close connections.
-        mlle_connections_free(&lve);
-    }
-
-    return 0;
-}

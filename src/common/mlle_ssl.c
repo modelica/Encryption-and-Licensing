@@ -15,21 +15,25 @@
 
 // Disable "deprecated" warning.
 #ifdef WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "mlle_lve.h"
-#include "mlle_ssl.h"
-#include "mlle_error.h"
+/* libcrypto-compat.h must be first */
+#include "libcrypto-compat.h"
+
 #include <openssl/ossl_typ.h>
 #include <openssl/asn1t.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <openssl/x509v3.h>
 
-#include "mlle_portability.h"
+#include "mlle_lve.h"
+#include "mlle_ssl.h"
+#include "mlle_error.h"
 
 /*****************************
  * Initiate the SSL library.
@@ -37,8 +41,10 @@
 void init_ssl()
 {
     // Initiate SSL library.
-    SSL_load_error_strings();
     SSL_library_init();
+    SSL_load_error_strings();
+    ERR_load_crypto_strings();
+    OpenSSL_add_all_algorithms(); 
 }
 
 
@@ -196,7 +202,7 @@ X509 *generate_X509(RSA *rsa)
 {
     X509 *x509 = NULL;
     EVP_PKEY * pkey = NULL;
-    X509_NAME *name = NULL;
+    X509_NAME * name = NULL;
 
     // Validate input.
     if (rsa == NULL)
@@ -258,18 +264,19 @@ int ssl_write_message(SSL *ssl, char *message, size_t len)
 
     while ((bytes = SSL_write(ssl, message, len)) < 0)
     {
-        errorCode = SSL_get_error(ssl, bytes);
+        errorCode = SSL_get_error(ssl, bytes);        
 
         // If we get a SSL_ERROR_WANT_WRITE error then the
         // write operation must be repeated with the same arguments.
-        if (errorCode != SSL_ERROR_WANT_WRITE)
+        if (errorCode != SSL_ERROR_WANT_WRITE) {
+            ssl_get_error_string(errorCode, error, SSL_ERROR_BUF_LEN);
             break;
+        }
     }
 
     // If write is successful we get number of bytes written as result.
     if (bytes <= 0)
     {
-        ssl_get_error_string(errorCode, error, SSL_ERROR_BUF_LEN);
         return -1;
     }
 
@@ -303,8 +310,8 @@ int ssl_read_message(SSL *ssl, char **messageBuffer)
     int bufferLen = 0;
     char tmpBuffer[MSG_SIZE] = {0};
     int totalBytesRead = 0;
-	int errorResult = 0;
-	
+    int errorResult = 0;
+    
     while(keepReading)
     {
         // Read data. Number of bytes read is returned.

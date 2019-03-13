@@ -15,8 +15,12 @@
 
 // Disable "deprecated" warning.
 #ifdef WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#endif
+
+#include "mlle_portability.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -27,7 +31,6 @@
 #include <ctype.h>
 
 #include "obfuscate_utils.h"
-#include "mlle_portability.h"
 
 /***********************************
  * Open a file or exit on error.
@@ -63,14 +66,25 @@ FILE* open_or_exit(const char* fname, const char* mode)
  ***************************************************/
 void create_header_file(char* name, key_type type, unsigned char *data, size_t len, char *filename)
 {
-    size_t i = 0;
+    size_t i = 0, j = 0;
     FILE *out = NULL;
 
-    out = open_or_exit(filename, "w");
+    /* Remove \r from the string to support windows generated pem files */
+    for (; i < len; ++i) {
+        if (data[i] == '\r')
+            continue;
+        if (i != j)
+            data[j] = data[i];
+        ++j;
+    }
+    if (j < len)
+        data[j] = 0;
+
+    out = open_or_exit(filename, "wb");
 
     fprintf(out, "#define DECLARE_%s() unsigned char %s[" SIZE_T_FORMAT "]\n", name, name, len + 1);
 
-    fprintf(out, "#define %s_LEN (%d)\n", name, len);
+    fprintf(out, "#define %s_LEN (%d)\n", name, j);
 
     fprintf(out, "#define INITIALIZE_%s() do { ", name, name);
     write_initialize_key_macro_body(out, type, name, data, len);

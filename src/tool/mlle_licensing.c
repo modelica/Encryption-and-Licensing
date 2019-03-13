@@ -204,7 +204,10 @@ int mlle_tool_version(const struct mlle_connections *connections,
     struct mlle_command command = { 0 };
     long protocol_version = -1;
 
-    mlle_send_number_form(connections->ssl, MLLE_PROTOCOL_VERSION_CMD, max_protocol_version);
+    if (mlle_send_number_form(connections->ssl, MLLE_PROTOCOL_VERSION_CMD, 
+        max_protocol_version) < 0) {
+        return 0;
+    }
     if (!mlle_expect_command(connections->ssl, MLLE_PROTOCOL_VERSION_CMD, &command, error)) {
                 return 0;
     }

@@ -50,7 +50,7 @@ void
 mlle_send_simple_form(SSL *ssl,
                       enum mlle_protocol_command_id command_id);
 
-void
+int
 mlle_send_number_form(SSL *ssl,
                       enum mlle_protocol_command_id command_id,
                       long number);

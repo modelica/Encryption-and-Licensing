@@ -42,7 +42,15 @@
 // Zip.
 #include "../../ThirdParty/miniz/miniz.c"
 
+#ifdef WIN32
+    #define __func__ __FUNCTION__
+#endif
 
+#ifdef DEBUG
+    #define _DEBUG 1
+#else
+    #define _DEBUG 1
+#endif
 
 // ------------------------------------
 // These are the LVE's currently used.
@@ -64,11 +72,15 @@ char *dotLibraryPath = NULL;
 // -----------------------
 char *pathToIcon = NULL;
 
+// -----------------------
+// Path to the temporary staging folder
+// -----------------------
+char *tempStagingFolder = NULL;
 
-// ------------------------------------
-// Path to the copied source directory.
-// ------------------------------------
-char* pathToCopiedSource = NULL;
+// -----------------------
+// Path to the source folder
+// ----
+char *sourcePathFolder = NULL;
 
 
 /*************************
@@ -88,12 +100,12 @@ void cleanUp()
     }
     free(lveList);
     free(pathToIcon);
-    free(pathToCopiedSource);
+    free(tempStagingFolder);
+    free(sourcePathFolder);
 
     dotLibraryPath = NULL;
     lveList = NULL;
     pathToIcon = NULL;
-    pathToCopiedSource = NULL;
 }
 
 /********************************************
@@ -123,6 +135,78 @@ char *getIconPath()
 }
 
 
+#ifdef WIN32
+static void generateRandomString(char *container, int startNdx,  int len) {
+    int i;
+    static const char possibilities[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789";
+
+    // seed random
+    srand((unsigned int) time(0));
+
+    for (i = 0; i < len; ++i) {
+        container[startNdx + i] = possibilities[rand() % (sizeof(possibilities) - 1)];
+    }
+
+    container[startNdx + len] = '\0';
+}
+
+static char* getTempDirWin32() {
+    char path[MAX_PATH_LENGTH + 1];
+    int pathLength;
+
+    if (tempStagingFolder != NULL) {
+        return tempStagingFolder;
+    }
+
+    DEBUG_PRINT("%s, Generating temp folder\n", __func__);
+
+    if (GetTempPathA(MAX_PATH_LENGTH, path) == 0) {
+        printf("%s, Failed to fetch temp path\n", __func__);
+    } else {
+        pathLength = strlen(path);
+        generateRandomString(path, pathLength, 10);
+        pathLength = strlen(path);
+        tempStagingFolder = strdup(path);
+        DEBUG_PRINT("%s, tempStagingFolder = %s\n", __func__, tempStagingFolder);
+    }
+
+    return tempStagingFolder;
+}
+#else
+static char* getTempDirLinux() {
+    char TEMP_DIR_TEMPLATE[]  = "/tmp/TemporaryFolderXXXXXX";
+
+    if (tempStagingFolder == NULL) {
+        tempStagingFolder = strdup(mkdtemp(TEMP_DIR_TEMPLATE));
+        DEBUG_PRINT("%s, tempStagingFolder = %s\n", __func__, tempStagingFolder);
+    }
+
+    return tempStagingFolder;
+}
+#endif
+
+
+/************************************
+ * Get the temporary staging directory.
+ * The first call to this function will generate a random
+ * folder, the location of this folder is platform specific.
+ * The following calls will return a pointer to this folder.
+ ***********************************/
+static char* getTempStagingDirectory() {
+    if (tempStagingFolder != NULL) {
+        return tempStagingFolder;
+    }
+
+#ifdef WIN32
+    return getTempDirWin32();
+#else
+    return getTempDirLinux();
+#endif
+}
+
 
 /****************************************
  * Returns path to the folder where the
@@ -130,7 +214,19 @@ char *getIconPath()
  ***************************************/
 char *getCopiedSourcePath()
 {
-    return pathToCopiedSource;
+    size_t size;
+
+    if (sourcePathFolder == NULL) {
+        size = strlen(getTempStagingDirectory()) + 1 + strlen(getLibraryName()) + 1;
+        sourcePathFolder = malloc(size);
+#ifdef _WIN32
+        _snprintf(sourcePathFolder, size, "%s\\%s", getTempStagingDirectory(), getLibraryName());
+#else
+        snprintf(sourcePathFolder, size, "%s/%s", getTempStagingDirectory(), getLibraryName());
+#endif
+    }
+
+    return sourcePathFolder;
 }
 
 
@@ -331,6 +427,8 @@ int createLibraryFolder()
 
     copied_src_path = getCopiedSourcePath();
     dot_lib_path_len = strlen(copied_src_path) + MAX_STRING;
+
+    DEBUG_PRINT("## copied_src_path: %s\n", copied_src_path);
     if ( (dotLibraryPath = malloc(dot_lib_path_len)) == NULL)
     {
         printf("Error: Failed to allocate space for .library path.\n");
@@ -408,8 +506,8 @@ int copyLVE()
         printf("Failed to allocate space for copied files.\n");
         return 0;
     }
-    
-    // Path to where executable is running from.
+
+	// Path to where executable is running from.
     dir_path = getExecutableDirectory();
     if (dir_path == NULL)
     {
@@ -444,8 +542,9 @@ int copyLVE()
 
         free(path);
     }
+
     free(dir_path);
-    
+
     return 1;
 }
 
@@ -464,7 +563,7 @@ int copyFile(char *filename, char *pathFrom)
     FILE *fdRead,*fdWrite;
     size_t readBytes = 0;
     size_t writeBytes = 0;
-        
+
     // Copy to.
     path_len = strlen(getDotLibraryPath()) + strlen(filename) + 2;
     pathTo = malloc(path_len);
@@ -587,42 +686,38 @@ int locateIconFile()
 /*************************************
  * Delete the copied source folder.
  ************************************/
-int deleteCopiedSourceFolder()
+int deleteTemporaryStagingFolder()
 {
-    char *command = malloc(MAX_PATH_LENGTH);
+    char command[MAX_PATH_LENGTH];
 
     // Don't do anyting if directory doesn't exist,
-    if (!fileExists(getCopiedSourcePath()))
+    if (!fileExists(getTempStagingDirectory()))
     {
         return 1;
     }
 
 #ifdef WIN32
-    if (_snprintf(command, MAX_PATH_LENGTH, "rmdir /s /q %s", getCopiedSourcePath()) == -1)
+    if (_snprintf(command, MAX_PATH_LENGTH, "rmdir /s /q %s", getTempStagingDirectory()) == -1)
     {
-        free(command);
         printf("Filepath too long. Can't delete temporary folder.\n");
         return 0;
     }
     else
     {
         system(command);
-        free(command);
     }
 #else
-    if (snprintf(command, MAX_PATH_LENGTH, "rm -r %s", getCopiedSourcePath()) >= MAX_PATH_LENGTH)
+    if (snprintf(command, MAX_PATH_LENGTH, "rm -r %s", getTempStagingDirectory()) >= MAX_PATH_LENGTH)
     {
-        free(command);
         printf("Filepath too long. Can't delete temporary folder.\n");
         return 0;
     }
     else
     {
         if (system(command) == -1)
-    {
-        printf("Could not delete temporary folder.\n"); 
-    }
-        free(command);
+        {
+            printf("Could not delete temporary folder.\n");
+        }
     }
 #endif
 
@@ -848,7 +943,7 @@ char *extractFilename(char *path)
         name = tmp;
     }
 #endif
-    
+
     if (name != NULL) {
         ++name;
     } else {
@@ -868,13 +963,13 @@ char *extractPath(char *pathAndFilename)
     char *ptr2 = NULL;
     char *result = NULL;
     size_t len = 0;
-    
+
     // Safety check.
     if (!pathAndFilename)
     {
         return NULL;
     }
-    
+
     ptr2 = pathAndFilename;
 
 #ifdef WIN32
@@ -1053,9 +1148,9 @@ int createZipArchive()
     }
 
 #ifdef WIN32
-    zipDirectoryWin32(getCopiedSourcePath(), archivename, encrypted);
+    zipDirectoryWin32(getTempStagingDirectory(), archivename, encrypted);
 #else
-    zipDirectoryLinux(getCopiedSourcePath(), archivename, encrypted);
+    zipDirectoryLinux(getTempStagingDirectory(), archivename, encrypted);
 #endif
 
     return 1;
@@ -1079,7 +1174,7 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
     size_t bytes = 0;
     int index = 0;
     char *comment = "Modelica_archive";
-    long buffertSize = 0;
+    unsigned long buffertSize = 0;
     char zipPath[MAX_PATH_LENGTH] = {'\0'};
 
     // Find all.
@@ -1152,7 +1247,7 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
                     // Remove the tmp path.
                     removeTmpFolderName(searchPath, zipPath, MAX_PATH_LENGTH);
 
-                    // On Windows we must change backward slash to forward slash 
+                    // On Windows we must change backward slash to forward slash
                     // otherwise the zip library fails to add the file.
                     for (index = 0; index <= (signed)strlen(zipPath); ++index)
                     {
@@ -1230,7 +1325,7 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
                  }
 
                 //printf("zip: searchpath: %s\n", searchPath);
- 
+
                  // Have we found a folder?
                  if(dir->d_type == DT_DIR)
                  {
@@ -1348,7 +1443,7 @@ int cleanUpIconPath()
     ptr2 = strchr(ptr1, '\\');
 
     // replace '\\' with '/' according to spec
-    while (ptr2[i]) {    
+    while (ptr2[i]) {
      if (ptr2[i] == '\\') {
          ptr2[i] = '/';
      }
@@ -1386,23 +1481,14 @@ int removeTmpFolderName(char *searchPath, char *zipPath, size_t zipPathLen)
     char *tmpDir = NULL;
     char *ptr = NULL;
 
-    // Get the tmp string.
-#ifdef WIN32
-    tmpDir = getenv("TEMP");
-#else
-    tmpDir = getenv("TMPDIR");
-    if (tmpDir == NULL)
-    {
-        tmpDir = "/tmp";
-    }
-#endif
+    tmpDir = getTempStagingDirectory();
 
-    // Clear the array. 
+    // Clear the array.
     memset(&zipPath[0], 0, strlen(zipPath));
 
     ptr = searchPath;
     ptr += strlen(tmpDir) + 1;
-    
+
     if (ptr && *ptr)
     {
         snprintf(zipPath, zipPathLen, "%s", ptr);
@@ -1424,105 +1510,123 @@ int usingEncryption()
     return (containsKey(ARGUMENT_ENCRYPT) && (strcmp(stringToLower(value), "true") == 0));
 }
 
+int createStagingFolder() {
+    int status = 0;
+
+    // Create folder path.
+    #ifdef WIN32
+        // Make sure any previous source folder structure is removed.
+        if (!deleteTemporaryStagingFolder())
+        {
+            printf("Error: couldn't remove old temprary folder at %s\n", getCopiedSourcePath());
+            status =  -1;
+            goto out;
+        }
+
+        // Create our generated temp folder
+        if (_mkdir(getTempStagingDirectory()))
+        {
+            printf("Failed to create temporary folder. Abort.\n");
+            free(getCopiedSourcePath());
+            status = -1;
+            goto out;
+        }
+
+        // Create our  source folder and then our subfolder.
+        if (_mkdir(getCopiedSourcePath()))
+        {
+            printf("Failed to create source folder. Abort.\n");
+            free(getCopiedSourcePath());
+            status = -1;
+            goto out;
+        }
+
+    #else
+        // Make sure any previous source folder structure is removed.
+        if (!deleteTemporaryStagingFolder())
+        {
+            printf("Error: couldn't remove old temprary folder at %s\n", getCopiedSourcePath());
+            status = -1;
+            goto out;
+        }
+
+        // Create folder with read/write/search permission for owner and group
+        // and read/search permissions for others.
+        if (mkdir(getTempStagingDirectory(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
+        {
+            printf("Failed to create temporary staging folder. Abort.\n");
+            free(getCopiedSourcePath());
+            status = -1;
+            goto out;
+        }
+
+        // Create folder with read/write/search permission for owner and group
+        // and read/search permissions for others.
+        if (mkdir(getCopiedSourcePath(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
+        {
+            printf("Failed to create source folder. Abort.\n");
+            free(getCopiedSourcePath());
+            status = -1;
+            goto out;
+        }
+    #endif
+
+out:
+    return status;
+}
+
+int stageFiles(char *copyFromPath , char *copyToPath )
+{
+    #ifdef WIN32
+        // Copy files and folders to temporary folder on Windows.
+        return (copyDirectoryWin32(copyFromPath, copyToPath));
+    #else
+        // Copy files and folders to temporary folder on Linux
+        return (copyDirectoryLinux(copyFromPath, copyToPath));
+    #endif
+}
+
 
 /***********************************************************************
  * Creates a copy of the folder structure we are making a container of.
  **********************************************************************/
 int copyFolderStructure()
 {
-    char *tempDir = NULL;
-    char *folderName = NULL;
-    char *copyFromPath = NULL;
-    size_t size = 0;
+    char  *copyFromPath = NULL;
+    int    status       = 1;
 
-#ifdef WIN32
-    tempDir = getenv("TEMP");
-#else
-    tempDir = getenv("TMPDIR");
-    if (tempDir == NULL)
+    if (getTempStagingDirectory() == NULL)
     {
-        tempDir = "/tmp";
-    }
-#endif
-
-    if (tempDir == NULL)
-    {
-        printf("Unable to find environment variable for temporary folder. Abort!");
-        return 0;
+        printf("Unable to create temporary folder. Abort!");
+        status = 0;
+        goto out;
     }
 
-    // Get name of top folder.
-    folderName = getLibraryName();
-
-    size = strlen(tempDir) + 1 + strlen(folderName) + 1;
-
-    // Create path to top folder.
-    pathToCopiedSource = malloc(size);
-
-
-    // Create folder path.
-#ifdef WIN32
-    if (_snprintf(getCopiedSourcePath(), size, "%s\\%s", tempDir, folderName) == -1)
+    if (createStagingFolder())
     {
-        printf("Folderpath to large. Can't copy source folder. Abort!");
-        free(pathToCopiedSource);
-        return 0;
+        printf("Failed to create staging folder\n");
+        status = 0;
+        goto out;
     }
 
-    // Make sure any previous source folder structure is removed.
-    if (!deleteCopiedSourceFolder())
-    {
-        printf("Error: couldn't remove old temprary folder at %s\n", getCopiedSourcePath());
-        return 0;
-    }
-
-    // Create top folder.
-    if (_mkdir(getCopiedSourcePath()) < -1)
-    {
-        printf("Failed to create temporary folder. Abort.\n");
-        free(pathToCopiedSource);
-        return 0;
-    }
-#else
-
-    if (snprintf(getCopiedSourcePath(), size, "%s/%s", tempDir, folderName) > size)
-    {
-        printf("Folderpath to large. Can't copy source folder. Abort!");
-        free(pathToCopiedSource);
-        return 0;
-    }
-
-    // Make sure any previous source folder structure is removed.
-    if (!deleteCopiedSourceFolder())
-    {
-        printf("Error: couldn't remove old temprary folder at %s\n", getCopiedSourcePath());
-        return 0;
-    }
-
-    // Create folder with read/write/search permission for owner and group
-    // and read/search permissions for others.
-    if (mkdir(getCopiedSourcePath(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
-    {
-        printf("Failed to create temporary folder. Abort.\n");
-        free(pathToCopiedSource);
-        return 0;
-    }
-#endif
-
-   
     // Get path to source folder where we will copy files from.
     if ( (copyFromPath = getValueOf("librarypath")) == NULL)
     {
-        return 0;
+        printf("Fail to get librarypath\n");
+        status = 0;
+        goto out;
     }
 
-#ifdef WIN32 
-    // Copy files and folders to temporary folder on Windows.
-    return (copyDirectoryWin32(copyFromPath, getCopiedSourcePath()));
-#else
-    // Copy files and folders to temporary folder on Linux
-    return (copyDirectoryLinux(copyFromPath, getCopiedSourcePath()));
-#endif
+    if (!stageFiles(copyFromPath, getCopiedSourcePath()))
+    {
+        printf("Failed to perform staging of files\n");
+        status = 0;
+        goto out;
+    }
+
+out:
+    return status;
+
 }
 
 

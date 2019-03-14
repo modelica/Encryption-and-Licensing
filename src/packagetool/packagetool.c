@@ -98,7 +98,7 @@ void doWork(int argc, char **argv)
     // -------------------------------------
     // Delete the temporary source folder.
     // -------------------------------------
-    success = deleteCopiedSourceFolder();
+    success = deleteTemporaryStagingFolder();
     if (!success) {return; }
 
     if (success)

@@ -509,6 +509,12 @@ add_custom_command(
 # --------------------
 # TESTING
 # --------------------
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/package.mo ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/binary.gif 
+	DESTINATION  ${CMAKE_CURRENT_BINARY_DIR}/test_facit)
+	
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.mk 
+	DESTINATION  ${CMAKE_CURRENT_BINARY_DIR})
+	
 ENABLE_TESTING()
 
 #add_test(

@@ -25,7 +25,16 @@
 
 typedef enum {FIND_FILE = 0, ENCRYPT_FILE, DELETE_FILE} FileMode;
 
-#define DEBUG_PRINT(...) fprintf( stderr, __VA_ARGS__)
+#if defined(DEBUG) || defined(_DEBUG)
+    #define DEBUG_PRINT(...) fprintf( stderr, __VA_ARGS__)
+#else
+    #define DEBUG_PRINT(...)
+#endif
+
+#if defined(WIN32) && !defined(__func__)
+    #define __func__ __FUNCTION__
+#endif
+
 
 /*************************
  * Free allocated space.

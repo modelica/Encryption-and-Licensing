@@ -42,15 +42,6 @@
 // Zip.
 #include "../../ThirdParty/miniz/miniz.c"
 
-#ifdef WIN32
-    #define __func__ __FUNCTION__
-#endif
-
-#ifdef DEBUG
-    #define _DEBUG 1
-#else
-    #define _DEBUG 1
-#endif
 
 // ------------------------------------
 // These are the LVE's currently used.
@@ -597,7 +588,6 @@ int copyFile(char *filename, char *pathFrom)
 }
 
 
-
 /***************************************
  * Check if a file or directory exists.
  ***************************/
@@ -682,47 +672,168 @@ int locateIconFile()
 }
 
 
+#ifdef WIN32
+static int removeFolderWindows(const char *path) {
+    char searchPath[MAX_PATH_LENGTH + 1];
+    errno_t err;
+    HANDLE hFind            = NULL;
+    int status              = 0;
+    WIN32_FIND_DATA fdFile;
+
+    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\*.*", path);
+
+    // Try to find file in top-level directory.
+    if((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE)
+    {
+        printf("Traverse directory failed.\n");
+        return 0;
+    }
+
+    do
+    {
+        // The first two directories are always "." and "..".
+        if(strcmp(fdFile.cFileName, ".") != 0
+                && strcmp(fdFile.cFileName, "..") != 0)
+        {
+            // Build up our file path using the passed in
+            // [path] and the file/foldername we just found:
+            snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\%s", path, fdFile.cFileName);
+
+            DEBUG_PRINT("%s: investigating path: %s\n", __func__, searchPath);
+
+            if(fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                DEBUG_PRINT("%s: calling recursively %s\n", __func__, searchPath);
+
+                // Use recursive to remove sub folder.
+                status = removeFolderWindows(searchPath);
+                DEBUG_PRINT("%s: recursive remove for %s, status:  %d\n", __func__, searchPath, status);
+            }
+            else if(fdFile.dwFileAttributes)
+            {
+                status = remove(searchPath);
+                DEBUG_PRINT("%s: removed file: %s, status: %d\n", __func__, searchPath, status);
+            }
+        }
+
+    } while(FindNextFile(hFind, &fdFile) && !status); //Find the next file
+
+    FindClose(hFind);
+
+    // if no error were found we remove starting path
+    if (!status) {
+        status = _rmdir(path);
+        DEBUG_PRINT("%s: All files and subfolders removed from: %s, status: %d\n", __func__, path, status);
+    }
+
+    if (status) {
+        _get_errno( &err );
+        DEBUG_PRINT( "%s: errno = %s\n", __func__, strerror(err) );
+    }
+
+    DEBUG_PRINT("%s: Done with %s, status: %d\n", __func__, path, status);
+    return status;
+}
+
+#else
+static int removeFolderLinux(const char *path) {
+    int status      = 0;
+    DIR *dir        = opendir(path);
+    size_t pathLen = strlen(path);
+    char *newPath;
+    size_t len;
+    struct dirent *dirEntry;
+    struct stat statbuf;
+
+    if (!dir)
+    {
+        printf("%s: Failed to open dir\n", __func__);
+        goto out;
+    }
+
+    while (!status && (dirEntry = readdir(dir)) != NULL)
+    {
+
+        DEBUG_PRINT("%s: Reading entry: %s, entryName: %s\n", __func__, path, dirEntry->d_name);
+
+        /* Skip the names "." and ".." as we don't want to recurse on them. */
+        if (!strcmp(dirEntry->d_name, ".") || !strcmp(dirEntry->d_name, ".."))
+        {
+            continue;
+        }
+
+        len = pathLen + strlen(dirEntry->d_name) + 2;
+        newPath = malloc(len);
+
+        if (!newPath)
+        {
+            printf("%s: Failed to allocate memory for buffer\n", __func__);
+            status = -1;
+            goto out;
+        }
+
+        snprintf(newPath, len, "%s/%s", path, dirEntry->d_name);
+        status = stat(newPath, &statbuf);
+
+        if (status)
+        {
+            printf("%s: Failed to stat on path: %d\n", __func__, status);
+            status = -1;
+            goto out;
+        }
+
+        if (S_ISDIR(statbuf.st_mode))
+        {
+            status = removeFolderLinux(newPath);
+        }
+        else
+        {
+            status = unlink(newPath);
+        }
+
+        free(newPath);
+    }
+
+    closedir(dir);
+
+
+out:
+   if (dir && !status)
+   {
+      status = rmdir(path);
+   }
+
+   return status;
+}
+#endif
+
+int removeFolder(const char *path) {
+    int status = 0;
+
+#ifdef WIN32
+    status = removeFolderWindows(path);
+#else
+    status = removeFolderLinux(path);
+#endif
+
+    return status;
+}
+
 
 /*************************************
  * Delete the copied source folder.
  ************************************/
 int deleteTemporaryStagingFolder()
 {
-    char command[MAX_PATH_LENGTH];
-
     // Don't do anyting if directory doesn't exist,
     if (!fileExists(getTempStagingDirectory()))
     {
         return 1;
     }
 
-#ifdef WIN32
-    if (_snprintf(command, MAX_PATH_LENGTH, "rmdir /s /q %s", getTempStagingDirectory()) == -1)
-    {
-        printf("Filepath too long. Can't delete temporary folder.\n");
-        return 0;
-    }
-    else
-    {
-        system(command);
-    }
-#else
-    if (snprintf(command, MAX_PATH_LENGTH, "rm -r %s", getTempStagingDirectory()) >= MAX_PATH_LENGTH)
-    {
-        printf("Filepath too long. Can't delete temporary folder.\n");
-        return 0;
-    }
-    else
-    {
-        if (system(command) == -1)
-        {
-            printf("Could not delete temporary folder.\n");
-        }
-    }
-#endif
-
-    return 1;
+    return !removeFolder(getTempStagingDirectory());
 }
+
 
 
 /************************************************************
@@ -994,7 +1105,6 @@ char *extractPath(char *pathAndFilename)
 
     return result;
 }
-
 
 /*******************************************************
  * Check if a file is a Modelica file (extension .mo).
@@ -1543,9 +1653,9 @@ int createStagingFolder() {
 
     #else
         // Make sure any previous source folder structure is removed.
-        if (!deleteTemporaryStagingFolder())
+        /*if (!deleteTemporaryStagingFolder())
         {
-            printf("Error: couldn't remove old temprary folder at %s\n", getCopiedSourcePath());
+            printf("Error: couldn't remove old temporary folder at %s\n", getCopiedSourcePath());
             status = -1;
             goto out;
         }
@@ -1558,7 +1668,7 @@ int createStagingFolder() {
             free(getCopiedSourcePath());
             status = -1;
             goto out;
-        }
+        }*/
 
         // Create folder with read/write/search permission for owner and group
         // and read/search permissions for others.

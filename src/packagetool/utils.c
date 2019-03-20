@@ -445,6 +445,18 @@ int createLibraryFolder()
 }
 
 
+#ifndef WIN32
+/*****************************************
+ * Copy file permissions from file.
+ ****************************************/
+static void linuxCopyFilePermissions(const char* fromFile, const char* toFile) {
+    struct stat tmp;
+    stat(fromFile, &tmp);
+    chmod(toFile, tmp.st_mode);
+}
+#endif
+
+
 /*****************************************
  * Create array to add copied file names.
  ****************************************/
@@ -583,6 +595,11 @@ int copyFile(char *filename, char *pathFrom)
    // Cleanup.
    fclose(fdRead);
    fclose(fdWrite);
+
+#ifndef WIN32
+    // if we are on linux machine we make sure that we copy file permissions
+    linuxCopyFilePermissions(pathFrom, pathTo);
+#endif
 
    return 1;
 }

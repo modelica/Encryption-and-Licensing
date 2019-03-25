@@ -15,14 +15,22 @@
 cmake_minimum_required(VERSION 2.8)
 project(MLLECr)
 
-# Create source file for encryption key for Modelica files.
-set(ENCRYPTION_KEY_H "${MLLE_BINARY_DIR}/random_key_file.h")
-add_custom_command(
-    OUTPUT "${ENCRYPTION_KEY_H}"
-    COMMAND randomize_key "${ENCRYPTION_KEY_H}" MLLE_CR_KEY
-    DEPENDS randomize_key openssl
-    )
-
+set(ENCRYPTION_KEY_H ${RANDOM_KEY_SOURCE_DIRECTORY}/random_key_file.h)
+if(EXISTS "${ENCRYPTION_KEY_H}")
+	message("Encryption key ${ENCRYPTION_KEY_H} exists. Using it.")
+elseif(EXISTS "${MLLE_BINARY_DIR}/random_key_file.h")
+	set(ENCRYPTION_KEY_H ${MLLE_BINARY_DIR}/random_key_file.h)
+    message("Encryption key ${ENCRYPTION_KEY_H} exist in build directory. Using it.")
+else()
+	message("Could not find Encryption key ${ENCRYPTION_KEY_H} or ${MLLE_BINARY_DIR}/random_key_file.h, regenerating")
+	# Create source file for encryption key for Modelica files.
+	set(ENCRYPTION_KEY_H "${MLLE_BINARY_DIR}/random_key_file.h")
+	add_custom_command(
+		OUTPUT "${ENCRYPTION_KEY_H}"
+		COMMAND randomize_key "${ENCRYPTION_KEY_H}" MLLE_CR_KEY
+		DEPENDS randomize_key openssl
+		)
+endif()
 
 # Add all required source files to library "license_manager"
 add_library(decryptor 

@@ -17,7 +17,7 @@ project(MLLECr)
 
 set(ENCRYPTION_KEY_H "${MLLE_BINARY_DIR}/random_key_file.h")
 if(EXISTS ${RANDOM_KEY_DIRECTORY}/random_key_file.h)
-	message("Encryption key ${ENCRYPTION_KEY_H} exists. making local copy to build dir")
+	message("Encryption key ${RANDOM_KEY_DIRECTORY}/random_key_file.h exists, making local copy to build dir")
 	add_custom_command(
 		OUTPUT "${ENCRYPTION_KEY_H}"
 		COMMAND "${CMAKE_COMMAND}" -E remove -f ${MLLE_BINARY_DIR}/random_key_file.h

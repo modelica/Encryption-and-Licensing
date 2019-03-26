@@ -133,10 +133,10 @@ if(WIN32)
     ExternalProject_Add(openssl
         PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl
         URL ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.0.2
-        BUILD_IN_SOURCE 1 
-        CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl 
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl
         COMMAND ${openssl_conf_extra}
-        BUILD_COMMAND ${openssl_make} 
+        BUILD_COMMAND ${openssl_make}
         INSTALL_COMMAND ${openssl_make} install
         )
     else()
@@ -144,10 +144,10 @@ if(WIN32)
     ExternalProject_Add(openssl
         PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl
         URL ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1a
-        BUILD_IN_SOURCE 1 
-        CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl 
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl
         COMMAND ${openssl_conf_extra}
-        BUILD_COMMAND ${openssl_make} 
+        BUILD_COMMAND ${openssl_make}
         INSTALL_COMMAND ${openssl_make} install
     )
     endif()
@@ -158,7 +158,7 @@ if(WIN32)
     set_property(TARGET crypto PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_crypto_lib})
     add_dependencies(ssl openssl)
     add_dependencies(crypto openssl)
-    
+
     set(ssl_libs ssl crypto)
 
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/openssl/include )
@@ -173,32 +173,32 @@ endif()
 
 # Libraries
 message(STATUS "Current binary dir: ${CMAKE_CURRENT_BINARY_DIR}")
-include_directories(${CONAN_INCLUDE_DIRS} 
-                    ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt 
-                    ${CMAKE_CURRENT_LIST_DIR}/decryptors/include 
-                    ${CMAKE_CURRENT_LIST_DIR}/license_managers/include 
-                    ${CMAKE_CURRENT_LIST_DIR}/obfuscators/include 
-                    ${CMAKE_CURRENT_LIST_DIR}/embedfile 
-                    ${CMAKE_CURRENT_LIST_DIR}/common 
-                    ${CMAKE_CURRENT_LIST_DIR}/lve 
-                    ${CMAKE_CURRENT_LIST_DIR}/tool 
+include_directories(${CONAN_INCLUDE_DIRS}
+                    ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt
+                    ${CMAKE_CURRENT_LIST_DIR}/decryptors/include
+                    ${CMAKE_CURRENT_LIST_DIR}/license_managers/include
+                    ${CMAKE_CURRENT_LIST_DIR}/obfuscators/include
+                    ${CMAKE_CURRENT_LIST_DIR}/embedfile
+                    ${CMAKE_CURRENT_LIST_DIR}/common
+                    ${CMAKE_CURRENT_LIST_DIR}/lve
+                    ${CMAKE_CURRENT_LIST_DIR}/tool
                     ${CMAKE_CURRENT_BINARY_DIR})
 
 
-# Compile obfuscate program. 
-add_executable(obfuscate 
-               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate.c 
+# Compile obfuscate program.
+add_executable(obfuscate
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate.c
                ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate_utils.c)
-target_link_libraries(obfuscate 
+target_link_libraries(obfuscate
                       ${ssl_libs} ${extra_ssl_libs}
                       obfuscator_module)
 
 
 # Compile the randomize key program.
-add_executable(randomize_key 
-               ${CMAKE_CURRENT_LIST_DIR}/embedfile/randomize_key.c 
+add_executable(randomize_key
+               ${CMAKE_CURRENT_LIST_DIR}/embedfile/randomize_key.c
                ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate_utils.c)
-target_link_libraries(randomize_key 
+target_link_libraries(randomize_key
                       ${ssl_libs}
                       ${extra_ssl_libs}
                       obfuscator_module)
@@ -211,7 +211,7 @@ if(NOT DEFINED RSA_KEY_LENGTH)
 endif()
 
 # -------------------------------------------------
-# Optional directory for the private/public keys. 
+# Optional directory for the private/public keys.
 # -------------------------------------------------
 set(KEYS_SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/openssl_keys" CACHE STRING "option")
 
@@ -274,7 +274,7 @@ endif()
 set(PRIVATE_KEY_TOOL_H "${CMAKE_CURRENT_BINARY_DIR}/private_key_tool.h")
 add_custom_command(
     OUTPUT "${PRIVATE_KEY_TOOL_H}"
-    COMMAND "${CMAKE_COMMAND}" -E echo 
+    COMMAND "${CMAKE_COMMAND}" -E echo
         Running: obfuscate "${PRIVATE_KEY_TOOL_H}" "${PRIVATE_KEY_TOOL}" PRIVATE_KEY_TOOL LVE_PRIVATE
     COMMAND obfuscate "${PRIVATE_KEY_TOOL_H}" "${PRIVATE_KEY_TOOL}" PRIVATE_KEY_TOOL LVE_PRIVATE
     DEPENDS "${PRIVATE_KEY_TOOL}" obfuscate
@@ -285,7 +285,7 @@ set_source_files_properties("${PRIVATE_KEY_TOOL_H}" PROPERTIES HEADER_FILE_ONLY 
 set(PRIVATE_KEY_LVE_H "${CMAKE_CURRENT_BINARY_DIR}/private_key_lve.h")
 add_custom_command(
     OUTPUT "${PRIVATE_KEY_LVE_H}"
-    COMMAND "${CMAKE_COMMAND}" -E echo 
+    COMMAND "${CMAKE_COMMAND}" -E echo
         Running: obfuscate "${PRIVATE_KEY_LVE_H}" "${PRIVATE_KEY_LVE}" PRIVATE_KEY_LVE TOOL_PRIVATE
     COMMAND obfuscate "${PRIVATE_KEY_LVE_H}" "${PRIVATE_KEY_LVE}" PRIVATE_KEY_LVE TOOL_PRIVATE
     DEPENDS "${PRIVATE_KEY_LVE}" obfuscate
@@ -296,7 +296,7 @@ set_source_files_properties("${PRIVATE_KEY_LVE_H}" PROPERTIES HEADER_FILE_ONLY T
 set(PUBLIC_KEY_TOOL_H "${CMAKE_CURRENT_BINARY_DIR}/public_key_tool.h")
 add_custom_command(
     OUTPUT "${PUBLIC_KEY_TOOL_H}"
-    COMMAND "${CMAKE_COMMAND}" -E echo 
+    COMMAND "${CMAKE_COMMAND}" -E echo
         Running: obfuscate "${PUBLIC_KEY_TOOL_H}" "${PUBLIC_KEY_TOOL}" PUBLIC_KEY_TOOL TOOL_PUBLIC
     COMMAND obfuscate "${PUBLIC_KEY_TOOL_H}" "${PUBLIC_KEY_TOOL}" PUBLIC_KEY_TOOL TOOL_PUBLIC
     DEPENDS "${PUBLIC_KEY_TOOL}" obfuscate
@@ -323,6 +323,8 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINA
 # - Decryptor
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
+add_dependencies(decryptor  openssl)
+
 # - Obfuscator
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/obfuscators ${CMAKE_CURRENT_BINARY_DIR}/obfuscators)
 
@@ -330,27 +332,27 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/obfuscators ${CMAKE_CURRENT_BINARY_DI
 # Create lve.
 # --------------
 add_executable(${LVETARGET}
-    ${PRIVATE_KEY_LVE_H} 
-    ${PUBLIC_KEY_TOOL_H} 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/lve.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_error.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_io.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_parse_command.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_protocol.c 
+    ${PRIVATE_KEY_LVE_H}
+    ${PUBLIC_KEY_TOOL_H}
+    ${CMAKE_CURRENT_LIST_DIR}/lve/lve.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_error.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_io.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_parse_command.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_protocol.c
     ${CMAKE_CURRENT_LIST_DIR}/common/mlle_ssl.c
     ${CMAKE_CURRENT_LIST_DIR}/common/mlle_utils.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h
 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_protocol_lve_state.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_feature.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_file.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_libpath.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_license.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_pubkey.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_tools.c 
-    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_ssl_lve.c 
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_protocol_lve_state.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_feature.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_file.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_libpath.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_license.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_pubkey.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_lve_tools.c
+    ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_ssl_lve.c
 )
 
 target_link_libraries(${LVETARGET} license_manager decryptor ${ssl_libs} ${extra_ssl_libs})
@@ -359,29 +361,29 @@ target_link_libraries(${LVETARGET} license_manager decryptor ${ssl_libs} ${extra
 # Create tool library.
 # --------------------
 add_library(tool
-    ${PRIVATE_KEY_TOOL_H} 
-    ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_licensing.c 
-    ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_ssl_tool.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_protocol.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_error.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_io.c 
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_parse_command.c 
+    ${PRIVATE_KEY_TOOL_H}
+    ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_licensing.c
+    ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_ssl_tool.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_protocol.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_error.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_io.c
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_parse_command.c
     ${CMAKE_CURRENT_LIST_DIR}/common/mlle_ssl.c
-    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_utils.c 
+    ${CMAKE_CURRENT_LIST_DIR}/common/mlle_utils.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h
     ${tool_platform_c}
 )
 
-add_executable(test_tool 
-    ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.c  
+add_executable(test_tool
+    ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.c
 )
 
 target_link_libraries(test_tool tool ${ssl_libs} ${extra_ssl_libs})
 
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_licensing.h 
-          ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_types.h 
-          ${CMAKE_CURRENT_LIST_DIR}/common/mlle_error.h 
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_licensing.h
+          ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_types.h
+          ${CMAKE_CURRENT_LIST_DIR}/common/mlle_error.h
      DESTINATION include)
 
 # --------------------
@@ -391,7 +393,7 @@ add_executable(packagetool
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/packagetool.c
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/arguments.c
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/manifest.c
-    ${CMAKE_CURRENT_LIST_DIR}/packagetool/utils.c    
+    ${CMAKE_CURRENT_LIST_DIR}/packagetool/utils.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h
 )
@@ -400,8 +402,8 @@ target_link_libraries(packagetool ${ssl_libs} ${extra_ssl_libs} decryptor)
 # --------------------
 # Create encrypt_file.
 # --------------------
-add_executable(encrypt_file 
-    ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt/encrypt_file.c 
+add_executable(encrypt_file
+    ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt/encrypt_file.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
 )
 target_link_libraries(encrypt_file ${ssl_libs} ${extra_ssl_libs} decryptor)
@@ -409,8 +411,8 @@ target_link_libraries(encrypt_file ${ssl_libs} ${extra_ssl_libs} decryptor)
 # --------------------
 # Create decrypt_file.
 # --------------------
-add_executable(decrypt_file 
-    ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt/decrypt_file.c 
+add_executable(decrypt_file
+    ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt/decrypt_file.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
 )
 target_link_libraries(decrypt_file ${ssl_libs} ${extra_ssl_libs} decryptor)
@@ -420,7 +422,7 @@ if(WIN32)
     if (MSVC)
         # Setting /SUBSYSTEM:WINDOWS to force build with WinMain and avoid command window pop-up at start
         set_target_properties(${LVETARGET} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-      
+
         # ignore missing pdb warning for openssl
         set_target_properties(${LVETARGET} PROPERTIES LINK_FLAGS "/ignore:4099")
         set_target_properties(obfuscate PROPERTIES LINK_FLAGS "/ignore:4099")
@@ -447,26 +449,26 @@ add_custom_command( TARGET ${LVETARGET}
     VERBATIM
 )
 
-add_custom_target(test_facit 
-    DEPENDS 
+add_custom_target(test_facit
+    DEPENDS
         ${CMAKE_CURRENT_LIST_DIR}/tests/test_library
     COMMAND "${CMAKE_COMMAND}" -E remove_directory test_facit
-    COMMAND 
+    COMMAND
       "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/tests/test_library test_facit
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_custom_target(test_library_mol 
-    DEPENDS 
+add_custom_target(test_library_mol
+    DEPENDS
         ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
         packagetool
         ${LVETARGET}
         )
-        
-set(PACKAGE_TEST_LIB_CMD $<TARGET_FILE:packagetool> 
+
+set(PACKAGE_TEST_LIB_CMD $<TARGET_FILE:packagetool>
             -librarypath ${CMAKE_CURRENT_LIST_DIR}/tests/test_library -version "2.0" -language "3.2" -encrypt "true")
-        
+
 add_custom_command(
     OUTPUT
         ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
@@ -486,8 +488,8 @@ add_custom_command(
 )
 
 add_custom_target(
-    test_library 
-    DEPENDS 
+    test_library
+    DEPENDS
         ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/manifest.xml
         test_facit
 )
@@ -509,26 +511,26 @@ add_custom_command(
 # --------------------
 # TESTING
 # --------------------
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/package.mo ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/binary.gif 
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/package.mo ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/binary.gif
 	DESTINATION  ${CMAKE_CURRENT_BINARY_DIR}/test_facit)
-	
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.mk 
+
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.mk
 	DESTINATION  ${CMAKE_CURRENT_BINARY_DIR})
-	
+
 ENABLE_TESTING()
 
 #add_test(
 #    NAME run_test_SEMLA
 #    COMMAND make -f test_tool.mk test && make -f test_tool.mk clean)
 
-add_test( NAME run_test_tool COMMAND test_tool ${LVETARGET} 
+add_test( NAME run_test_tool COMMAND test_tool ${LVETARGET}
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_test(NAME package_test_lib
     COMMAND "${CMAKE_COMMAND}" --build . --target test_library --config $<CONFIGURATION>
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-SET_TESTS_PROPERTIES ( 
+SET_TESTS_PROPERTIES (
     run_test_tool PROPERTIES DEPENDS package_test_lib)
 
 
@@ -536,20 +538,20 @@ SET_TESTS_PROPERTIES (
 # INSTALL
 # --------------------
 # TODO: Install does not work as intended - needs work or maybe it should just be removed?
-install(TARGETS test_tool encrypt_file packagetool 
-        DESTINATION bin 
+install(TARGETS test_tool encrypt_file packagetool
+        DESTINATION bin
         ARCHIVE DESTINATION lib)
-        
+
 install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
-        
+
 # Install header files needed when using tool library
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/ 
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
-        
+
 install(DIRECTORY "${openssl_dir}/include/"
         DESTINATION include)
-        
-# install(FILES mlle_licensing.h 
+
+# install(FILES mlle_licensing.h
         # DESTINATION include)
 
 # Install OpenSSL libs as well, since they are needed by tool lib

@@ -34,6 +34,12 @@ void doWork(int argc, char **argv)
     char *libPath = NULL;
     int success = 0;
 
+    //check if help was requested
+    if (helpRequested(argc, argv)) {
+        printArgumentHelp();
+        return;
+    }
+
     printf("\nValidating arguments.\n");
 
     // --------------------------------
@@ -42,7 +48,7 @@ void doWork(int argc, char **argv)
     if (validateArguments(argc, argv))
     {
         // Validate the arguments data.
-        success = ( (validateMandatoryArguments()) &&
+        success = ((validateMandatoryArguments()) &&
                 (validateLibraryPath()) &&
                 (validateEncryption()) &&
                 (validateXmlFile(ARGUMENT_TOOLS_FILE)) &&
@@ -118,7 +124,8 @@ int main(int argc, char **argv)
 
     if (argc == 1)
     {
-        printf("Too few arguments. Usage: packagetool <-arg1> <value1> <-arg2> <value2> etc..\n");
+        printf("Too few arguments.\n");
+        printf("For usage use -h or --help");
         return 0;
     }
 

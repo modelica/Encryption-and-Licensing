@@ -35,6 +35,7 @@ else()
 		)
 endif()
 
+
 # Add all required source files to library "license_manager"
 add_library(decryptor
             ${ENCRYPTION_KEY_H}

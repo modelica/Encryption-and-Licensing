@@ -17,8 +17,8 @@
 #include <stddef.h>
 
 #define NO_OF_MANDATORY_ARGUMENTS 3
-#define MAX_ARGUMENTS 14
-
+#define NO_HELP_ARGUMENTS         2
+#define MAX_ARGUMENTS             14
 
 #define ARGUMENT_LIBRARY_PATH      "librarypath"
 #define ARGUMENT_ENABLED           "enabled"
@@ -34,6 +34,8 @@
 #define ARGUMENT_ICON_PATH         "icon"
 #define ARGUMENT_TOOLS_FILE        "tools"
 #define ARGUMENT_DEPENDENCIES_FILE "dependencies"
+#define ARGUMENT_HELP              "--help"
+#define ARGUMENT_SHORT_HELP        "-h"
 
 
 /**************************************************
@@ -153,3 +155,14 @@ int validateIcon();
  ******************************************************/
 char *getLibraryName();
 
+/****************************************************************
+ * Print argument help information to output.
+ *
+ ***************************************************************/
+void printArgumentHelp();
+
+/****************************************************************
+ * Check if the user requested help info to be printed.
+ *
+ ***************************************************************/
+int helpRequested(int noOfArguments, char **arguments);

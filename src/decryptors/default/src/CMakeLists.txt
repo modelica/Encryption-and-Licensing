@@ -15,16 +15,19 @@
 cmake_minimum_required(VERSION 2.8)
 project(MLLECr)
 
-set(ENCRYPTION_KEY_H ${RANDOM_KEY_SOURCE_DIRECTORY}/random_key_file.h)
-if(EXISTS "${ENCRYPTION_KEY_H}")
-	message("Encryption key ${ENCRYPTION_KEY_H} exists. Using it.")
+set(ENCRYPTION_KEY_H "${MLLE_BINARY_DIR}/random_key_file.h")
+if(EXISTS ${RANDOM_KEY_SOURCE_DIRECTORY}/random_key_file.h)
+	message("Encryption key ${ENCRYPTION_KEY_H} exists. making local copy to build dir")
+	add_custom_command(
+		OUTPUT "${ENCRYPTION_KEY_H}"
+		COMMAND "${CMAKE_COMMAND}" -E remove -f ${MLLE_BINARY_DIR}/random_key_file.h
+		COMMAND "${CMAKE_COMMAND}" -E copy  ${RANDOM_KEY_SOURCE_DIRECTORY}/random_key_file.h ${MLLE_BINARY_DIR}
+	)
+
 elseif(EXISTS "${MLLE_BINARY_DIR}/random_key_file.h")
-	set(ENCRYPTION_KEY_H ${MLLE_BINARY_DIR}/random_key_file.h)
     message("Encryption key ${ENCRYPTION_KEY_H} exist in build directory. Using it.")
 else()
-	message("Could not find Encryption key ${ENCRYPTION_KEY_H} or ${MLLE_BINARY_DIR}/random_key_file.h, regenerating")
-	# Create source file for encryption key for Modelica files.
-	set(ENCRYPTION_KEY_H "${MLLE_BINARY_DIR}/random_key_file.h")
+	message("Could not find Encryption key ${MLLE_BINARY_DIR}/random_key_file.h, regenerating")
 	add_custom_command(
 		OUTPUT "${ENCRYPTION_KEY_H}"
 		COMMAND randomize_key "${ENCRYPTION_KEY_H}" MLLE_CR_KEY
@@ -32,7 +35,6 @@ else()
 		)
 endif()
 
-string(REPLACE "\\" "/" ENCRYPTION_KEY_H ${ENCRYPTION_KEY_H})
 
 # Add all required source files to library "license_manager"
 add_library(decryptor

@@ -24,12 +24,14 @@ add_custom_command(
     )
 
 
+string(REPLACE "\\" "/" ENCRYPTION_KEY_H ${ENCRYPTION_KEY_H})
+
 # Add all required source files to library "license_manager"
-add_library(decryptor 
+add_library(decryptor
             ${ENCRYPTION_KEY_H}
             mlle_cr_decrypt.c
             mlle_cr_encrypt.c
 )
-include_directories(${MLLE_LIST_DIR} 
+include_directories(${MLLE_LIST_DIR}
                     ${MLLE_LIST_DIR}/decryptors/include
                     ${MLLE_BINARY_DIR})

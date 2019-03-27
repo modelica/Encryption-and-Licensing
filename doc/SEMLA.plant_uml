@@ -1,0 +1,32 @@
+plantuml code used to generate the UML diagram in SEMLA.md
+
+see https://www.planttext.com/
+
+@startuml
+
+group PERFORMED ONCE
+    group Handshake
+        Tool -> LVE: VERSION <version>
+        LVE [#blue]-> Tool: VERSION <version>
+        
+        Tool -> LVE: LIB <path>
+        LVE [#blue]-> Tool: YES
+    end
+
+    group License Check
+        Tool -> LVE: FEATURE <feature nam>
+        LVE [#blue]-> Tool: YES
+
+        Tool -> LVE: FEATURE <feature nam>
+        LVE [#blue]-> Tool: NO
+    end
+end
+
+group Used as many time as needed
+    group Get decrypted file
+        Tool -> LVE: FILE <path>
+        LVE [#blue]-> Tool: FILECONTENT <contents>
+    end
+end
+
+@enduml

@@ -2,18 +2,21 @@ Tool-independent Licensing and Encryption of Modelica Libraries
 ====
 
 This specification describes a system for distributing proprietary Modelica libraries which support:
+
 	- encryption
 	- licensing
 	- secure decryption of encrypted Modelica libraries
 	- platform independence
 	
-It is achieved by: 
+It is achieved by:
+
 	- a "Modelica Library Containers" format (MLC) and an associated _Manifest.xml_ meta-data file
 		-  encryption of __.mo_ files to __.moc__
 	- an interface to the MLCs via a "Library Vendor Executable" (LVE)
 	- using the secure communication "Standardized Encryption of Modelica Libraries and Artifacts" (SEMLA) protocol
 
 An open source project containing:
+
 	- this documentation
 	- source code examples for
 		- implementation of the SEMLA protocol
@@ -21,13 +24,14 @@ An open source project containing:
 			- decryption and licensing of Libraries
 			- **packagetool**, a utility you can use to create MLCs.
 	
-Open-source Modelica libraries, stored non encrypted, can be distributed in the MLC format.
+Open-source Modelica libraries, stored non encrypted, can also be distributed in the MLC format.
 
 ## LICENSING AND ENCRYPTION
 
 Licensing, encryption and decryption are **controlled** by the library vendor.
 
-The library vendor chooses if, and how, the library is 
+The library vendor chooses if, and how, the library is
+
 	- encrypted/decrypted
 	- licensed
 		- through a mechanism chosen by the library vendor
@@ -43,19 +47,23 @@ SSL keys are embedded in the **tool**, the **LVEs* and **packagetool** (after ob
 
 #### SSL keys usage
 
-Tool private key: 
+Tool private key:
+
 	- embedded in the **tool**: used to establish a secure communication channel between the tool and the LVE.
 	
 Tool public key:
+
 	- embedded in a **LVE**: used to establish a secure communication channel between the tool and the LVE.
 
 LVE private key:
+
 	- embedded in **packagetool**:  used to encrypt proprietary libraries
 	- embedded in a **LVE**:  used to decrypt proprietary libraries
 
 ## LIBRARY VENDOR EXECUTABLE (LVE)
 
 An LVE is a platform specific executable binary which:
+
 	- is created by the library vendor
 	- handles decryption of libraries (packaged in an MLC)
 	- handles licensing of libraries (packaged in an MLC)
@@ -67,6 +75,7 @@ An LVE is a platform specific executable binary which:
 Four platforms are supported, for each platform a LVE must be compiled. 
 
 Platform and LVE name :
+
 	- windows 32 bits: lve_win32.exe
 	- windows 64 bits: lve_win64.exe
 	- linux 32 bits: lve_linux32
@@ -77,6 +86,7 @@ And MLC, containing encrypted/licensed libraries, will contain 1 or more LVEs de
 #### Packagetool
 
 If encryption is enabled and an LVE directory exists under the directory where **packagetool** is located:
+
 	- LVEs in the _LVE_ directory are copied into the MLC (in the ".library" directory)
 	- the appropriate fields in the _Manifest.xml_ File are set
 
@@ -85,10 +95,12 @@ If encryption is enabled and an LVE directory exists under the directory where *
 The container is a _zip_ file, with a _.mol_ file extension.
 
 The container has one top-level directory for each contained top-level package (library)
+
 	- named and structured according to section 13.2.2 of the Modelica Language Specification version 3.2r2.
 	- Each top-level directory contains a directory “.library”.
 
 Each “.library” directory contains:
+
 	- A _manifest.xml_ file, containing meta-data about the library. 
 	- If the library is encrypted, one or more LVEs, build with the same SSL and Randomizer keys. 
 	- Additional directories containing any extra files needed by the LVEs or a Modelica tool. The names of each such directory should be the name of the vendor that needs it.
@@ -217,36 +229,6 @@ The structure of the dependencies xml file:
 
 ## SEMLA - COMMUNICATION PROTOCOL BETWEEN TOOL AND "Library Vendor Executable"
 
-'''plantuml
-@startuml
-
-group PERFORMED ONCE
-    group Handshake
-        Tool -> LVE: VERSION <version>
-        LVE [#blue]-> Tool: VERSION <version>
-        
-        Tool -> LVE: LIB <path>
-        LVE [#blue]-> Tool: YES
-    end
-
-    group License Check
-        Tool -> LVE: FEATURE <feature nam>
-        LVE [#blue]-> Tool: YES
-
-        Tool -> LVE: FEATURE <feature nam>
-        LVE [#blue]-> Tool: NO
-    end
-end
-
-group Used as many time as needed
-    group Get decrypted file
-        Tool -> LVE: FILE <path>
-        LVE [#blue]-> Tool: FILECONTENT <contents>
-    end
-end
-
-@enduml
-'''
 
                               ┌────┐                  ┌───┐                    
                               │Tool│                  │LVE│                    
@@ -363,18 +345,21 @@ The Tool's public key is compared against the list of trusted keys during the TL
 ### Return of licenses
 
 #### Return a feature
-1.	Tool sends – “RETURNFEATURE <feature name>”
-2.	LVE answers – “YES”
+
+	- Tool sends – “RETURNFEATURE <feature name>”
+	- LVE answers – “YES”
 
 #### Return a simplified license
-1.	Tool sends – “RETURNLICENSE <package name >”
-2.	LVE answers - “YES”
+
+	- Tool sends – “RETURNLICENSE <package name >”
+	- LVE answers - “YES”
 
 ### DECRYPTION
 
 The tool can request an decrypted library file from the LVE using the "FILE" command.
 
 The LVE:
+
 	- can decide to refuse, or accept, "FILE" commands at any time.
 	- interprets paths relative to the top level package of the library
 	- uses '/' as the path separator
@@ -383,12 +368,16 @@ The LVE:
 
  
 Getting the contents of a file:
-1.	Tool sends – “FILE <path>”
-2.	LVE answers - “FILECONT <content>”
+
+	- Tool sends – “FILE <path>”
+	- LVE answers - “FILECONT <content>”
 
 ### ERROR HANDLING
 
 The LVE can respond “ERROR <error code> <error message>” at any time. 
+
+Standard error code:
+
 	- <error message> - an error message suitable for display
 	- <error code> is one of the following:
 		- 1 - Command not understood
@@ -404,7 +393,8 @@ The LVE can respond “ERROR <error code> <error message>” at any time.
 
 The tool may, after the cryptographic handshake, query the LVE for general information.
 
-#### List of supported tools:
+#### List of supported tools
+
 	- Tool sends – “TOOLS”
 	- LVE answers: “TOOLLIST <list>” where "<list>" is:
 		- a sequence of Modelica tools in the formatted as:
@@ -428,10 +418,12 @@ Messages are in 8-bit ASCII
 ### Simple message with no arguments
 
 	format: "<COMMAND>LN"
+	
 		- <COMMAND> - command name, in all caps
 		- “LN” - line feed character
 		
 	Messages using this form: 
+	
 		- “LICENSEINFO”
 		- “NOTSIMPLE”
 		- “TOOLS”
@@ -440,21 +432,25 @@ Messages are in 8-bit ASCII
 ### Message with a decimal integer data
 
 	format: "<COMMAND> <number>LN"
+	
 		- <COMMAND> - command name in all caps
 		- <number> - decimal number – 32-bit signed integer, string, base 10 representation
 		- “LN” - line feed character
 
 	Messages using this form: 
+	
 		- “VERSION”
 
 ### Message with a variable length data
 
 	format: "<COMMAND> <length>LN<data>"
+	
 		- <COMMAND> - command name in all caps
 		- <length> - data length in bytes – 32-bit signed integer, string, base 10 representation
 		- <data> - data bytes
 
 	Messages using this form: 
+	
 		- “FEATURE”
 		- “FILE”
 		- "FILECONT”
@@ -470,17 +466,20 @@ Messages are in 8-bit ASCII
 ### Message with an integer number and a variable length data
 
 	format: "<COMMAND> <number> <length>LN<data>"
+	
 		- <COMMAND> - command name in all caps
 		- <number> - 32-bit signed integer, string, base 10 representation
 		- <length> - data length in bytes – 32-bit signed integer, string, base 10 representation
 		- <data> - data bytes
 
 	Messages using this form:
+	
 		- “ERROR”
 	
 ## INSTALLING MODELICA LIBRARY CONTAINER
 
 A library can be installed by the tool:
+
 	- by extracting only the “.library” folder from the library
 	- by extracting entire directory structure of the library from the MLC.
 		- the directory structure, and file names, of the library must be the same as in the MLC
@@ -488,6 +487,7 @@ A library can be installed by the tool:
 		- the library can be renamed (tool decision)
 
 We recommended that:
+
 	- the library is placed in a directory on the MODELICAPATH
 	- named “PACKAGENAME” or “PACKAGENAME VERSION” (as per the Modelica Language Specification)
 
@@ -498,13 +498,9 @@ Reading a non-encrypted library is equivalent to reading a library stored on dis
 ### Reading an encrypted library
 
 	- from the __manifest.xml__, in the “.library” directory, read the **LVE**'s for the current platform.
-	
 	- start the platform specific **LVE**
-	
 	- communicate with LVE through its stdin & stdout
-	
 	- encrypted Modelica files (__.moc__) are read through the LVE
-	
 	- non encrypted Modelica files can also be read through the LVE or directly from disk
 
 ## APPENDIX
@@ -653,6 +649,7 @@ Encryption keys embedded in the **tool**, the **LVEs**, and **packagetool** bina
 **Change the obfuscation code to code unique to your company**.
 
 For **each** release of libraries:
+
 	- change the obfuscation code if possible
 	- **each** library gets a new randomly generated SSL keys set and Randomized Key
 		- a new set of **LVEs**

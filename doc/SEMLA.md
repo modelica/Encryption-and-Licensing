@@ -1,69 +1,84 @@
 Tool-independent Licensing and Encryption of Modelica Libraries
 ====
 
-This specification describes a system for distributing Modelica libraries which support:
+This specification describes a system for distributing proprietary Modelica libraries which support:
 	- encryption
 	- licensing
-	- secure communication between a Modelica tool and encrypted/licensed Modelica libraries
+	- secure decryption of encrypted Modelica libraries
 	- platform independence
 	
 It is achieved by: 
 	- a "Modelica Library Containers" format (MLC) and an associated _Manifest.xml_ meta-data file
+		-  encryption of __.mo_ files to __.moc__
 	- an interface to the MLCs via a "Library Vendor Executable" (LVE)
-		- using the "Standardized Encryption of Modelica Libraries and Artifacts" (SEMLA) protocol
+	- using the secure communication "Standardized Encryption of Modelica Libraries and Artifacts" (SEMLA) protocol
 
-The availability of an open source project containing:
+An open source project containing:
 	- this documentation
-	- source code of libraries implementing SEMLA and example LVEs
-	- source code for example encryption and licensing of Libraries
-	- **packagetool**, a utility you can use to create MLCs.
+	- source code examples for
+		- implementation of the SEMLA protocol
+		- LVE code for:
+			- decryption and licensing of Libraries
+			- **packagetool**, a utility you can use to create MLCs.
 	
-See **Requirements** in the Appendix for background information.
+Open-source Modelica libraries, stored non encrypted, can be distributed in the MLC format.
 
 ## LICENSING AND ENCRYPTION
 
-Licensing and encryption are controlled by the library vendor.
+Licensing, encryption and decryption are **controlled** by the library vendor.
 
 The library vendor chooses if, and how, the library is 
 	- encrypted/decrypted
-	- licensed (through a mechanism chosen by the library vendor or through an existing tool’s licensing mechanism)
+	- licensed
+		- through a mechanism chosen by the library vendor
+		- or through an existing tool’s licensing mechanism
 	- which tool can access the library
 	- what features are made available to the tool
 	
-Implementation of the above is **compiled** in a "Library Vendor Executable" (LVE).
+Implementation of the above is **compiled-in** a "Library Vendor Executable" (LVE).
+
+### ENCRYPTION KEYS: SSL and RANDOMIZER KEYS
+
+SSL keys are embedded in the **tool**, the **LVEs* and **packagetool** (after obfuscation with a Randomizer key).
+
+#### SSL keys usage
+
+Tool private key: 
+	- embedded in the **tool**: used to establish a secure communication channel between the tool and the LVE.
+	
+Tool public key:
+	- embedded in a **LVE**: used to establish a secure communication channel between the tool and the LVE.
+
+LVE private key:
+	- embedded in **packagetool**:  used to encrypt proprietary libraries
+	- embedded in a **LVE**:  used to decrypt proprietary libraries
 
 ## LIBRARY VENDOR EXECUTABLE (LVE)
 
-An LVE is a platform specific binary executable which:
+An LVE is a platform specific executable binary which:
 	- is created by the library vendor
 	- handles decryption of libraries (packaged in an MLC)
 	- handles licensing of libraries (packaged in an MLC)
 	- is packaged within a MLC
-	- communicates, through the secured SEMLA protocol, with a Modelica tool 
- 
+	- communicates, through the secure SEMLA protocol, with a Modelica tool 
+
 ### Platform Specific LVE
  
-Four platforms are supported, for each platform a LVE must be compiled. Platform and LVE name :
+Four platforms are supported, for each platform a LVE must be compiled. 
+
+Platform and LVE name :
 	- windows 32 bits: lve_win32.exe
 	- windows 64 bits: lve_win64.exe
 	- linux 32 bits: lve_linux32
 	- linux 64 bits: lve_linux64
 
-And MLC, containing encrypted/licensed libraries, will also contain 1 to 4 LVEs depending on which platforms need to be supported.
+And MLC, containing encrypted/licensed libraries, will contain 1 or more LVEs depending on which platforms are supported.
 
 #### Packagetool
 
 If encryption is enabled and an LVE directory exists under the directory where **packagetool** is located:
-	- LVEs from that directory are copied into the MLC in the ".library" directory
-	- the appropriate fields in the _Manifest.xml_ File are filled
-
-#### SLL and RANDOMIZER KEY
-
-The encryption in the default SEMLA build uses OpenSSL to encrypt libraries. 
-
-The SSL keys are embedded in **packagetool** and **LVE** after obfuscation with a Randomizer key.
-
-As LVEs are created different builds (one or each platform), you need to share the **same** SSL keys and Randomizer Key in **every** builds to create a MLC that is platform independent.
+	- LVEs in the _LVE_ directory are copied into the MLC (in the ".library" directory)
+	- the appropriate fields in the _Manifest.xml_ File are set
 
 ## MODELICA LIBRARY CONTAINER
 
@@ -76,19 +91,19 @@ The container has one top-level directory for each contained top-level package (
 Each “.library” directory contains:
 	- A _manifest.xml_ file, containing meta-data about the library. 
 	- If the library is encrypted, one or more LVEs, build with the same SSL and Randomizer keys. 
-	- Additional directories containing any extra files needed by the LVEs or a Modelica tool. The names of each such directory should be the name of the vendor that introduces it.
-
-Open-source libraries, neither encrypted nor licensed, can be also be distributed in the MLC format.
+	- Additional directories containing any extra files needed by the LVEs or a Modelica tool. The names of each such directory should be the name of the vendor that needs it.
 
 ### Packagetool
 
-The SEMLA distribution contains source code for a, platform independent, utility which can be used to create MLCs. It must be build with the same SSL and Randomizer keys as the LVEs. 
+The SEMLA distribution contains source code for a, platform independent, utility which can be used to create MLCs. It **must** be build with the same SSL and Randomizer keys as the LVEs. 
 	
-If encryption of the library is desired, **packagetool** will also encrypted the .mo-files (to .moc) before adding them to the MLC.
+If the library is to be encrypted, **packagetool** will also encrypted the __.mo__ files (to __.moc__) before adding them to the MLC.
 
 ### Manifest File
 
-An example for the manifest file _manifest.xml_ can be found at the end of this document. A DTD (Document Type Definition) or an XML schema will be specified. Here is an overview of its structure, mandatory fields are highlighted:
+An example for the manifest file _manifest.xml_ can be found at the end of this document. A DTD (Document Type Definition) or an XML schema is specified.
+
+_manifest.xml_ structure, mandatory fields are highlighted:
 
 - archive
 	- manifest
@@ -151,13 +166,15 @@ Minimal manifest file without encryption, tools or dependencies:
 
 The icon attribute of the manifest file must be set to a path to an icon file starting from the top-level directory of the library. 
 
-### Packagetool
+#### Packagetool
 
 **packagetool** validates that the icon file exist and set the attribute in the manifest file if option -icon is used.
 
 ### Compatibility Section
 
-The compatibility section of the manifeste is created by reading an xml-file that contains the tools to add. The structure of the tool xml file is shown below.
+The compatibility section of the manifest is created by reading an xml-file that contains the tools to add.
+
+Structure of the tools xml file:
 
 ```XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -167,11 +184,16 @@ The compatibility section of the manifeste is created by reading an xml-file tha
 </compatibility>
 ```
 
-The first line in the file is ignored but the rest of the file is copied into the manifest file. If the supplied path to the xml-file is wrong the tool will abort. The tool doesn't perform any validation of the xml-file, like spell checking, so it's up to the user to make sure the content of the file is valid.
+- the first line in the file is ignored
+- the remaining lines are copied in _manifest.xml_
+
+**packagetool** doesn't validate the tools xml file contents.
 
 ### Dependencies Section
 
-The dependencies part of the manifest file is created by reading an xml-file that contains the dependencies to add. The structure of the file is shown below.
+The dependencies section of the manifest file is created by reading an xml-file that contains the dependencies to add. 
+
+The structure of the dependencies xml file:
 
 ```XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -188,7 +210,10 @@ The dependencies part of the manifest file is created by reading an xml-file tha
 </dependencies>
 ```
 
-The first line in the file is ignored but the rest of the file is copied into the manifest file. If the supplied path to the xml-file is wrong the tool will abort. The tool doesn't perform any validation of the xml-file, like spell checking, so it's up to the user to make sure the content of the file is valid.
+- the first line in the file is ignored
+- the remaining lines are copied in _manifest.xml_
+
+**packagetool** doesn't validate the tools xml file contents.
 
 ## SEMLA - COMMUNICATION PROTOCOL BETWEEN TOOL AND "Library Vendor Executable"
 
@@ -279,27 +304,19 @@ end
                               │Tool│                  │LVE│                    
                               └────┘                  └───┘                    
 
-The protocol is intended to be used for proprietary libraries. Open-source libraries are stored as plain text within the library archive.
-
-Encryption of the libraries and SEMLA communication use an entirely separate mechanism. 
-
-The encrypted communication is done through the LVE's stdin and stdout; the tool and the LVE need a public-private key pair. 
-
 The protocol defines : 
-	- the establishment a secure communication channel between the tool and LVE (see Handshake below) 
+	- the establishment a secure communication channel between the tool and LVE (see Handshake) 
+		- the encrypted communication is done through the LVE's stdin and stdout
 	- the agreement over which version of the SEMLA protocol to use 
 	- the decryption of Modelica code and/or licensing. 
 	
 ### Authentication
 
-The LVE contains a list of the public keys of the tools that it trusts; It will only connect to those tools. TODO: ???
+The LVE contains a list of the public keys of the tools that it trusts; It will only connect to those tools.
 
-The tools implicitly trusts the LVE as the LVE licenses and decrypts the MLC.
+The tools implicitly trusts the LVE as only the LVE can licenses and decrypts the MLC.
 
 ### Communication flow
-
-Todo: picture 
- 
 
 ### Handshake
 
@@ -316,7 +333,6 @@ Todo: picture
 		- If the entire contents of the MLC was extracted, "<path>" is the path to the top-level directory of the library
 
 	- the LVE responds: “YES”.
-
 
 ### License check
 
@@ -344,20 +360,15 @@ The LVE embeds a list of tool public keys that it trusts.
 
 The Tool's public key is compared against the list of trusted keys during the TLS handshake. 
 
-If the tool is not trusted, The LVE still supports SEMLA commands **except** the FILE command which is answered with an error.
-
-Todo: how to add the public keys? default build only handles one tool
-Todo: tests for supporting SEMLA for untrusted tools
-
 ### Return of licenses
 
 #### Return a feature
 1.	Tool sends – “RETURNFEATURE <feature name>”
-2.	LVE answers – “YES”.
+2.	LVE answers – “YES”
 
 #### Return a simplified license
 1.	Tool sends – “RETURNLICENSE <package name >”
-2.	LVE answers - “YES”.
+2.	LVE answers - “YES”
 
 ### DECRYPTION
 
@@ -430,7 +441,7 @@ Messages are in 8-bit ASCII
 
 	format: "<COMMAND> <number>LN"
 		- <COMMAND> - command name in all caps
-		- <number> - decimal number – a 32-bit signed integer
+		- <number> - decimal number – 32-bit signed integer, string, base 10 representation
 		- “LN” - line feed character
 
 	Messages using this form: 
@@ -440,7 +451,7 @@ Messages are in 8-bit ASCII
 
 	format: "<COMMAND> <length>LN<data>"
 		- <COMMAND> - command name in all caps
-		- <length> - data length in bytes – 32-bit signed integer
+		- <length> - data length in bytes – 32-bit signed integer, string, base 10 representation
 		- <data> - data bytes
 
 	Messages using this form: 
@@ -460,8 +471,8 @@ Messages are in 8-bit ASCII
 
 	format: "<COMMAND> <number> <length>LN<data>"
 		- <COMMAND> - command name in all caps
-		- <number> - a decimal number
-		- <length> - data length in bytes (a decimal integer) – 32-bit signed integer TODO: decimal or integer?
+		- <number> - 32-bit signed integer, string, base 10 representation
+		- <length> - data length in bytes – 32-bit signed integer, string, base 10 representation
 		- <data> - data bytes
 
 	Messages using this form:
@@ -486,19 +497,25 @@ Reading a non-encrypted library is equivalent to reading a library stored on dis
 
 ### Reading an encrypted library
 
-	- read the XML file with metadata (“manifest.xml”) from the “.library” directory, specifically the path to the LVE suitable for the current platform.
+	- from the __manifest.xml__, in the “.library” directory, read the **LVE**'s for the current platform.
 	
-	- start the platform specific LVE
+	- start the platform specific **LVE**
 	
 	- communicate with LVE through its stdin & stdout
 	
-	- encrypted Modelica files, with a “.moc” extension, are read through the LVE
+	- encrypted Modelica files (__.moc__) are read through the LVE
 	
-	- non encrypted Modelica files library can also be read through the LVE
+	- non encrypted Modelica files can also be read through the LVE or directly from disk
 
 ## APPENDIX
 
-#### TODO: building SEMLA
+### Building SEMLA
+
+#### SSL and RANDOMIZER KEY
+
+As LVEs are created in different builds (one or each platform), you need to use the **same** SSL keys and Randomizer Key in **every** builds to create a MLC that is platform independent.
+
+if no keys are provided, only for testing purpose, SSL and RANDOMIZER keys are generate.
 
 ### Example “manifest.xml” file for an encrypted library:
 
@@ -555,7 +572,7 @@ Reading a non-encrypted library is equivalent to reading a library stored on dis
   <!-- Leaving out optional compatibility and dependencies in this example. -->
 </archive>
 
-### Requirements for commercial libraries
+### System Requirements for commercial libraries implemented in this proposal
 
 #### Library Vendor
 
@@ -576,15 +593,6 @@ Reading a non-encrypted library is equivalent to reading a library stored on dis
 	- Needs an encryption mechanism which can be used with or without a licensing mechanism.
 	
 	- Can implement a custom licensing mechanism.
-	
-	- The protocol offers means to, with reasonable effort, replace encryption keys, in cases of security breaches.
-
-	TODO: ???- All involved keys belonging to library vendors can be switched for any library release.
-
-	Changing the key pair used by the tool could be done by adding a second key pair during a transition period.
-	
-	Library vendors could then replace the compromised key with the new one in their list of trusted tools.
-
 
 #### Tool 
 
@@ -640,11 +648,15 @@ These vulnerabilities exists in any tool that supports encrypted libraries and e
 
 ### Mitigation
 
-Keys included in the tool and LVEs binaries must be protected with an obfuscation scheme.
+Encryption keys embedded in the **tool**, the **LVEs**, and **packagetool** binaries must be protected with an obfuscation scheme.
+
+**Change the obfuscation code to code unique to your company**.
 
 For **each** release of libraries:
-	- change the obfuscation code, 
-	- **each** library gets a new randomly generated SSL keys set and Randomized Key, even within a single organization. 
+	- change the obfuscation code if possible
+	- **each** library gets a new randomly generated SSL keys set and Randomized Key
+		- a new set of **LVEs**
+		- a new **packagetool**
 	
 
 

@@ -514,14 +514,7 @@ add_custom_command(
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/package.mo ${CMAKE_CURRENT_LIST_DIR}/tests/test_facit/binary.gif
 	DESTINATION  ${CMAKE_CURRENT_BINARY_DIR}/test_facit)
 
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.mk
-	DESTINATION  ${CMAKE_CURRENT_BINARY_DIR})
-
 ENABLE_TESTING()
-
-#add_test(
-#    NAME run_test_SEMLA
-#    COMMAND make -f test_tool.mk test && make -f test_tool.mk clean)
 
 add_test( NAME run_test_tool COMMAND test_tool ${LVETARGET}
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

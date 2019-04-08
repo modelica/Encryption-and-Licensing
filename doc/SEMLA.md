@@ -4,25 +4,37 @@ Tool-independent Licensing and Encryption of Modelica Libraries
 This specification describes a system for distributing proprietary Modelica libraries which supports:
 
 - encryption
+
 - licensing
+
 - secure decryption of encrypted Modelica libraries
+
 - platform independence
 	
 It is achieved by:
 
 - a "Modelica Library Containers" format (MLC)
+
 	- containing encrypted __.moc__ files
+	
 	- an associated _Manifest.xml_ meta-data file
+	
 - an interface to the MLCs via a "Library Vendor Executable" (LVE)
+
 - using the secured communication "Standardized Encryption of Modelica Libraries and Artifacts" (SEMLA) protocol
 
 An open source project containing:
 
 - this documentation
+
 - source code examples for
+
 	- implementation of the SEMLA protocol
+	
 	- LVE code for:
+	
 		- decryption and licensing of Libraries
+		
 		- **packagetool**, a utility you can use to create **MLC**s.
 	
 Open-source Modelica libraries, stored non encrypted, can also be distributed in the MLC format.
@@ -34,10 +46,15 @@ Licensing, encryption and decryption are **controlled** by the library vendor.
 The library vendor chooses if, and how, the library is
 
 - encrypted/decrypted
+
 - licensed
+
 	- through a mechanism chosen by the library vendor
+	
 	- or through an existing tool’s licensing mechanism
+	
 - which tool can access the library
+
 - what features are made available to the tool
 	
 Implementation of the above is **compiled-in** a "Library Vendor Executable" (LVE).
@@ -59,6 +76,7 @@ Tool public key:
 LVE private key:
 
 - embedded in **packagetool**:  used to encrypt proprietary libraries
+
 - embedded in a **LVE**:  used to decrypt proprietary libraries
 
 ## LIBRARY VENDOR EXECUTABLE (LVE)
@@ -66,9 +84,13 @@ LVE private key:
 An LVE is a platform specific executable binary which:
 
 - is created by the library vendor
+
 - handles decryption of libraries (packaged in an MLC)
+
 - handles licensing of libraries (packaged in an MLC)
+
 - is packaged within a MLC
+
 - communicates, through the secure SEMLA protocol, with a Modelica tool 
 
 ### Platform Specific LVE
@@ -78,8 +100,11 @@ Four platforms are supported, for each platform a LVE must be compiled.
 Platform and LVE name :
 
 - windows 32 bits: lve_win32.exe
+
 - windows 64 bits: lve_win64.exe
+
 - linux 32 bits: lve_linux32
+
 - linux 64 bits: lve_linux64
 
 And MLC, containing encrypted/licensed libraries, will contain 1 or more LVEs depending on which platforms are supported.
@@ -89,6 +114,7 @@ And MLC, containing encrypted/licensed libraries, will contain 1 or more LVEs de
 If encryption is enabled and an LVE directory exists under the directory where **packagetool** is located:
 
 - LVEs in the _LVE_ directory are copied into the MLC (in the ".library" directory)
+
 - the appropriate fields in the _Manifest.xml_ File are set
 
 ## MODELICA LIBRARY CONTAINER
@@ -98,12 +124,15 @@ The container is a _zip_ file, with a _.mol_ file extension.
 The container has one top-level directory for each contained top-level package (library)
 
 - named and structured according to section 13.2.2 of the Modelica Language Specification version 3.2r2.
+
 - Each top-level directory contains a directory “.library”.
 
 Each “.library” directory contains:
 
 - A _manifest.xml_ file, containing meta-data about the library. 
+
 - If the library is encrypted, one or more LVEs, build with the same SSL and Randomizer keys. 
+
 - Additional directories containing any extra files needed by the LVEs or a Modelica tool. The names of each such directory should be the name of the vendor that needs it.
 
 ### Packagetool
@@ -369,14 +398,23 @@ The LVE can respond “ERROR \<error code> \<error message>” at any time.
 Standard error code:
 
 - \<error message> - an error message suitable for display
+
 - \<error code> is one of the following:
+
 	- 1 - Command not understood
+	
 	- 2 - Too low version of the protocol – only after VERSION
+	
 	- 3 - The LVE doesn’t handle licensing – only after FEATURE or LICENSE
+	
 	- 4 - File not found – only after FILE or LIB
+	
 	- 5 - This tool is not allowed to decrypt that file – only after FILE
+	
 	- 6 - File I/O error
+	
 	- 7 - License error
+	
 	- 8 - Other error
 
 ### Authentication
@@ -652,10 +690,9 @@ Encryption keys embedded in the **tool**, the **LVEs**, and **packagetool** bina
 For **each** release of libraries:
 
 - change the obfuscation code if possible
+
 - **each** library gets a new randomly generated SSL keys set and Randomized Key
+
 	- a new set of **LVEs**
-	- a new **packagetool**
 	
-
-
-
+	- a new **packagetool**

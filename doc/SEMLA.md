@@ -3,13 +3,13 @@ Tool-independent Licensing and Encryption of Modelica Libraries
 
 This specification describes a system for distributing proprietary Modelica libraries which supports:
 
-- encryption
+- Encryption
 
-- licensing
+- Licensing
 
-- secure decryption of encrypted Modelica libraries
+- Secure decryption of encrypted Modelica libraries
 
-- platform independence
+- Platform independence
 	
 It is achieved by:
 
@@ -131,21 +131,21 @@ Each “.library” directory contains:
 
 - A _manifest.xml_ file, containing meta-data about the library. 
 
-- If the library is encrypted, one or more LVEs, build with the same SSL and Randomizer keys. 
+- If the library is encrypted, there are one or more LVEs, build with the same SSL and Randomizer keys. 
 
 - Additional directories containing any extra files needed by the LVEs or a Modelica tool. The names of each such directory should be the name of the vendor that needs it.
 
 ### Packagetool
 
-The SEMLA distribution contains source code for a, platform independent, utility which can be used to create MLCs. It **must** be build with the same SSL and Randomizer keys as the LVEs. 
+The SEMLA distribution contains source code for a platform independent utility, which can be used to create MLCs. It **must** be built with the same SSL and Randomizer keys as the LVEs. 
 	
-If the library is to be encrypted, **packagetool** will also encrypted the __.mo__ files (to __.moc__) before adding them to the MLC.
+If the library is to be encrypted, the **packagetool** will also encrypt the __.mo__ files (to __.moc__) before adding them to the MLC.
 
 ### Manifest File
 
-An example for the manifest file _manifest.xml_ can be found at the end of this document. A DTD (Document Type Definition) or an XML schema is specified.
+An example of a manifest file _manifest.xml_ can be found at the end of this document. A DTD (Document Type Definition) or an XML schema is specified.
 
-_manifest.xml_ structure, mandatory fields are highlighted:
+_manifest.xml_ structure, here mandatory fields are highlighted:
 
 - archive
 	- manifest
@@ -187,7 +187,7 @@ _manifest.xml_ structure, mandatory fields are highlighted:
 
 ### Library Section
 
-The library part of the manifest file contains the only mandatory fields in the file and they are library version and language version.
+The library part of the manifest file contains the only mandatory fields in the file, which are 'library version' and 'language version'.
 
 Minimal manifest file without encryption, tools or dependencies:
 
@@ -207,15 +207,15 @@ Minimal manifest file without encryption, tools or dependencies:
 <icon file="Resources/Images/MyIcon.png" />
 ```
 
-The icon attribute of the manifest file must be set to a path to an icon file starting from the top-level directory of the library. 
+The icon attribute of the manifest file must be set to a path of the icon file, starting from the top-level directory of the library. 
 
 #### Packagetool
 
-**packagetool** validates that the icon file exist and set the attribute in the manifest file if option -icon is used.
+The **packagetool** validates that the icon file exists and it also sets the attribute in the manifest file if option -icon is used.
 
 ### Compatibility Section
 
-The compatibility section of the manifest is created by reading an xml-file that contains the tools to add.
+The compatibility section of the manifest is created by reading an xml-file that contains the tools to be added.
 
 Structure of the tools xml file:
 
@@ -228,13 +228,13 @@ Structure of the tools xml file:
 ```
 
 - the first line in the file is ignored
-- the remaining lines are copied in _manifest.xml_
+- the remaining lines are copied into the _manifest.xml_
 
-**packagetool** doesn't validate the tools xml file contents.
+The **packagetool** does not validate the tools xml file contents.
 
 ### Dependencies Section
 
-The dependencies section of the manifest file is created by reading an xml-file that contains the dependencies to add. 
+The dependencies section of the manifest file is created by reading an xml-file that contains the dependencies to be added. 
 
 The structure of the dependencies xml file:
 
@@ -254,11 +254,11 @@ The structure of the dependencies xml file:
 ```
 
 - the first line in the file is ignored
-- the remaining lines are copied in _manifest.xml_
+- the remaining lines are copied into the _manifest.xml_
 
-**packagetool** doesn't validate the tools xml file contents.
+The **packagetool** doesn't validate the tools xml file contents.
 
-## SEMLA - COMMUNICATION PROTOCOL BETWEEN TOOL AND LVE
+## SEMLA - COMMUNICATION PROTOCOL BETWEEN A TOOL AND LVE
 
 
                               ┌────┐                  ┌───┐                    
@@ -286,7 +286,7 @@ The structure of the dependencies xml file:
           ║                     │                       │                     ║
           ║         ╔═══════════╪════╤══════════════════╪═══════════╗         ║
           ║         ║ LICENSE CHECK  │                  │           ║         ║
-          ║         ╟─────────────FEATURE <feature nam> │           ║         ║
+          ║         ╟────────────FEATURE <feature name> │           ║         ║
           ║         ║           │ ──────────────────────>           ║         ║
           ║         ║           │                       │           ║         ║
           ║         ║           │          YES          │           ║         ║
@@ -317,9 +317,8 @@ The structure of the dependencies xml file:
                               │Tool│                  │LVE│                    
                               └────┘                  └───┘                    
 
-The protocol defines : 
-
-- the establishment a secure communication channel between the tool and LVE (see Handshake) 
+This protocol defines : 
+- the establishment a secure communication channel between the tool and the LVE (see Handshake) 
 	- the encrypted communication is done through the LVE's stdin and stdout
 - the agreement over which version of the SEMLA protocol to use 
 - the decryption of Modelica code and/or licensing. 
@@ -332,7 +331,7 @@ Messages are in 8-bit ASCII
 
 ### Simple message with no arguments
 
-format: "\<COMMAND>LN"
+Format: "\<COMMAND>LN"
 	
 - \<COMMAND> - command name, in all caps
 - “LN” - line feed character
@@ -344,21 +343,21 @@ Messages using this form:
 - “TOOLS”
 - “YES”
 
-### Message with a decimal integer data
+### Message with decimal integer data
 
-format: "\<COMMAND> <number>LN"
+Format: "\<COMMAND> <number>LN"
 	
 - \<COMMAND> - command name in all caps
-- \<number> - decimal number – 32-bit signed integer, string, base 10 representation
+- \<number> - a decimal number – 32-bit signed integer, string, base 10 representation
 - “LN” - line feed character
 
 Messages using this form: 
 	
 - “VERSION”
 
-### Message with a variable length data
+### Message with variable length data
 
-format: "\<COMMAND> \<length>LN\<data>"
+Format: "\<COMMAND> \<length>LN\<data>"
 
 - \<COMMAND> - command name in all caps
 - \<length> - data length in bytes – 32-bit signed integer, string, base 10 representation
@@ -380,7 +379,7 @@ Messages using this form:
 
 ### Message with an integer number and a variable length data
 
-format: "\<COMMAND> \<number> \<length>LN\<data>"
+Format: "\<COMMAND> \<number> \<length>LN\<data>"
 
 - \<COMMAND> - command name in all caps
 - \<number> - 32-bit signed integer, string, base 10 representation
@@ -397,63 +396,63 @@ The LVE can respond “ERROR \<error code> \<error message>” at any time.
 
 Standard error code:
 
-- \<error message> - an error message suitable for display
-
 - \<error code> is one of the following:
 
 	- 1 - Command not understood
 	
-	- 2 - Too low version of the protocol – only after VERSION
+	- 2 - Too low version of the protocol – only after message VERSION
 	
-	- 3 - The LVE doesn’t handle licensing – only after FEATURE or LICENSE
+	- 3 - The LVE doesn’t handle licensing – only after message FEATURE or LICENSE
 	
-	- 4 - File not found – only after FILE or LIB
+	- 4 - File not found – only after message FILE or LIB
 	
-	- 5 - This tool is not allowed to decrypt that file – only after FILE
+	- 5 - This tool is not allowed to decrypt that file – only after message FILE
 	
 	- 6 - File I/O error
 	
 	- 7 - License error
 	
 	- 8 - Other error
+	
+- \<error message> - an error message suitable for display
 
 ### Authentication
 
-The LVE contains a list of the public keys of the tools that it trusts; It will only connect to those tools.
+The LVE contains a list of the public keys of the tools that it trusts. It will only connect to those tools.
 
-The tools implicitly trusts the LVE as only the LVE can licenses and decrypts the MLC.
+The tools implicitly trusts the LVE as only the LVE can provide licenses and decryption of the MLC.
 
 ### Handshake
 
-- 1 the tool initiates a cryptographic handshake according to TLS 1.2.
+- 1 - the tool initiates a cryptographic handshake according to TLS 1.2.
 
-- 2 the tool sends the highest version of the protocol it supports (integer): “VERSION \<version>”
+- 2 - the tool sends the highest version of the protocol it supports (integer): “VERSION \<version>”
 
-- 3 the LVE responds with the highest version of the protocol supported: “VERSION \<version>”
-	- If tool-version < lve-version, the reply is: “NO \<reason>”.
+- 3 - the LVE responds with the highest version of the protocol it supports: “VERSION \<version>”
+	- If tool-version is less than the LVE-version, then the reply is: “NO \<reason>”.
 
-- 4 the tool sends a path: “LIB \<path>”
+- 4 - the tool sends a path: “LIB \<path>”
 	- If only the “.library” folder was extracted from the MLC, "\<path>" is the path to the library archive
 		
 	- If the entire contents of the MLC was extracted, "\<path>" is the path to the top-level directory of the library
 
-- 5 the LVE responds: “YES”.
+- 5 - the LVE responds: “YES”.
 
 ### License check
 
 #### Check for a feature
 
-- 1 the tool sends: “FEATURE \<feature name>”
-- 2 the LVE responds: “YES” or “NO \<reason>”
+- 1 - the tool sends: “FEATURE \<feature name>”
+- 2 - the LVE responds: “YES” or “NO \<reason>”
 
 #### Simplified license check
 
-The LVE may **optionally** allow a simplified license check.
+The LVE may **optionally** allow for a simplified license check.
 
 In the simplified check, tool only asks for permission for the user to use an entire top-level package contents. 
  
-- 1 the tool sends: “LICENSE \<package name>”
-- 2 the LVE answers one of:
+- 1 - the tool sends: “LICENSE \<package name>”
+- 2 - the LVE answers one of:
 	- “YES”
 	- “NO \<reason>” 
 	- “NOTSIMPLE” in case simplified license check is not supported.
@@ -478,7 +477,7 @@ The Tool's public key is compared against the list of trusted keys during the TL
 
 ### Decryption
 
-The tool can request an decrypted library file from the LVE using the "FILE" command.
+The tool can request a decrypted library file from the LVE using the "FILE" command.
 
 The LVE:
 
@@ -504,7 +503,7 @@ The tool may, after the cryptographic handshake, query the LVE for general infor
 	- a sequence of Modelica tools in the formatted as:
 		- one line for each tool terminated by the line feed character
 		- each line formated as: "tool-public-key name-of-the-tool"
-			- tool-public-key: a hexadecimal number string without prefix (no “0x”)
+			- tool-public-key: a hexadecimal number string without a prefix (i.e. no “0x”)
 
 #### License information
 
@@ -523,7 +522,7 @@ A library can be installed by the tool:
 	- the library can be placed in any location (tool decision) 
 		- the library can be renamed (tool decision)
 
-We recommended that:
+We recommend that:
 
 - the library is placed in a directory on the MODELICAPATH
 - named “PACKAGENAME” or “PACKAGENAME VERSION” (as per the Modelica Language Specification)
@@ -538,7 +537,7 @@ Reading a non-encrypted library is equivalent to reading a library stored on dis
 - start the platform specific **LVE**
 - communicate with LVE through its stdin & stdout
 - encrypted Modelica files (__.moc__) are read through the LVE
-- non encrypted Modelica files can also be read through the LVE or directly from disk
+- non-encrypted Modelica files can also be read through the LVE or directly from disk
 
 ## APPENDIX
 
@@ -546,9 +545,9 @@ Reading a non-encrypted library is equivalent to reading a library stored on dis
 
 #### SSL and Randomizer keys
 
-As LVEs are created in different builds (one or each platform), you need to use the **same** SSL keys and Randomizer Key in **every** builds to create a MLC that is platform independent.
+As LVEs are created in different builds (one or each platform), you need to use the **same** SSL keys and Randomizer Key in **every** build to create a MLC that is platform independent.
 
-if no keys are provided, only for testing purpose, SSL and RANDOMIZER keys are generate.
+if no keys are provided, only for testing purpose, SSL and RANDOMIZER keys are generated.
 
 ### Example “manifest.xml” file for an encrypted library:
 
@@ -609,15 +608,15 @@ if no keys are provided, only for testing purpose, SSL and RANDOMIZER keys are g
 
 ### System Requirements for commercial libraries implemented in this proposal
 
-#### Library Vendor
+#### The Library Vendor
 
-- Needs to define which libraries should be available on which tools, e.g.: explicit encoding of supported tools. This is achieved through a list of trusted tool keys.
+- Needs to define which libraries should be made available to which tools, e.g.: explicit encoding of supported tools. This is achieved through a list of trusted tool keys.
 
 - Needs to enable/disable parts (features) in any given library based on standardized annotations. Achieved through standard license annotations.
 
 - Needs to specify the visibility of components based on the standardized annotations. Achieved through standard license annotations.
 
-- Need to check the license for a whole library without parsing the Modelica code. Achieved, optionally, through an alternate licensing mechanism for tools that do not understand license annotations.
+- Need to check the license for a whole library without parsing the Modelica code. Achieved optionally, through an alternate licensing mechanism for tools that do not understand license annotations.
 
 - Needs to license/protect external libraries (e.g.: with C and F77) independently of the licensing mechanism for the library.
 
@@ -631,9 +630,9 @@ if no keys are provided, only for testing purpose, SSL and RANDOMIZER keys are g
 
 #### Tool 
 
-- Store of Modelica source code on disc in unencrypted form is not allowed.
+- Storage of Modelica source code on disc in an unencrypted form is not allowed.
 
-- The Tool support standardized mechanisms for enabling/disabling parts of a library, by means of annotations defined in the Modelica specification.
+- The Tool supports standardized mechanisms for enabling/disabling parts of a library, by means of annotations defined in the Modelica specification.
 
 - Well documented low level API for licensing and encryption.
 
@@ -641,17 +640,17 @@ if no keys are provided, only for testing purpose, SSL and RANDOMIZER keys are g
 
 - Can display Error messages for errors happening on the LVE side.
 
-- Alternative, tool specific, licensing mechanisms is possible.
+- Alternative, tool specific, licensing mechanisms are possible.
 
-- Can create a container which includes multiple libraries/top-level packages, in a single file.
+- Enables the creation of containers which include multiple libraries/top-level packages, in a single file.
 
 - May have more than one key pair. For tools that have more than one key pair, the LVE needs to be restarted in between trying different key pairs.
 	
 #### User
 
-- The API shall enable convenient to installation procedures for libraries. Possible with tool support, 
+- The API should make installation procedures for libraries convienient. This is possible with tool support
 
-- library is distributed as a single file with a well-defined file extension.
+- The library is distributed as a single file with a well-defined file extension.
 
 - Error messages enable users to isolate errors related to licensing and encryption.
 
@@ -677,7 +676,7 @@ Consequences if a cryptographic key is extracted or altered:
 	- Extraction: allows the decryption the library.
 	- Alteration: not useful to attacker, makes it impossible for the LVE to decrypt libraries.
 		
-The most serious breach is an attacker obtaining the tool private key; it allows the decryption of any library released for that tool.
+The most serious breach is an attacker obtaining the tools private key; it would allow the decryption of any library released for that tool.
 		
 These vulnerabilities exists in any tool that supports encrypted libraries and embed encryption keys.
 
@@ -685,13 +684,13 @@ These vulnerabilities exists in any tool that supports encrypted libraries and e
 
 Encryption keys embedded in the **tool**, the **LVEs**, and **packagetool** binaries must be protected with an obfuscation scheme.
 
-**Change the obfuscation code to code unique to your company**.
+**Change the obfuscation code to be unique for your company**.
 
 For **each** release of libraries:
 
 - change the obfuscation code if possible
 
-- **each** library gets a new randomly generated SSL keys set and Randomized Key
+- **each** library gets a new randomly generated SSL key set and Randomized Key
 
 	- a new set of **LVEs**
 	

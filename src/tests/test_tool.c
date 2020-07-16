@@ -107,7 +107,7 @@ int main(int argc, char **argv)
         }
         else if (0 == strcmp(argv[i], "--no-feature")) {
             i++;
-            snprintf(feature, sizeof(no_feature), "%s", argv[i]);
+            snprintf(no_feature, sizeof(no_feature), "%s", argv[i]);
         }
         else if (0 == strcmp(argv[i], "--help")) {
             print_usage();

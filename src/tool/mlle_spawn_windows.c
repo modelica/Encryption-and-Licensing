@@ -147,7 +147,7 @@ mlle_spawn(const char *exec_name,
             }
         }
         else {
-            mlle_error_set(error, 1, 1, "Failed to create a new process (%s).", errbuf);
+            mlle_error_set(error, 1, 1, "Failed to create a new process (%s, %s).", exec_name, errbuf);
             return NULL;
         }
     }

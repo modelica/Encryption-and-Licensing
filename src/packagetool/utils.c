@@ -566,13 +566,6 @@ int copyExtraFiles()
     char *dest_path = NULL;
     size_t dest_path_len = 0;
 
-
-    // We are done if we are not using encryption.
-    if (!usingEncryption())
-    {
-        return 1;
-    }
-
     // Path to where executable is running from.
     dir_path = getExecutableDirectory();
     if (dir_path == NULL)

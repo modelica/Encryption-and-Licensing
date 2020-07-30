@@ -46,7 +46,7 @@ void print_usage() {
 "--feature <name>   license feature to checkout that is expected to work.\n"
 "                   (default: test_licensed_feature).\n"
 "--no-feature <name>   license feature to try to checkout that is expected to fail.\n"
-"                   (default: test_not_licensed_feature).\n"
+"                   (default: test_not_licensed_feature, DONT_TEST string for none).\n"
 "--help              print usage and exit. This must be the only option given.\n"
     );
 }
@@ -174,9 +174,12 @@ const char * facit_path, const char **facit_files
         check_mlle(mlle_tool_feature(lve, feature, &error), test_name, &error);
         mlle_error_free(&error);
 
-        snprintf(test_name, sizeof(test_name), "Test invalid feature ('%s')", no_feature);
-        check_mlle(!mlle_tool_feature(lve, no_feature, &error), test_name, &error);
-        mlle_error_free(&error);
+        if (0 != strcmp(no_feature, "DONT_TEST"))
+		{
+			snprintf(test_name, sizeof(test_name), "Test invalid feature ('%s')", no_feature);
+			check_mlle(!mlle_tool_feature(lve, no_feature, &error), test_name, &error);
+			mlle_error_free(&error);
+		}
 
         for (i = 0; i < number_of_files; i++) {
             get_file_and_compare(library_files[i], facit_files[i], facit_path, lve);

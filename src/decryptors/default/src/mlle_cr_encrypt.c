@@ -25,6 +25,7 @@
 #include <openssl/hmac.h>
 #include <openssl/rand.h>
 #include "mlle_cr_crypt.h"
+#include "mlle_cr_decrypt.h"
 #include "mlle_cr_context.h"
 #include "mlle_error.h"
 

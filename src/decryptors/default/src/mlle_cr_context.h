@@ -19,12 +19,12 @@ typedef struct mlle_key_mask_map {
     char buffer[2];
 } mlle_key_mask_map;
 
-typedef struct mlle_cr_context {
+struct mlle_cr_context {
     char no_mask[MLLE_CR_KEY_LEN]; /* empty mask used for top-level package.moc */
     struct mlle_key_mask_map* keymask_map; /* makes this structure hashable */
     char basedir[1];             /*  basedir where all encrypted files are stored.  */
     /*  Relpath used in keymap are relative to this directory. */
-} mlle_cr_context;
+};
 
 
 #ifdef __cplusplus

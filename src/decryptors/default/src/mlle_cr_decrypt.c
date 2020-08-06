@@ -24,6 +24,7 @@
 #include <openssl/hmac.h>
 #include "mlle_cr_crypt.h"
 #include "random_key_file.h"
+#include "mlle_cr_decrypt.h"
 #include "mlle_cr_context.h"
 #include "mlle_portability.h"
 #include "mlle_io.h"

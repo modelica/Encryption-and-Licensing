@@ -20,7 +20,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-typedef struct  mlle_cr_context mlle_cr_context;
+#ifndef MLLE_CR_CONTEXT_
+#define MLLE_CR_CONTEXT_
+
+typedef struct mlle_cr_context mlle_cr_context;
+
+#endif
 
 /*
 * Allocate decryptor context object to be passed in all encrypt/decrypt operations.

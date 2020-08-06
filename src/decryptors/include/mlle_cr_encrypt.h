@@ -22,7 +22,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifndef MLLE_CR_CONTEXT_
+#define MLLE_CR_CONTEXT_
+
 typedef struct mlle_cr_context mlle_cr_context;
+#endif
 
 /*
  * Read data from stream in until eof, encrypt it, and write IV, encrypted store_mask, data and HMAC (in that order) to stream out.

@@ -147,8 +147,7 @@ else()
 			)
 	else()
 		message(STATUS "Will build OpenSSL 1.1.1g as external project")
-		message(STATUS "chmod a+x ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g/config")
-		execute_process(COMMAND "chmod a+x ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g/config")
+		execute_process(COMMAND "chmod" "a+x" "${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g/config")
 		
 		ExternalProject_Add(openssl
 			PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl

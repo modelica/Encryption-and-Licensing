@@ -214,7 +214,6 @@ target_link_libraries(randomize_key
                       ${extra_ssl_libs}
                       obfuscate_utils)
 
-					  
 # ---------------
 # ENCRYPTION KEYS
 # ---------------
@@ -297,9 +296,6 @@ else()
   set_source_files_properties("${PRIVATE_KEY_LVE_H}" PROPERTIES HEADER_FILE_ONLY TRUE)
 
 endif()
-
-
-
 
 # TOOLS public keys recognized by LVE
 # -----------------------------------
@@ -491,7 +487,6 @@ add_executable(decrypt_file
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c    
 )
 target_link_libraries(decrypt_file  decryptor mlle_common ${ssl_libs} ${extra_ssl_libs})
-
 
 if(WIN32)
     if (MSVC)

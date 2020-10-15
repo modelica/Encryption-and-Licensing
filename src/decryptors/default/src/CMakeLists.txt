@@ -26,12 +26,11 @@ if(EXISTS ${RANDOM_KEY_DIRECTORY}/random_key_file.h)
 		COMMAND "${CMAKE_COMMAND}" -E remove -f ${MLLE_BINARY_DIR}/random_key_file.h
 		COMMAND "${CMAKE_COMMAND}" -E copy  ${RANDOM_KEY_DIRECTORY}/random_key_file.h ${MLLE_BINARY_DIR}
 	)
-elseif(EXISTS "${MLLE_BINARY_DIR}/random_key_file.h")
-    message("Encryption key ${ENCRYPTION_KEY_H} exist in build directory. Using it.")
 else()
-	message("Could not find Encryption key ${MLLE_BINARY_DIR}/random_key_file.h, regenerating")
+	message("Could not find Encryption key ${RANDOM_KEY_DIRECTORY}/random_key_file.h, generating new one")
 	add_custom_command(
 		OUTPUT "${ENCRYPTION_KEY_H}"
+		COMMAND "${CMAKE_COMMAND}" -E remove -f ${MLLE_BINARY_DIR}/random_key_file.h
 		COMMAND randomize_key "${ENCRYPTION_KEY_H}" MLLE_CR_KEY
 		DEPENDS randomize_key openssl
 		)

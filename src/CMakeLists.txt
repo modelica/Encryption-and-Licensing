@@ -95,6 +95,7 @@ if (USE_CONAN_OPENSSL)
     set(openssl_dir ${CONAN_OPENSSL_ROOT})
     set(ssl_libs ${CONAN_LIBS} )
 else()
+	set(openssl_dir ${CMAKE_CURRENT_BINARY_DIR}/openssl)
 	# - OS
 	if(WIN32)
 		# Values for Windows
@@ -157,16 +158,16 @@ else()
 		
 		ExternalProject_Add(openssl
 			PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl
-			URL ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g
+			URL  ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g
 			BUILD_IN_SOURCE 1
 			CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl
 			COMMAND ${openssl_conf_extra}
 			BUILD_COMMAND ${openssl_make}
 			INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
+            BUILD_BYPRODUCTS  ${openssl_dir}/lib/${openssl_ssl_lib} ${openssl_dir}/lib/${openssl_crypto_lib}
 		)
 	endif()
 	
-	set(openssl_dir ${CMAKE_CURRENT_BINARY_DIR}/openssl)
 	add_library(ssl STATIC IMPORTED)
 	add_library(crypto STATIC IMPORTED)
 	set_property(TARGET ssl PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_ssl_lib})
@@ -668,29 +669,30 @@ add_test(NAME package_test_lib
 SET_TESTS_PROPERTIES (run_test_tool PROPERTIES DEPENDS package_test_lib)
 
 if(DO_LONG_FILENAME_TEST OR UNIX)
-add_test( NAME run_test_tool_single_file 
-         COMMAND test_tool --lve ${LVETARGET}  --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-                --libpath ${CMAKE_CURRENT_BINARY_DIR}/test_library 
-                --file 
-                Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.moc 
-                Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    add_test( NAME run_test_tool_single_file 
+            COMMAND test_tool --lve ${LVETARGET}  --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
+                    --libpath ${CMAKE_CURRENT_BINARY_DIR}/test_library 
+                    --file 
+                    Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.moc 
+                    Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-SET_TESTS_PROPERTIES (
-    run_test_tool_single_file PROPERTIES DEPENDS package_test_lib)
+    SET_TESTS_PROPERTIES (
+        run_test_tool_single_file PROPERTIES DEPENDS package_test_lib)
 
-add_test( NAME run_test_tool_long_path 
-          COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-            --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    add_test( NAME run_test_tool_long_path 
+            COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
+                --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_test(NAME package_test_lib_long_path
-    COMMAND "${CMAKE_COMMAND}" --build . --target test_library_long_path --config $<CONFIGURATION>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    
-SET_TESTS_PROPERTIES (
-    run_test_tool_long_path PROPERTIES DEPENDS package_test_lib_long_path)
-
+    add_test(NAME package_test_lib_long_path
+        COMMAND "${CMAKE_COMMAND}" --build . --target test_library_long_path --config $<CONFIGURATION>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        
+    SET_TESTS_PROPERTIES (
+        run_test_tool_long_path PROPERTIES DEPENDS package_test_lib_long_path)
+else()
+    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_facit/Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo) 
 endif()
 
 # --------------------

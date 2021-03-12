@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 /* libcrypto-compat.h must be first */
 #include "libcrypto-compat.h"
 

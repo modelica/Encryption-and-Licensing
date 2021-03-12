@@ -286,9 +286,11 @@ int mlle_cr_decrypt(
         /* Set up decryption and HMAC calculation. */
         INITIALIZE_MLLE_CR_KEY();
     }
+#ifndef DISABLE_DEMASK_KEY
     if (context && rel_file_path) {
         restore_mask_flag = mlle_demask_key(context, rel_file_path, MLLE_CR_KEY);
     }
+#endif
     if (!in) return 0;
 
     if (!EVP_DecryptInit_ex(c_ctx, cipher, NULL, MLLE_CR_KEY, iv_in))
@@ -317,12 +319,14 @@ int mlle_cr_decrypt(
     if (memcmp(mac, mac_in, mac_len))
         goto error;    
 
+#ifndef DISABLE_DEMASK_KEY
     /* check if this is a package.moc file and save the key into cache */
     if (restore_mask_flag) {
         out_len -= MLLE_CR_KEY_LEN; /* take out key length from the data sent back*/
         if (mlle_store_keymask(context, rel_file_path, out + out_len) < 0)
             goto error;
     }
+#endif
 
     res = out_len;
     /* Cleanup. */

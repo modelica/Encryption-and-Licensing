@@ -90,7 +90,7 @@ int main(int argc, char **argv)
         }
         else if (0 == strcmp(argv[i], "--reflibpath")) {
             i++;
-            snprintf(library_path, sizeof(library_path), "%s", argv[i]);
+            snprintf(reflib_path, sizeof(reflib_path), "%s", argv[i]);
         }
         else if (0 == strcmp(argv[i], "--file")) {
             i++;

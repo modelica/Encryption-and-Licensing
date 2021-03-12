@@ -240,10 +240,12 @@ int mlle_cr_encrypt(mlle_cr_context* context,
 
     /* Set up encryption and HMAC calculation. */
     INITIALIZE_MLLE_CR_KEY();
+#ifndef DISABLE_DEMASK_KEY
     store_mask_flag = mlle_mask_key(context, rel_file_path, MLLE_CR_KEY, store_mask);
     if (store_mask_flag < 0) {
         goto error;
     }
+#endif
     if (!EVP_EncryptInit_ex(c_ctx, cipher, NULL, MLLE_CR_KEY, iv))
         goto error;
     mac = (unsigned char*) malloc(mac_len);
@@ -272,6 +274,7 @@ int mlle_cr_encrypt(mlle_cr_context* context,
             goto error;
     }
 
+#ifndef DISABLE_DEMASK_KEY
     if (store_mask_flag) {
         /* Encrypt and write store_mask. */
         if (!EVP_EncryptUpdate(c_ctx, crypt_buf, &crypt_len, store_mask, MLLE_CR_KEY_LEN))
@@ -282,6 +285,7 @@ int mlle_cr_encrypt(mlle_cr_context* context,
         if (!HMAC_Update(h_ctx, store_mask, MLLE_CR_KEY_LEN))
             goto error;
     }
+#endif
 
     /* Finalize encryption and write final data. */
     if (!EVP_EncryptFinal_ex(c_ctx, crypt_buf, &crypt_len))

@@ -21,12 +21,6 @@
 cmake_minimum_required(VERSION 3.4)
 project(MLLE)
 
-# preprocessor defines
-if (DISABLE_DEMASK_KEY)
-    add_definitions(-DDISABLE_DEMASK_KEY)
-endif()
-
-
 set(USE_OPENSSL_10_API FALSE)
 
 if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")

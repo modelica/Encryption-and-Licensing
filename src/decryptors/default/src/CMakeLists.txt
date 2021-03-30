@@ -14,7 +14,17 @@
 #
 cmake_minimum_required(VERSION 2.8)
 project(MLLECr)
-
+# preprocessor defines
+if (DISABLE_DEMASK_KEY)
+    set_property(
+    SOURCE
+    mlle_cr_decrypt.c
+    mlle_cr_encrypt.c
+    APPEND
+    PROPERTY COMPILE_DEFINITIONS
+    DISABLE_DEMASK_KEY
+    )
+endif()
 message(STATUS "MLLE_LIST_DIR = ${MLLE_LIST_DIR}")
 message(STATUS "MLLE_BINARY_DIR = ${MLLE_BINARY_DIR}")
 

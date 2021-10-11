@@ -21,6 +21,14 @@
 cmake_minimum_required(VERSION 3.4)
 project(MLLE)
 
+
+# set platform
+if (WIN32)
+elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(DARWIN TRUE)
+elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+endif()
+
 set(USE_OPENSSL_10_API FALSE)
 
 if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")

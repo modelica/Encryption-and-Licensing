@@ -78,6 +78,8 @@ endif()
 
 if (WIN32)
     set(LVETARGET "lve_win${BITS}")
+elseif (DARWIN)
+    set(LVETARGET "lve_darwin${BITS}")
 else()
     set(LVETARGET "lve_linux${BITS}")
 endif()

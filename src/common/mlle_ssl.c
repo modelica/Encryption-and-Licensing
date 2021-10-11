@@ -36,6 +36,8 @@
 #include "mlle_ssl.h"
 #include "mlle_error.h"
 
+char *global_tool_pub_key;
+
 /*****************************
  * Initiate the SSL library.
  *****************************/

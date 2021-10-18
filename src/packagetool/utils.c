@@ -27,6 +27,10 @@
 #include "arguments.h"
 #include "mlle_cr_decrypt.h"
 
+#ifdef DARWIN
+#include <mach-o/dyld.h>
+#endif
+
 #ifdef WIN32
 #else
 #include <errno.h>
@@ -47,7 +51,7 @@
 // ------------------------------------
 // These are the LVE's currently used.
 // ------------------------------------
-char *lve[NO_OF_LVE] = {"lve_win32.exe", "lve_win64.exe", "lve_linux32", "lve_linux64"};
+char *lve[NO_OF_LVE] = {"lve_win32.exe", "lve_win64.exe", "lve_linux32", "lve_linux64", "lve_darwin64"};
 
 // ----------------------
 // List of copied lve's.
@@ -358,6 +362,22 @@ char *getExecutableDirectory()
         {
             exePath = extractPath(pathAndFilename);
         }
+    }
+#elif DARWIN
+    char dest[MAX_PATH_LENGTH + 1];
+    ssize_t len;
+    int result;
+    uint32_t pathAndFilename_size = MAX_PATH_LENGTH + 1;
+    result = _NSGetExecutablePath(pathAndFilename, &pathAndFilename_size);
+    if (result != 0) {
+        return NULL;
+    }
+    if ((len = readlink(pathAndFilename, dest, MAX_PATH_LENGTH)) > -1)
+    {
+        dest[len] = '\0';
+        exePath = extractPath(dest);
+    } else {
+        exePath = extractPath(pathAndFilename);
     }
 #else
     char dest[MAX_PATH_LENGTH + 1];
@@ -1066,7 +1086,7 @@ int encryptDirectoryLinux(const char *topLevelPath, const char* relPath, mlle_cr
 {
     int result = 1;
 
-#ifdef linux
+#if defined linux || defined DARWIN
     DIR *d;
     struct dirent *dir;
     char fullPath[MAX_PATH_LENGTH + 1];
@@ -1162,7 +1182,7 @@ int findFileLinux(const char *filename, const char *path)
 {
     int result = 0;
 
-#ifdef linux
+#if defined linux || defined DARWIN
 
     DIR *d;
     struct dirent *dir;
@@ -1584,7 +1604,7 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
 {
     int result = 0;
 
- #ifdef linux
+ #if defined linux || defined DARWIN
     DIR *d;
     struct dirent *dir;
     char searchPath[MAX_PATH_LENGTH + 1];
@@ -2045,7 +2065,7 @@ int copyDirectoryWin32(char *fromPath, char *toPath)
 int copyDirectoryLinux(char *fromPath, char *toPath)
 {
     int result = 1;
-#ifdef linux
+#if defined linux || defined DARWIN
     DIR *d;
     struct stat info;
     struct dirent *dir;

@@ -472,6 +472,18 @@ file(COPY ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_licensing.h
 # --------------------
 # Create packagetool.
 # --------------------
+
+# preprocessor defines
+if (DARWIN)
+    set_property(
+    SOURCE
+    packagetool/utils.c
+    APPEND
+    PROPERTY COMPILE_DEFINITIONS
+    DARWIN
+    )
+endif()
+
 add_executable(packagetool
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/packagetool.c
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/arguments.c

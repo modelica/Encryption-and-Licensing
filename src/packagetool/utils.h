@@ -20,7 +20,7 @@
 
 #include <mlle_cr_decrypt.h>
 
-#define NO_OF_LVE 4
+#define NO_OF_LVE 5
 #define MAX_PATH_LENGTH 2048
 #define LONG_FILE_NAME_MAX 4096
 #define MAX_STRING 200

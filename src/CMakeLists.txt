@@ -21,6 +21,14 @@
 cmake_minimum_required(VERSION 3.4)
 project(MLLE)
 
+
+# set platform
+if (WIN32)
+elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(DARWIN TRUE)
+elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+endif()
+
 set(USE_OPENSSL_10_API FALSE)
 
 if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
@@ -70,6 +78,8 @@ endif()
 
 if (WIN32)
     set(LVETARGET "lve_win${BITS}")
+elseif (DARWIN)
+    set(LVETARGET "lve_darwin${BITS}")
 else()
     set(LVETARGET "lve_linux${BITS}")
 endif()
@@ -462,6 +472,18 @@ file(COPY ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_licensing.h
 # --------------------
 # Create packagetool.
 # --------------------
+
+# preprocessor defines
+if (DARWIN)
+    set_property(
+    SOURCE
+    packagetool/utils.c
+    APPEND
+    PROPERTY COMPILE_DEFINITIONS
+    DARWIN
+    )
+endif()
+
 add_executable(packagetool
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/packagetool.c
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/arguments.c

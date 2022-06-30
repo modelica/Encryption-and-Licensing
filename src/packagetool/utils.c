@@ -134,22 +134,6 @@ char *getIconPath()
 
 
 #ifdef WIN32
-static void generateRandomString(char *container, int startNdx,  int len) {
-    int i;
-    static const char possibilities[] =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"
-        "0123456789";
-
-    // seed random
-    srand((unsigned int) time(0));
-
-    for (i = 0; i < len; ++i) {
-        container[startNdx + i] = possibilities[rand() % (sizeof(possibilities) - 1)];
-    }
-
-    container[startNdx + len] = '\0';
-}
 
 static char* getTempDirWin32() {
     char path[MAX_PATH_LENGTH + 1];
@@ -164,9 +148,18 @@ static char* getTempDirWin32() {
     if (GetTempPathA(MAX_PATH_LENGTH, path) == 0) {
         printf("%s, Failed to fetch temp path\n", __func__);
     } else {
+        const char* TEMPLATE = "tmpXXXXXX";
+        const int TEMPLATE_LENGTH = (int)strlen(TEMPLATE);
         pathLength = (int)strlen(path);
-        generateRandomString(path, pathLength, 10);
-        pathLength = (int)strlen(path);
+        if (pathLength + TEMPLATE_LENGTH > MAX_PATH_LENGTH) {
+            printf("%s, Failed to create temp path string\n", __func__);
+            return tempStagingFolder;
+        }
+        strcpy(path + pathLength, TEMPLATE);
+        if (!_mktemp(path)) {
+            printf("%s, Failed to initialize temp path string\n", __func__);
+            return tempStagingFolder;
+        }
         tempStagingFolder = strdup(path);
         DEBUG_PRINT("%s, tempStagingFolder = %s\n", __func__, tempStagingFolder);
     }

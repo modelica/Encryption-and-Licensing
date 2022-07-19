@@ -43,7 +43,9 @@ else()
     set(USE_CONAN_OPENSSL FALSE)
 endif()
 
-set(CMAKE_BUILD_TYPE Release)
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 if(WIN32 AND NOT DYNAMIC)
 	foreach(flag_var
 			CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE

@@ -43,7 +43,9 @@ else()
     set(USE_CONAN_OPENSSL FALSE)
 endif()
 
-set(CMAKE_BUILD_TYPE Release)
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 if(WIN32 AND NOT DYNAMIC)
 	foreach(flag_var
 			CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
@@ -93,7 +95,11 @@ if(NOT WIN32)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif()
 
-if (USE_CONAN_OPENSSL)
+if (USE_INSTALLED_OPENSSL)
+    find_package (OpenSSL REQUIRED COMPONENTS Crypto SSL)
+    message(STATUS "Will use installed OpenSSL ${OPENSSL_VERSION}")
+    set(ssl_libs ${OPENSSL_LIBRARIES})
+elseif (USE_CONAN_OPENSSL)
     message(STATUS "CONAN_OPENSSL_ROOT=${CONAN_OPENSSL_ROOT}, CONAN_LIB_DIRS_OPENSSL=${CONAN_LIB_DIRS_OPENSSL}")
     message(STATUS "CONAN_LIBS_OPENSSL=${CONAN_LIBS_OPENSSL}, CONAN_LIBS=${CONAN_LIBS}")
     set(openssl_dir ${CONAN_OPENSSL_ROOT})
@@ -391,7 +397,10 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINA
 # - Decryptor
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
-add_dependencies(decryptor  openssl)
+if (USE_INSTALLED_OPENSSL)
+else()
+    add_dependencies(decryptor  openssl)
+endif()
 
 # - Obfuscator
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/obfuscators ${CMAKE_CURRENT_BINARY_DIR}/obfuscators)
@@ -409,8 +418,11 @@ add_library(mlle_common
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h)
 
-add_dependencies(mlle_common  openssl)
-    
+if (USE_INSTALLED_OPENSSL)
+else()
+    add_dependencies(mlle_common  openssl)
+endif()
+
 # --------------
 # Create lve.
 # --------------
@@ -725,11 +737,14 @@ install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
 
-install(DIRECTORY "${openssl_dir}/include/"
-        DESTINATION include)
-
+if (USE_INSTALLED_OPENSSL)
+else()
+    install(DIRECTORY "${openssl_dir}/include/"
+            DESTINATION include)
+endif()
 # Install OpenSSL libs as well, since they are needed by tool lib
-if (USE_CONAN_OPENSSL)
+if (USE_INSTALLED_OPENSSL)
+elseif (USE_CONAN_OPENSSL)
 else()
     install( FILES
         ${openssl_dir}/lib/${openssl_ssl_lib}

@@ -1,4 +1,4 @@
-License
+BSD 3-Clause License
 (C) 2015 - 2022 Modelon AB, 2022 Modelica Association
 
 Redistribution and use in source and binary forms, with or without

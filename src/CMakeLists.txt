@@ -659,69 +659,71 @@ file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files)
 file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files/Module)
 file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module)
 
-add_test( NAME encrypt_top_level_package
-        COMMAND encrypt_file ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
+if(NOT SKIP_SEMLA_SRC_TESTS)
+    add_test( NAME encrypt_top_level_package
+            COMMAND encrypt_file ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
 
-add_test( NAME encrypt_sub_package
-        COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/package.mo Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
+    add_test( NAME encrypt_sub_package
+            COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/package.mo Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
 
-SET_TESTS_PROPERTIES ( encrypt_sub_package PROPERTIES DEPENDS encrypt_top_level_package)
+    SET_TESTS_PROPERTIES ( encrypt_sub_package PROPERTIES DEPENDS encrypt_top_level_package)
 
-add_test( NAME encrypt_submodel
-        COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/testInPackage.mo Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
+    add_test( NAME encrypt_submodel
+            COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/testInPackage.mo Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
 
-SET_TESTS_PROPERTIES ( encrypt_submodel PROPERTIES DEPENDS encrypt_sub_package)
+    SET_TESTS_PROPERTIES ( encrypt_submodel PROPERTIES DEPENDS encrypt_sub_package)
 
-add_test( NAME decrypt_top_level_package
-        COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/package.mo)
-SET_TESTS_PROPERTIES (
-    decrypt_top_level_package PROPERTIES DEPENDS encrypt_top_level_package)
-
-add_test( NAME decrypt_sub_package
-        COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/package.mo)
-SET_TESTS_PROPERTIES (
-    decrypt_sub_package PROPERTIES DEPENDS encrypt_sub_package)
-
-add_test( NAME decrypt_submodel
-        COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/testInPackage.mo)
-SET_TESTS_PROPERTIES (
-    decrypt_submodel PROPERTIES DEPENDS encrypt_submodel)
-
-add_test( NAME run_test_tool COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-		 
-add_test(NAME package_test_lib
-    COMMAND "${CMAKE_COMMAND}" --build . --target test_library --config $<CONFIGURATION>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-
-SET_TESTS_PROPERTIES (run_test_tool PROPERTIES DEPENDS package_test_lib)
-
-if(DO_LONG_FILENAME_TEST OR UNIX)
-    add_test( NAME run_test_tool_single_file 
-            COMMAND test_tool --lve ${LVETARGET}  --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-                    --libpath ${CMAKE_CURRENT_BINARY_DIR}/test_library 
-                    --file 
-                    Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.moc 
-                    Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
+    add_test( NAME decrypt_top_level_package
+            COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/package.mo)
     SET_TESTS_PROPERTIES (
-        run_test_tool_single_file PROPERTIES DEPENDS package_test_lib)
+        decrypt_top_level_package PROPERTIES DEPENDS encrypt_top_level_package)
 
-    add_test( NAME run_test_tool_long_path 
-            COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-                --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
+    add_test( NAME decrypt_sub_package
+            COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/package.mo)
+    SET_TESTS_PROPERTIES (
+        decrypt_sub_package PROPERTIES DEPENDS encrypt_sub_package)
+
+    add_test( NAME decrypt_submodel
+            COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/testInPackage.mo)
+    SET_TESTS_PROPERTIES (
+        decrypt_submodel PROPERTIES DEPENDS encrypt_submodel)
+
+    add_test( NAME run_test_tool COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-    add_test(NAME package_test_lib_long_path
-        COMMAND "${CMAKE_COMMAND}" --build . --target test_library_long_path --config $<CONFIGURATION>
+            
+    add_test(NAME package_test_lib
+        COMMAND "${CMAKE_COMMAND}" --build . --target test_library --config $<CONFIGURATION>
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-        
-    SET_TESTS_PROPERTIES (
-        run_test_tool_long_path PROPERTIES DEPENDS package_test_lib_long_path)
-else()
-    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_facit/Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo) 
+
+
+    SET_TESTS_PROPERTIES (run_test_tool PROPERTIES DEPENDS package_test_lib)
+
+    if(DO_LONG_FILENAME_TEST OR UNIX)
+        add_test( NAME run_test_tool_single_file 
+                COMMAND test_tool --lve ${LVETARGET}  --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
+                        --libpath ${CMAKE_CURRENT_BINARY_DIR}/test_library 
+                        --file 
+                        Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.moc 
+                        Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+        SET_TESTS_PROPERTIES (
+            run_test_tool_single_file PROPERTIES DEPENDS package_test_lib)
+
+        add_test( NAME run_test_tool_long_path 
+                COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
+                    --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+        add_test(NAME package_test_lib_long_path
+            COMMAND "${CMAKE_COMMAND}" --build . --target test_library_long_path --config $<CONFIGURATION>
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+            
+        SET_TESTS_PROPERTIES (
+            run_test_tool_long_path PROPERTIES DEPENDS package_test_lib_long_path)
+    else()
+        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_facit/Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo) 
+    endif()
 endif()
 
 # --------------------

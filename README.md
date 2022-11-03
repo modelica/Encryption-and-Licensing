@@ -26,5 +26,5 @@ Following commands are not supported:
   
 ## History & Appreciation
   
-SEMLA was originally developed by Modelon AB and is now continued and hosted by the Modelica Association for formal standardization. The original draft specification and referene implementation is by Modelon AB, and has since 2015 been used in Modelon's Optimica Compiler Toolkit, in [Modelon Impact](https://modelon.com/modelon-impact/) and later also been integrated in [OpenModelica](https://openmodelica.org). It provides means for tool-independent licensing and encryption of Modelica Libraries. 
+SEMLA was originally developed by Modelon AB. The code-base has been donated by Modelon AB and is now continued and hosted by the Modelica Association for formal standardization. The original draft specification and referene implementation is by Modelon AB, and has since 2015 been used in Modelon's Optimica Compiler Toolkit, in [Modelon Impact](https://modelon.com/modelon-impact/) and later also been integrated in [OpenModelica](https://openmodelica.org). It provides means for tool-independent licensing and encryption of Modelica Libraries. 
 

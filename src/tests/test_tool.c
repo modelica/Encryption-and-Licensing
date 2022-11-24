@@ -178,6 +178,8 @@ const char * facit_path, const char **facit_files
 		{
 			snprintf(test_name, sizeof(test_name), "Test invalid feature ('%s')", no_feature);
 			check_mlle(!mlle_tool_feature(lve, no_feature, &error), test_name, &error);
+			snprintf(test_name, sizeof(test_name), "Test invalid feature error message ('%s')", no_feature);
+            check(0 != strlen(mlle_error_get_message(error)), test_name, "invalid feature error message is empty string");
 			mlle_error_free(&error);
 		}
 

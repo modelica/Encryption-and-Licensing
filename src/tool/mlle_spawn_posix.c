@@ -45,6 +45,11 @@ mlle_spawn(const char *exec_name,
     int status = 0;
     struct mlle_connections *connections = NULL;
 
+    status = access(exec_name, F_OK);
+    if (status == -1) {
+        mlle_error_set(error, 1, 1, "LVE file does not exist \"%s\": Error: %s", exec_name, strerror(errno));
+        return NULL;
+    }
     status = access(exec_name, X_OK);
     if (status == -1) {
         mlle_error_set(error, 1, 1, "execute permission is not set on LVE \"%s\": Error: %s", exec_name, strerror(errno));

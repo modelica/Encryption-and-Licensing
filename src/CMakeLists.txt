@@ -210,15 +210,15 @@ else()
 			BUILD_COMMAND ${openssl_make}
 			INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
 			)
-	elseif(USE_DOWNLOADED_OPENSSL)
-		if(NOT DOWNLOADED_OPENSSL_URL)
-			set(DOWNLOADED_OPENSSL_URL https://www.openssl.org/source/openssl-3.0.8.tar.gz)
+	elseif(USE_DOWNLOADED_OPENSSL_SOURCE)
+		if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
+			set(DOWNLOADED_OPENSSL_SOURCE_URL https://www.openssl.org/source/openssl-3.0.8.tar.gz)
 		endif()
-		message(STATUS "Will build OpenSSL downloaded from ${DOWNLOADED_OPENSSL_URL} as external project")
+		message(STATUS "Will build OpenSSL downloaded from ${DOWNLOADED_OPENSSL_SOURCE_URL} as external project")
 
 		ExternalProject_Add(openssl
 			PREFIX ${openssl_dir}
-			URL ${DOWNLOADED_OPENSSL_URL}
+			URL ${DOWNLOADED_OPENSSL_SOURCE_URL}
 			TLS_VERIFY true
 			NETRC OPTIONAL
 			BUILD_IN_SOURCE 1

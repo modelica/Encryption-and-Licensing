@@ -99,6 +99,13 @@ if (USE_INSTALLED_OPENSSL)
     find_package (OpenSSL REQUIRED COMPONENTS Crypto SSL)
     message(STATUS "Will use installed OpenSSL ${OPENSSL_VERSION}")
     set(ssl_libs ${OPENSSL_LIBRARIES})
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    if (NOT CUSTOM_OPENSSL_SUBDIRECTORY)
+        message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY not set (when USE_CUSTOM_OPENSSL_SUBDIRECTORY is set)")
+    endif()
+    add_subdirectory(${CUSTOM_OPENSSL_SUBDIRECTORY} ${CMAKE_CURRENT_BINARY_DIR}/openssl)
+    message(STATUS "Will use OpenSSL from custom OpenSSL subdirectory.")
+    set(ssl_libs ssl crypto)
 elseif (USE_CONAN_OPENSSL)
     message(STATUS "CONAN_OPENSSL_ROOT=${CONAN_OPENSSL_ROOT}, CONAN_LIB_DIRS_OPENSSL=${CONAN_LIB_DIRS_OPENSSL}")
     message(STATUS "CONAN_LIBS_OPENSSL=${CONAN_LIBS_OPENSSL}, CONAN_LIBS=${CONAN_LIBS}")
@@ -400,6 +407,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINA
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     add_dependencies(decryptor  openssl)
 endif()
@@ -421,6 +429,7 @@ add_library(mlle_common
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h)
 
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     add_dependencies(mlle_common  openssl)
 endif()
@@ -741,12 +750,14 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
 
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     install(DIRECTORY "${openssl_dir}/include/"
             DESTINATION include)
 endif()
 # Install OpenSSL libs as well, since they are needed by tool lib
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 elseif (USE_CONAN_OPENSSL)
 else()
     install( FILES

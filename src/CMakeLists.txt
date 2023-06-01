@@ -515,7 +515,7 @@ add_executable(packagetool
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/utils.h
 )
 
-target_link_libraries(packagetool mlle_common ${ssl_libs} ${extra_ssl_libs} decryptor)
+target_link_libraries(packagetool decryptor mlle_common ${ssl_libs} ${extra_ssl_libs})
 # --------------------
 # Create encrypt_file.
 # --------------------

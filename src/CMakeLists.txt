@@ -449,6 +449,7 @@ add_library(mlle_common
 
 if (USE_INSTALLED_OPENSSL)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    target_link_libraries(mlle_common ${ssl_libs})
 else()
     add_dependencies(mlle_common  openssl)
 endif()
@@ -498,6 +499,10 @@ add_library(tool
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h
     ${tool_platform_c}
 )
+
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    target_link_libraries(tool ${ssl_libs})
+endif()
 
 add_executable(test_tool
     ${PUBLIC_KEY_TOOL_H}

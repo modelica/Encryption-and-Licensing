@@ -49,6 +49,7 @@ endif()
 
 
 include_directories(${MLLE_LIST_DIR}
+                    ${MLLE_LIST_DIR}/common
                     ${MLLE_LIST_DIR}/decryptors/include
                     ${MLLE_BINARY_DIR})
                     
@@ -62,3 +63,6 @@ add_library(decryptor
             ../../include/mlle_cr_encrypt.h
 )
 
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    target_link_libraries(decryptor ${ssl_libs})
+endif()

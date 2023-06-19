@@ -116,6 +116,24 @@ elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
     add_library(ssl ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} IMPORTED)
     add_library(crypto ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} IMPORTED)
     add_subdirectory(${CUSTOM_OPENSSL_SUBDIRECTORY} ${CMAKE_CURRENT_BINARY_DIR}/openssl)
+    get_target_property(LIBSSL_IMPORTED_LOCATION ssl IMPORTED_LOCATION)
+    if(NOT LIBSSL_IMPORTED_LOCATION)
+        message(FATAL_ERROR "TARGET ssl should add a target property IMPORTED_LOCATION")
+    endif()
+    get_target_property(LIBCRYPTO_IMPORTED_LOCATION crypto IMPORTED_LOCATION)
+    if(NOT LIBCRYPTO_IMPORTED_LOCATION)
+        message(FATAL_ERROR "TARGET crypto should add a target property IMPORTED_LOCATION")
+    endif()
+    if(WIN32)
+        get_target_property(LIBSSL_IMPORTED_IMPLIB ssl IMPORTED_IMPLIB)
+        if(NOT LIBSSL_IMPORTED_IMPLIB)
+            message(FATAL_ERROR "TARGET ssl should add a target property IMPORTED_IMPLIB")
+        endif()
+        get_target_property(LIBCRYPTO_IMPORTED_IMPLIB crypto IMPORTED_IMPLIB)
+        if(NOT LIBCRYPTO_IMPORTED_IMPLIB)
+            message(FATAL_ERROR "TARGET crypto should add a target property IMPORTED_IMPLIB")
+        endif()
+    endif()
     get_target_property(LIBSSL_INTERFACE_INCLUDES ssl INTERFACE_INCLUDE_DIRECTORIES)
     if(NOT LIBSSL_INTERFACE_INCLUDES)
         message(FATAL_ERROR "TARGET ssl should add an interface include directory for the openssl header files")
@@ -683,6 +701,21 @@ add_custom_command(
     VERBATIM
 )
 
+# --------------------
+# POST_BUILD
+# --------------------
+
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    if(WIN32)
+        # ensure that OpenSSL DLLs can be found when running 'ctest' by copying them to the same directory as the executables
+        add_custom_command(TARGET packagetool POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${LIBSSL_IMPORTED_LOCATION}
+                ${LIBCRYPTO_IMPORTED_LOCATION}
+                $<TARGET_FILE_DIR:packagetool>
+        )
+    endif()
+endif()
 
 # --------------------
 # TEST

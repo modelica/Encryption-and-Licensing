@@ -29,13 +29,6 @@
 #include "mlle_portability.h"
 #include "private_key_tool.h"
 
-#ifdef INCLUDE_OPENSSL_APPLINK
-#ifndef __INCLUDE_OPENSSL_APPLINK
-#define __INCLUDE_OPENSSL_APPLINK
-#include <openssl/applink.c>
-#endif /* __INCLUDE_OPENSSL_APPLINK */
-#endif /* INCLUDE_OPENSSL_APPLINK */
-
 
 /********************************************************
  * Setup the SSL structure for the Tool (client).

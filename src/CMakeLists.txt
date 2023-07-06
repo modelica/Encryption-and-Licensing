@@ -238,6 +238,21 @@ else()
 	include_directories(${CMAKE_CURRENT_BINARY_DIR}/openssl/include )
 endif()
 
+get_target_property(LIBSSL_TYPE ssl TYPE)
+if (LIBSSL_TYPE STREQUAL SHARED_LIBRARY AND WIN32)
+    # Avoid "no OPENSSL_Applink" run-time error, see the question "I've compiled a program under Windows and it crashes: why?" in https://www.openssl.org/docs/faq.html
+    target_compile_definitions(ssl
+        INTERFACE INCLUDE_OPENSSL_APPLINK
+    )
+endif()
+
+get_target_property(LIBCRYPTO_TYPE crypto TYPE)
+if (LIBCRYPTO_TYPE STREQUAL SHARED_LIBRARY AND WIN32)
+    target_compile_definitions(crypto
+        INTERFACE INCLUDE_OPENSSL_APPLINK
+    )
+endif()
+
 if(WIN32)
     set(tool_platform_c     ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_spawn_windows.c)
 else()

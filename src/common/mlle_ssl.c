@@ -32,8 +32,7 @@
 #include <openssl/rsa.h>
 #include <openssl/x509v3.h>
 
-#ifdef WIN32
-// Avoid "no OPENSSL_Applink" run-time error, see the question "I've compiled a program under Windows and it crashes: why?" in https://www.openssl.org/docs/faq.html
+#ifdef INCLUDE_OPENSSL_APPLINK
 #include <openssl/applink.c>
 #endif
 

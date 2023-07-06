@@ -37,13 +37,6 @@
 #include "mlle_ssl.h"
 #include "mlle_error.h"
 
-#ifdef INCLUDE_OPENSSL_APPLINK
-#ifndef __INCLUDE_OPENSSL_APPLINK
-#define __INCLUDE_OPENSSL_APPLINK
-#include <openssl/applink.c>
-#endif /* __INCLUDE_OPENSSL_APPLINK */
-#endif /* INCLUDE_OPENSSL_APPLINK */
-
 char *global_tool_pub_key;
 
 /*****************************

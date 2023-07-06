@@ -20,6 +20,13 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 
 #include "test_tool.h"
 
+#ifdef INCLUDE_OPENSSL_APPLINK
+#ifndef __INCLUDE_OPENSSL_APPLINK
+#define __INCLUDE_OPENSSL_APPLINK
+#include <openssl/applink.c>
+#endif /* __INCLUDE_OPENSSL_APPLINK */
+#endif /* INCLUDE_OPENSSL_APPLINK */
+
 #define N_TEST_FILES 4 
 const char *FACIT_FILES[N_TEST_FILES]     = { "package.mo",  "Module/package.mo", "Module/testInPackage.mo", "binary.gif" };
 const char *FILES_ENCRYPTED[N_TEST_FILES] = { "package.moc", "Module/package.moc", "Module/testInPackage.moc", "binary.gif" };

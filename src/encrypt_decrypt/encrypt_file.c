@@ -27,6 +27,14 @@
 #include <openssl/err.h>
 #include "mlle_cr_encrypt.h"
 #include "mlle_cr_decrypt.h"
+
+#ifdef INCLUDE_OPENSSL_APPLINK
+#ifndef __INCLUDE_OPENSSL_APPLINK
+#define __INCLUDE_OPENSSL_APPLINK
+#include <openssl/applink.c>
+#endif /* __INCLUDE_OPENSSL_APPLINK */
+#endif /* INCLUDE_OPENSSL_APPLINK */
+
 extern FILE* mlle_log;
 int main(int argc, char** argv)
 {

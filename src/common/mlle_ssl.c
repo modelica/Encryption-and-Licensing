@@ -33,8 +33,11 @@
 #include <openssl/x509v3.h>
 
 #ifdef INCLUDE_OPENSSL_APPLINK
+#ifndef __INCLUDE_OPENSSL_APPLINK
+#define __INCLUDE_OPENSSL_APPLINK
 #include <openssl/applink.c>
-#endif
+#endif /* __INCLUDE_OPENSSL_APPLINK */
+#endif /* INCLUDE_OPENSSL_APPLINK */
 
 #include "mlle_lve.h"
 #include "mlle_ssl.h"

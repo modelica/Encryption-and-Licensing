@@ -99,6 +99,54 @@ if (USE_INSTALLED_OPENSSL)
     find_package (OpenSSL REQUIRED COMPONENTS Crypto SSL)
     message(STATUS "Will use installed OpenSSL ${OPENSSL_VERSION}")
     set(ssl_libs ${OPENSSL_LIBRARIES})
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    if (NOT CUSTOM_OPENSSL_SUBDIRECTORY)
+        message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY not set (when USE_CUSTOM_OPENSSL_SUBDIRECTORY is set)")
+    endif()
+    if (NOT CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE)
+        message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE not set (when USE_CUSTOM_OPENSSL_SUBDIRECTORY is set)")
+    endif()
+    if (NOT (
+        CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE STREQUAL "SHARED"
+        OR CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE STREQUAL "STATIC"
+    ))
+        message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE = ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} not equal to either \"SHARED\" or \"STATIC\"")
+    endif()
+    message(STATUS "Will use OpenSSL from custom OpenSSL subdirectory.")
+    add_library(ssl ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} IMPORTED)
+    add_library(crypto ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} IMPORTED)
+    add_subdirectory(${CUSTOM_OPENSSL_SUBDIRECTORY} ${CMAKE_CURRENT_BINARY_DIR}/openssl)
+    get_target_property(LIBSSL_IMPORTED_LOCATION ssl IMPORTED_LOCATION)
+    if(NOT LIBSSL_IMPORTED_LOCATION)
+        message(FATAL_ERROR "TARGET ssl should add a target property IMPORTED_LOCATION")
+    endif()
+    get_target_property(LIBCRYPTO_IMPORTED_LOCATION crypto IMPORTED_LOCATION)
+    if(NOT LIBCRYPTO_IMPORTED_LOCATION)
+        message(FATAL_ERROR "TARGET crypto should add a target property IMPORTED_LOCATION")
+    endif()
+    if(WIN32)
+        get_target_property(LIBSSL_IMPORTED_IMPLIB ssl IMPORTED_IMPLIB)
+        if(NOT LIBSSL_IMPORTED_IMPLIB)
+            message(FATAL_ERROR "TARGET ssl should add a target property IMPORTED_IMPLIB")
+        endif()
+        get_target_property(LIBCRYPTO_IMPORTED_IMPLIB crypto IMPORTED_IMPLIB)
+        if(NOT LIBCRYPTO_IMPORTED_IMPLIB)
+            message(FATAL_ERROR "TARGET crypto should add a target property IMPORTED_IMPLIB")
+        endif()
+    endif()
+    get_target_property(LIBSSL_INTERFACE_INCLUDES ssl INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT LIBSSL_INTERFACE_INCLUDES)
+        message(FATAL_ERROR "TARGET ssl should add an interface include directory for the openssl header files")
+    endif()
+    get_target_property(LIBCRYPTO_INTERFACE_INCLUDES crypto INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT LIBCRYPTO_INTERFACE_INCLUDES)
+        message(FATAL_ERROR "TARGET crypto should add an interface include directory for the openssl header files")
+    endif()
+    if (NOT ("${LIBCRYPTO_INTERFACE_INCLUDES}" STREQUAL "${LIBSSL_INTERFACE_INCLUDES}"))
+        message(FATAL_ERROR "TARGET crypto and TARGET ssl should have the same interface include directory for the openssl header files")
+    endif()
+    include_directories("${LIBCRYPTO_INTERFACE_INCLUDES}")
+    set(ssl_libs ssl crypto)
 elseif (USE_CONAN_OPENSSL)
     message(STATUS "CONAN_OPENSSL_ROOT=${CONAN_OPENSSL_ROOT}, CONAN_LIB_DIRS_OPENSSL=${CONAN_LIB_DIRS_OPENSSL}")
     message(STATUS "CONAN_LIBS_OPENSSL=${CONAN_LIBS_OPENSSL}, CONAN_LIBS=${CONAN_LIBS}")
@@ -188,6 +236,21 @@ else()
 	set(ssl_libs ssl crypto)
 
 	include_directories(${CMAKE_CURRENT_BINARY_DIR}/openssl/include )
+endif()
+
+get_target_property(LIBSSL_TYPE ssl TYPE)
+if (LIBSSL_TYPE STREQUAL SHARED_LIBRARY AND WIN32)
+    # Avoid "no OPENSSL_Applink" run-time error, see the question "I've compiled a program under Windows and it crashes: why?" in https://www.openssl.org/docs/faq.html
+    target_compile_definitions(ssl
+        INTERFACE INCLUDE_OPENSSL_APPLINK
+    )
+endif()
+
+get_target_property(LIBCRYPTO_TYPE crypto TYPE)
+if (LIBCRYPTO_TYPE STREQUAL SHARED_LIBRARY AND WIN32)
+    target_compile_definitions(crypto
+        INTERFACE INCLUDE_OPENSSL_APPLINK
+    )
 endif()
 
 if(WIN32)
@@ -400,6 +463,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINA
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     add_dependencies(decryptor  openssl)
 endif()
@@ -421,6 +485,8 @@ add_library(mlle_common
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h)
 
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    target_link_libraries(mlle_common ${ssl_libs})
 else()
     add_dependencies(mlle_common  openssl)
 endif()
@@ -471,6 +537,10 @@ add_library(tool
     ${tool_platform_c}
 )
 
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    target_link_libraries(tool ${ssl_libs})
+endif()
+
 add_executable(test_tool
     ${PUBLIC_KEY_TOOL_H}
     ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.c
@@ -506,7 +576,7 @@ add_executable(packagetool
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/utils.h
 )
 
-target_link_libraries(packagetool mlle_common ${ssl_libs} ${extra_ssl_libs} decryptor)
+target_link_libraries(packagetool decryptor mlle_common ${ssl_libs} ${extra_ssl_libs})
 # --------------------
 # Create encrypt_file.
 # --------------------
@@ -646,6 +716,28 @@ add_custom_command(
     VERBATIM
 )
 
+# --------------------
+# POST_BUILD
+# --------------------
+
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    # Ensure that OpenSSL DLLs can be found when running 'ctest' by copying them to the same directory as the executables.
+    # Ensure that OpenSSL shared libraries can be found when packaging by copying them to the same directory as the executables.
+    add_custom_command(TARGET packagetool POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${LIBSSL_IMPORTED_LOCATION}
+            ${LIBCRYPTO_IMPORTED_LOCATION}
+            $<TARGET_FILE_DIR:packagetool>
+    )
+    if (WIN32)
+        add_custom_command(TARGET packagetool POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${LIBSSL_IMPORTED_IMPLIB}
+                ${LIBCRYPTO_IMPORTED_IMPLIB}
+                $<TARGET_FILE_DIR:packagetool>
+        )
+    endif()
+endif()
 
 # --------------------
 # TEST
@@ -741,12 +833,14 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
 
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     install(DIRECTORY "${openssl_dir}/include/"
             DESTINATION include)
 endif()
 # Install OpenSSL libs as well, since they are needed by tool lib
 if (USE_INSTALLED_OPENSSL)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 elseif (USE_CONAN_OPENSSL)
 else()
     install( FILES

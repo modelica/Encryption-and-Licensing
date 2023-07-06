@@ -729,6 +729,14 @@ if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
             ${LIBCRYPTO_IMPORTED_LOCATION}
             $<TARGET_FILE_DIR:packagetool>
     )
+    if (WIN32)
+        add_custom_command(TARGET packagetool POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${LIBSSL_IMPORTED_IMPLIB}
+                ${LIBCRYPTO_IMPORTED_IMPLIB}
+                $<TARGET_FILE_DIR:packagetool>
+        )
+    endif()
 endif()
 
 # --------------------

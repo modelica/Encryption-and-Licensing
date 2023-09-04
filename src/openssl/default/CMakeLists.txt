@@ -44,27 +44,23 @@ else()
     set(extra_ssl_libs      dl pthread)
 endif()
 
-if(USE_DOWNLOADED_OPENSSL_SOURCE)
-    if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
-        set(DOWNLOADED_OPENSSL_SOURCE_URL https://www.openssl.org/source/openssl-3.0.8.tar.gz)
-    endif()
-    message(STATUS "Will build OpenSSL downloaded from ${DOWNLOADED_OPENSSL_SOURCE_URL} as external project")
-
-    ExternalProject_Add(openssl
-        PREFIX ${openssl_dir}
-        URL ${DOWNLOADED_OPENSSL_SOURCE_URL}
-        TLS_VERIFY true
-        NETRC OPTIONAL
-        BUILD_IN_SOURCE 1
-        CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${openssl_dir}
-        COMMAND ${openssl_conf_extra}
-        BUILD_COMMAND ${openssl_make}
-        INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
-        BUILD_BYPRODUCTS  ${openssl_dir}/lib/${openssl_ssl_lib} ${openssl_dir}/lib/${openssl_crypto_lib}
-    )
-else()
-    message(FATAL_ERROR "USE_DOWNLOADED_OPENSSL_SOURCE not set")
+if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
+    set(DOWNLOADED_OPENSSL_SOURCE_URL https://www.openssl.org/source/openssl-3.0.8.tar.gz)
 endif()
+message(STATUS "Will build OpenSSL downloaded from ${DOWNLOADED_OPENSSL_SOURCE_URL} as external project")
+
+ExternalProject_Add(openssl
+    PREFIX ${openssl_dir}
+    URL ${DOWNLOADED_OPENSSL_SOURCE_URL}
+    TLS_VERIFY true
+    NETRC OPTIONAL
+    BUILD_IN_SOURCE 1
+    CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${openssl_dir}
+    COMMAND ${openssl_conf_extra}
+    BUILD_COMMAND ${openssl_make}
+    INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
+    BUILD_BYPRODUCTS  ${openssl_dir}/lib/${openssl_ssl_lib} ${openssl_dir}/lib/${openssl_crypto_lib}
+)
 
 add_library(ssl STATIC IMPORTED)
 add_library(crypto STATIC IMPORTED)

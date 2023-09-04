@@ -29,8 +29,6 @@ elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
 elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
 endif()
 
-set(USE_OPENSSL_10_API FALSE)
-
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()

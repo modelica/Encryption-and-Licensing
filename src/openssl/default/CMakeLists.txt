@@ -44,20 +44,7 @@ else()
     set(extra_ssl_libs      dl pthread)
 endif()
 
-# - OpenSSL as external project
-if (USE_OPENSSL_10_API)
-    message(STATUS "Will build OpenSSL 1.0.2 as external project")
-    
-    ExternalProject_Add(openssl
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}
-        URL ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.0.2
-        BUILD_IN_SOURCE 1
-        CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND ${openssl_conf_extra}
-        BUILD_COMMAND ${openssl_make}
-        INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
-        )
-elseif(USE_DOWNLOADED_OPENSSL_SOURCE)
+if(USE_DOWNLOADED_OPENSSL_SOURCE)
     if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
         set(DOWNLOADED_OPENSSL_SOURCE_URL https://www.openssl.org/source/openssl-3.0.8.tar.gz)
     endif()
@@ -76,19 +63,7 @@ elseif(USE_DOWNLOADED_OPENSSL_SOURCE)
         BUILD_BYPRODUCTS  ${openssl_dir}/lib/${openssl_ssl_lib} ${openssl_dir}/lib/${openssl_crypto_lib}
     )
 else()
-    message(STATUS "Will build OpenSSL 1.1.1g as external project")
-    execute_process(COMMAND "chmod" "a+x" "${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g/config")
-    
-    ExternalProject_Add(openssl
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}
-        URL  ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g
-        BUILD_IN_SOURCE 1
-        CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND ${openssl_conf_extra}
-        BUILD_COMMAND ${openssl_make}
-        INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
-        BUILD_BYPRODUCTS  ${openssl_dir}/lib/${openssl_ssl_lib} ${openssl_dir}/lib/${openssl_crypto_lib}
-    )
+    message(FATAL_ERROR "USE_DOWNLOADED_OPENSSL_SOURCE not set")
 endif()
 
 add_library(ssl STATIC IMPORTED)

@@ -1,3 +1,5 @@
+include(ExternalProject)
+
 set(openssl_dir ${CMAKE_CURRENT_BINARY_DIR})
 # - OS
 if(WIN32)

@@ -81,6 +81,12 @@ if(NOT WIN32)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif()
 
+set(ssl_libs ssl crypto)
+if(WIN32)
+    set(extra_ssl_libs      crypt32 ws2_32)
+else()
+    set(extra_ssl_libs      dl pthread)
+endif()
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/openssl ${CMAKE_CURRENT_BINARY_DIR}/openssl)
 
 if(WIN32)

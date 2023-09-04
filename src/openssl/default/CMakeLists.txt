@@ -31,9 +31,6 @@ if(WIN32)
         set(openssl_crypto_lib  libcrypto.a)
         set(openssl_ssl_lib     libssl.a)
     endif()
-    
-    set(extra_ssl_libs      crypt32 ws2_32)
-
 else()
     # Values for Linux, etc
     set(openssl_conf_cmd    ./config shared)
@@ -41,7 +38,6 @@ else()
     set(openssl_make        make)
     set(openssl_crypto_lib  libcrypto.a)
     set(openssl_ssl_lib     libssl.a)
-    set(extra_ssl_libs      dl pthread)
 endif()
 
 if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
@@ -68,8 +64,6 @@ set_property(TARGET ssl PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_
 set_property(TARGET crypto PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_crypto_lib})
 add_dependencies(ssl openssl)
 add_dependencies(crypto openssl)
-
-set(ssl_libs ssl crypto)
 
 include_directories(${openssl_dir}/include )
 

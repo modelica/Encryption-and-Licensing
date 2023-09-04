@@ -49,7 +49,6 @@ elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
         message(FATAL_ERROR "TARGET crypto and TARGET ssl should have the same interface include directory for the openssl header files")
     endif()
     include_directories("${LIBCRYPTO_INTERFACE_INCLUDES}")
-    set(ssl_libs ssl crypto)
 
     get_target_property(LIBSSL_TYPE ssl TYPE)
     if (LIBSSL_TYPE STREQUAL SHARED_LIBRARY AND WIN32)

@@ -662,20 +662,4 @@ install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
 
-if (USE_INSTALLED_OPENSSL)
-elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-else()
-    install(DIRECTORY "${openssl_dir}/include/"
-            DESTINATION include)
-endif()
-# Install OpenSSL libs as well, since they are needed by tool lib
-if (USE_INSTALLED_OPENSSL)
-elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-else()
-    install( FILES
-        ${openssl_dir}/lib/${openssl_ssl_lib}
-        ${openssl_dir}/lib/${openssl_crypto_lib}
-         DESTINATION lib)
-endif()
-
 install(TARGETS tool DESTINATION lib)

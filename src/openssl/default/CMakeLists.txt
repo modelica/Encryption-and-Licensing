@@ -14,7 +14,7 @@ if(WIN32)
         endif()
     else()
         if (MSVC)
-            set(openssl_conf_cmd    perl Configure no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR} VC-WIN32 )
+            set(openssl_conf_cmd    perl Configure no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${openssl_dir} VC-WIN32 )
             set(openssl_conf_extra  perl configdata.pm --dump)
         else()
             set(openssl_conf_cmd    perl Configure mingw)
@@ -71,4 +71,11 @@ add_dependencies(crypto openssl)
 
 set(ssl_libs ssl crypto)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include )
+include_directories(${openssl_dir}/include )
+
+# Install OpenSSL libs as well, since they are needed by tool lib
+install(FILES
+        ${openssl_dir}/lib/${openssl_ssl_lib}
+        ${openssl_dir}/lib/${openssl_crypto_lib}
+    DESTINATION lib)
+install(DIRECTORY "${openssl_dir}/include/" DESTINATION include)

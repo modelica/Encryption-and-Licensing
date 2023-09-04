@@ -51,7 +51,7 @@ elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
     include_directories("${LIBCRYPTO_INTERFACE_INCLUDES}")
     set(ssl_libs ssl crypto)
 else()
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/openssl ${CMAKE_CURRENT_BINARY_DIR}/openssl)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/default ${CMAKE_CURRENT_BINARY_DIR}/openssl)
 endif()
 
 get_target_property(LIBSSL_TYPE ssl TYPE)

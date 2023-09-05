@@ -96,8 +96,8 @@ if(WIN32)
 else()
     set(extra_ssl_libs      dl pthread)
 endif()
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/openssl ${CMAKE_CURRENT_BINARY_DIR}/openssl)
-
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+find_package(SemlaOpenSSL)
 if(WIN32)
     set(tool_platform_c     ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_spawn_windows.c)
 else()
@@ -671,6 +671,4 @@ install(TARGETS
     tool
     packagetool
     ${LVETARGET}
-    # Install OpenSSL libs as well, since they are needed by tool lib
-    ${ssl_libs}
 )

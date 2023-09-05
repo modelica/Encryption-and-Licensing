@@ -18,7 +18,7 @@
 # This is the make-file for the public version of LibraryEncryption.
 # -------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.20)
 project(MLLE)
 
 

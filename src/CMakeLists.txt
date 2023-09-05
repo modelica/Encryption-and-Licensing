@@ -19,8 +19,17 @@
 # -------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.20)
-project(MLLE)
 
+if(NOT SEMLA_PROJECT_NAME)
+    set(SEMLA_PROJECT_NAME MLLE)
+endif()
+if(NOT SEMLA_PROJECT_VERSION)
+    set(SEMLA_PROJECT_VERSION 0.1.1)
+endif()
+
+project(${SEMLA_PROJECT_NAME} VERSION ${SEMLA_PROJECT_VERSION})
+
+include(CPack)
 
 # set platform
 if (WIN32)
@@ -657,15 +666,11 @@ endif()
 # --------------------
 # INSTALL
 # --------------------
-# TODO: Install does not work as intended - needs work or maybe it should just be removed?
-install(TARGETS test_tool encrypt_file packagetool decrypt_file
-        DESTINATION bin
-        ARCHIVE DESTINATION lib)
-
-install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
-
-# Install header files needed when using tool library
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
-        DESTINATION include)
-
-install(TARGETS tool DESTINATION lib)
+install(TARGETS
+    obfuscate
+    tool
+    packagetool
+    ${LVETARGET}
+    # Install OpenSSL libs as well, since they are needed by tool lib
+    ${ssl_libs}
+)

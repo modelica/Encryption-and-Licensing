@@ -66,10 +66,3 @@ add_dependencies(ssl openssl)
 add_dependencies(crypto openssl)
 
 include_directories(${openssl_dir}/include )
-
-# Install OpenSSL libs as well, since they are needed by tool lib
-install(FILES
-        ${openssl_dir}/lib/${openssl_ssl_lib}
-        ${openssl_dir}/lib/${openssl_crypto_lib}
-    DESTINATION lib)
-install(DIRECTORY "${openssl_dir}/include/" DESTINATION include)

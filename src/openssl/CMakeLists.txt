@@ -1,8 +1,11 @@
 if (USE_INSTALLED_OPENSSL)
+    # Set Hints for FindOpenSSL
+    set(OPENSSL_USE_STATIC_LIBS TRUE) # use static OpenSSL libraries
+    set(OPENSSL_MSVC_STATIC_RT TRUE) # use /MT version of OpenSSL
     find_package (OpenSSL REQUIRED COMPONENTS Crypto SSL)
-    message(STATUS "Will use installed OpenSSL ${OPENSSL_VERSION}")
     add_library(ssl ALIAS OpenSSL::SSL)
     add_library(crypto ALIAS OpenSSL::Crypto)
+    message(STATUS "Will use installed OpenSSL ${OPENSSL_VERSION}. OpenSSL Libraries: ${OPENSSL_LIBRARIES}")
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
     if (NOT CUSTOM_OPENSSL_SUBDIRECTORY)
         message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY not set (when USE_CUSTOM_OPENSSL_SUBDIRECTORY is set)")

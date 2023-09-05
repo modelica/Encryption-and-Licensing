@@ -307,7 +307,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINA
 # - Decryptor
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
-if (USE_INSTALLED_OPENSSL)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     add_dependencies(decryptor  openssl)
@@ -329,7 +329,7 @@ add_library(mlle_common
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h)
 
-if (USE_INSTALLED_OPENSSL)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
     target_link_libraries(mlle_common ${ssl_libs})
 else()

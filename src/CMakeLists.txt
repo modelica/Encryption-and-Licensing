@@ -672,3 +672,16 @@ install(TARGETS
     packagetool
     ${LVETARGET}
 )
+
+# Install header files needed when using tool library
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
+        DESTINATION include)
+
+# Install OpenSSL libs as well, since they are needed by tool lib
+if(USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/openssl/include/
+                DESTINATION include)
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/openssl/lib/
+            DESTINATION lib)
+endif()

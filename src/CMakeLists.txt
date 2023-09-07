@@ -29,8 +29,6 @@ endif()
 
 project(${SEMLA_PROJECT_NAME} VERSION ${SEMLA_PROJECT_VERSION})
 
-include(CPack)
-
 # set platform
 if (WIN32)
 elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -685,3 +683,5 @@ else()
     install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/openssl/lib/
             DESTINATION lib)
 endif()
+
+include(CPack)

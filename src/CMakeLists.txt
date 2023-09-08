@@ -18,7 +18,7 @@
 # This is the make-file for the public version of LibraryEncryption.
 # -------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.20)
 project(MLLE)
 
 
@@ -27,20 +27,6 @@ if (WIN32)
 elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
     set(DARWIN TRUE)
 elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
-endif()
-
-set(USE_OPENSSL_10_API FALSE)
-
-if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-    message(STATUS "Will rely on OpenSSL conan package")
-    set(USE_CONAN_OPENSSL TRUE)
-    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup()
-    message(STATUS "CMAKE_C_FLAGS_RELEASE=${CMAKE_C_FLAGS_RELEASE}" )
-    add_custom_target(openssl DEPENDS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-else()
-    include(ExternalProject)
-    set(USE_CONAN_OPENSSL FALSE)
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -95,164 +81,14 @@ if(NOT WIN32)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif()
 
-if (USE_INSTALLED_OPENSSL)
-    find_package (OpenSSL REQUIRED COMPONENTS Crypto SSL)
-    message(STATUS "Will use installed OpenSSL ${OPENSSL_VERSION}")
-    set(ssl_libs ${OPENSSL_LIBRARIES})
-elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-    if (NOT CUSTOM_OPENSSL_SUBDIRECTORY)
-        message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY not set (when USE_CUSTOM_OPENSSL_SUBDIRECTORY is set)")
-    endif()
-    if (NOT CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE)
-        message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE not set (when USE_CUSTOM_OPENSSL_SUBDIRECTORY is set)")
-    endif()
-    if (NOT (
-        CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE STREQUAL "SHARED"
-        OR CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE STREQUAL "STATIC"
-    ))
-        message(FATAL_ERROR "CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE = ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} not equal to either \"SHARED\" or \"STATIC\"")
-    endif()
-    message(STATUS "Will use OpenSSL from custom OpenSSL subdirectory.")
-    add_library(ssl ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} IMPORTED)
-    add_library(crypto ${CUSTOM_OPENSSL_SUBDIRECTORY_LIBRARY_TYPE} IMPORTED)
-    add_subdirectory(${CUSTOM_OPENSSL_SUBDIRECTORY} ${CMAKE_CURRENT_BINARY_DIR}/openssl)
-    get_target_property(LIBSSL_IMPORTED_LOCATION ssl IMPORTED_LOCATION)
-    if(NOT LIBSSL_IMPORTED_LOCATION)
-        message(FATAL_ERROR "TARGET ssl should add a target property IMPORTED_LOCATION")
-    endif()
-    get_target_property(LIBCRYPTO_IMPORTED_LOCATION crypto IMPORTED_LOCATION)
-    if(NOT LIBCRYPTO_IMPORTED_LOCATION)
-        message(FATAL_ERROR "TARGET crypto should add a target property IMPORTED_LOCATION")
-    endif()
-    if(WIN32)
-        get_target_property(LIBSSL_IMPORTED_IMPLIB ssl IMPORTED_IMPLIB)
-        if(NOT LIBSSL_IMPORTED_IMPLIB)
-            message(FATAL_ERROR "TARGET ssl should add a target property IMPORTED_IMPLIB")
-        endif()
-        get_target_property(LIBCRYPTO_IMPORTED_IMPLIB crypto IMPORTED_IMPLIB)
-        if(NOT LIBCRYPTO_IMPORTED_IMPLIB)
-            message(FATAL_ERROR "TARGET crypto should add a target property IMPORTED_IMPLIB")
-        endif()
-    endif()
-    get_target_property(LIBSSL_INTERFACE_INCLUDES ssl INTERFACE_INCLUDE_DIRECTORIES)
-    if(NOT LIBSSL_INTERFACE_INCLUDES)
-        message(FATAL_ERROR "TARGET ssl should add an interface include directory for the openssl header files")
-    endif()
-    get_target_property(LIBCRYPTO_INTERFACE_INCLUDES crypto INTERFACE_INCLUDE_DIRECTORIES)
-    if(NOT LIBCRYPTO_INTERFACE_INCLUDES)
-        message(FATAL_ERROR "TARGET crypto should add an interface include directory for the openssl header files")
-    endif()
-    if (NOT ("${LIBCRYPTO_INTERFACE_INCLUDES}" STREQUAL "${LIBSSL_INTERFACE_INCLUDES}"))
-        message(FATAL_ERROR "TARGET crypto and TARGET ssl should have the same interface include directory for the openssl header files")
-    endif()
-    include_directories("${LIBCRYPTO_INTERFACE_INCLUDES}")
-    set(ssl_libs ssl crypto)
-elseif (USE_CONAN_OPENSSL)
-    message(STATUS "CONAN_OPENSSL_ROOT=${CONAN_OPENSSL_ROOT}, CONAN_LIB_DIRS_OPENSSL=${CONAN_LIB_DIRS_OPENSSL}")
-    message(STATUS "CONAN_LIBS_OPENSSL=${CONAN_LIBS_OPENSSL}, CONAN_LIBS=${CONAN_LIBS}")
-    set(openssl_dir ${CONAN_OPENSSL_ROOT})
-    set(ssl_libs ${CONAN_LIBS} )
+set(ssl_libs ssl crypto)
+if(WIN32)
+    set(extra_ssl_libs      crypt32 ws2_32)
 else()
-	set(openssl_dir ${CMAKE_CURRENT_BINARY_DIR}/openssl)
-	# - OS
-	if(WIN32)
-		# Values for Windows
-		if(BITS64)
-			if (MSVC)
-				set(openssl_conf_cmd    perl Configure VC-WIN64A)
-				set(openssl_conf_extra  perl configdata.pm --dump)
-			else()
-				set(openssl_conf_cmd    perl Configure mingw64)
-				set(openssl_conf_extra  make depend)
-			endif()
-		else()
-			if (MSVC)
-				set(openssl_conf_cmd    perl Configure no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl VC-WIN32 )
-				set(openssl_conf_extra  perl configdata.pm --dump)
-			else()
-				set(openssl_conf_cmd    perl Configure mingw)
-				set(openssl_conf_extra  make depend)
-			endif()
-		endif()
-		
-		if (MSVC)
-			set(openssl_make        nmake)
-			set(openssl_crypto_lib  libcrypto.lib)
-			set(openssl_ssl_lib     libssl.lib)
-		else()
-			set(openssl_make        make)
-			set(openssl_crypto_lib  libcrypto.a)
-			set(openssl_ssl_lib     libssl.a)
-		endif()
-		
-		set(extra_ssl_libs      crypt32 ws2_32)
-
-	else()
-		# Values for Linux, etc
-		set(openssl_conf_cmd    ./config shared)
-		set(openssl_conf_extra  make depend)
-		set(openssl_make        make)
-		set(openssl_crypto_lib  libcrypto.a)
-		set(openssl_ssl_lib     libssl.a)
-		set(extra_ssl_libs      dl pthread)
-	endif()
-
-	# - OpenSSL as external project
-	if (USE_OPENSSL_10_API)
-		message(STATUS "Will build OpenSSL 1.0.2 as external project")
-		
-		ExternalProject_Add(openssl
-			PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl
-			URL ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.0.2
-			BUILD_IN_SOURCE 1
-			CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl
-			COMMAND ${openssl_conf_extra}
-			BUILD_COMMAND ${openssl_make}
-			INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
-			)
-	else()
-		message(STATUS "Will build OpenSSL 1.1.1g as external project")
-		execute_process(COMMAND "chmod" "a+x" "${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g/config")
-		
-		ExternalProject_Add(openssl
-			PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl
-			URL  ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g
-			BUILD_IN_SOURCE 1
-			CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl
-			COMMAND ${openssl_conf_extra}
-			BUILD_COMMAND ${openssl_make}
-			INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
-            BUILD_BYPRODUCTS  ${openssl_dir}/lib/${openssl_ssl_lib} ${openssl_dir}/lib/${openssl_crypto_lib}
-		)
-	endif()
-	
-	add_library(ssl STATIC IMPORTED)
-	add_library(crypto STATIC IMPORTED)
-	set_property(TARGET ssl PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_ssl_lib})
-	set_property(TARGET crypto PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_crypto_lib})
-	add_dependencies(ssl openssl)
-	add_dependencies(crypto openssl)
-
-	set(ssl_libs ssl crypto)
-
-	include_directories(${CMAKE_CURRENT_BINARY_DIR}/openssl/include )
+    set(extra_ssl_libs      dl pthread)
 endif()
-
-get_target_property(LIBSSL_TYPE ssl TYPE)
-if (LIBSSL_TYPE STREQUAL SHARED_LIBRARY AND WIN32)
-    # Avoid "no OPENSSL_Applink" run-time error, see the question "I've compiled a program under Windows and it crashes: why?" in https://www.openssl.org/docs/faq.html
-    target_compile_definitions(ssl
-        INTERFACE INCLUDE_OPENSSL_APPLINK
-    )
-endif()
-
-get_target_property(LIBCRYPTO_TYPE crypto TYPE)
-if (LIBCRYPTO_TYPE STREQUAL SHARED_LIBRARY AND WIN32)
-    target_compile_definitions(crypto
-        INTERFACE INCLUDE_OPENSSL_APPLINK
-    )
-endif()
-
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+find_package(SemlaOpenSSL)
 if(WIN32)
     set(tool_platform_c     ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_spawn_windows.c)
 else()
@@ -462,7 +298,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINA
 # - Decryptor
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
-if (USE_INSTALLED_OPENSSL)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     add_dependencies(decryptor  openssl)
@@ -484,7 +320,7 @@ add_library(mlle_common
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h)
 
-if (USE_INSTALLED_OPENSSL)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
     target_link_libraries(mlle_common ${ssl_libs})
 else()
@@ -832,14 +668,14 @@ install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
 
-if (USE_INSTALLED_OPENSSL)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     install(DIRECTORY "${openssl_dir}/include/"
             DESTINATION include)
 endif()
 # Install OpenSSL libs as well, since they are needed by tool lib
-if (USE_INSTALLED_OPENSSL)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 elseif (USE_CONAN_OPENSSL)
 else()

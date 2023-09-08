@@ -19,15 +19,8 @@
 # -------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.20)
+project(MLLE)
 
-if(NOT SEMLA_PROJECT_NAME)
-    set(SEMLA_PROJECT_NAME MLLE)
-endif()
-if(NOT SEMLA_PROJECT_VERSION)
-    set(SEMLA_PROJECT_VERSION 0.1.1)
-endif()
-
-project(${SEMLA_PROJECT_NAME} VERSION ${SEMLA_PROJECT_VERSION})
 
 # set platform
 if (WIN32)

@@ -664,24 +664,32 @@ endif()
 # --------------------
 # INSTALL
 # --------------------
-install(TARGETS
-    obfuscate
-    tool
-    packagetool
-    ${LVETARGET}
-)
+# TODO: Install does not work as intended - needs work or maybe it should just be removed?
+install(TARGETS test_tool encrypt_file packagetool decrypt_file
+        DESTINATION bin
+        ARCHIVE DESTINATION lib)
+
+install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
 
 # Install header files needed when using tool library
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
 
-# Install OpenSSL libs as well, since they are needed by tool lib
-if(USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/openssl/include/
-                DESTINATION include)
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/openssl/lib/
-            DESTINATION lib)
+    install(DIRECTORY "${openssl_dir}/include/"
+            DESTINATION include)
+endif()
+# Install OpenSSL libs as well, since they are needed by tool lib
+if (USE_DOWNLOADED_OPENSSL_BUILD)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+elseif (USE_CONAN_OPENSSL)
+else()
+    install( FILES
+        ${openssl_dir}/lib/${openssl_ssl_lib}
+        ${openssl_dir}/lib/${openssl_crypto_lib}
+         DESTINATION lib)
 endif()
 
-include(CPack)
+install(TARGETS tool DESTINATION lib)

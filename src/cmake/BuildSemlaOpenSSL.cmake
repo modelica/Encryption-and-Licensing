@@ -12,7 +12,7 @@ if(WIN32)
             set(openssl_conf_cmd    perl Configure mingw64)
             set(openssl_conf_extra  make depend)
         endif()
-        set(openssl_install_prefix /Program Files/OpenSSL)
+        set(openssl_install_prefix "/Program Files/OpenSSL")
     else()
         if (MSVC)
             set(openssl_conf_cmd    perl Configure no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${openssl_dir} VC-WIN32 )
@@ -39,7 +39,7 @@ else()
     set(openssl_make        make)
     set(openssl_crypto_lib  libcrypto.a)
     set(openssl_ssl_lib     libssl.a)
-    set(openssl_install_prefix /usr/local)
+    set(openssl_install_prefix "/usr/local")
 endif()
 
 if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
@@ -57,13 +57,13 @@ ExternalProject_Add(openssl
     COMMAND ${openssl_conf_extra}
     BUILD_COMMAND ${openssl_make}
     INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs DESTDIR=${openssl_dir}
-    BUILD_BYPRODUCTS ${openssl_dir}${openssl_install_prefix}/lib/${openssl_ssl_lib} ${openssl_dir}${openssl_install_prefix}/lib/${openssl_crypto_lib}
+    BUILD_BYPRODUCTS "${openssl_dir}${openssl_install_prefix}/lib/${openssl_ssl_lib}" "${openssl_dir}${openssl_install_prefix}/lib/${openssl_crypto_lib}"
 )
 add_library(ssl STATIC IMPORTED)
 add_library(crypto STATIC IMPORTED)
-set_property(TARGET ssl PROPERTY IMPORTED_LOCATION ${openssl_dir}${openssl_install_prefix}/lib/${openssl_ssl_lib})
-set_property(TARGET crypto PROPERTY IMPORTED_LOCATION ${openssl_dir}${openssl_install_prefix}/lib/${openssl_crypto_lib})
-set(OPENSSL_INCLUDE_DIR ${openssl_dir}${openssl_install_prefix}/include)
+set_property(TARGET ssl PROPERTY IMPORTED_LOCATION "${openssl_dir}${openssl_install_prefix}/lib/${openssl_ssl_lib}")
+set_property(TARGET crypto PROPERTY IMPORTED_LOCATION "${openssl_dir}${openssl_install_prefix}/lib/${openssl_crypto_lib}")
+set(OPENSSL_INCLUDE_DIR "${openssl_dir}${openssl_install_prefix}/include")
 add_dependencies(ssl openssl)
 add_dependencies(crypto openssl)
 

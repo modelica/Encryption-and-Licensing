@@ -288,7 +288,6 @@ ENABLE_TESTING()
 # Modules
 set(MLLE_LIST_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(MLLE_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-set(MLLE_THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/../ThirdParty") # TODO: Need to be included?
 
 # - License manager
 if(NOT TEST_LICENSED_FEATURE)

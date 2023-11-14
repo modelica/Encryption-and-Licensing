@@ -437,18 +437,19 @@ if(WIN32)
     endif (MSVC)
 endif(WIN32)
 
-add_custom_command( TARGET ${LVETARGET}
-        POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E remove_directory $<TARGET_FILE_DIR:packagetool>/LVE
-        COMMAND "${CMAKE_COMMAND}" -E make_directory $<TARGET_FILE_DIR:packagetool>/LVE
-        COMMAND "${CMAKE_COMMAND}" -E touch ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-        COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-        COMMAND "${CMAKE_COMMAND}" -E echo
-        "Copying: $<TARGET_FILE:${LVETARGET}> to $<TARGET_FILE_DIR:packagetool>/LVE"
-        COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:${LVETARGET}> $<TARGET_FILE_DIR:packagetool>/LVE/
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
+
+# --------------------
+# Create test_resources
+# --------------------
+
+add_custom_target(test_resources
+    ALL # build this target when building the default target
+    DEPENDS
+        # The implementation of this target is in the add_custom_command() that has the file below as OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/test_resources_created_marker_file 
+        # Adding file-level dependencies below so that this target is not built before the files that it needs to use are built
+        packagetool
+        ${LVETARGET}
 )
 
 file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/test_library) 
@@ -459,63 +460,7 @@ file(RENAME         ${CMAKE_CURRENT_BINARY_DIR}/test_library ${CMAKE_CURRENT_BIN
 file(REMOVE         ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in) 
 configure_file(     ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/package.in ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo  @ONLY NEWLINE_STYLE UNIX)
 
-add_custom_target(test_library_mol
-    DEPENDS
-        packagetool
-        ${LVETARGET}
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-        )
-
-set(PACKAGE_TEST_LIB_CMD $<TARGET_FILE:packagetool>
-        -librarypath ${CMAKE_CURRENT_BINARY_DIR}/test_library -version "2.0" -language "3.2" -encrypt "true")
-
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-	
-    COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-    COMMAND "${CMAKE_COMMAND}" -E echo  Running: ${PACKAGE_TEST_LIB_CMD}
-    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit ${CMAKE_CURRENT_BINARY_DIR}/test_library
-    COMMAND ${PACKAGE_TEST_LIB_CMD}
-    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library
-	
-    # TODO: fix, dependencies are in ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS
-        ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/binary.gif
-        packagetool
-        ${LVETARGET}
-		
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
-
-if(NOT LONG_FOLDER_NAME)
-  set(LONG_FOLDER_NAME "X01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
-endif()
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME})
-add_custom_target(test_library_long_path
-    DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library_long_path_marker
-        )
-
-add_custom_command(
-    OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library_long_path_marker
-    DEPENDS 
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/manifest.xml
-    COMMAND "${CMAKE_COMMAND}" -E echo "Copying test_library into folder with long name"
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory test_library ${LONG_FOLDER_NAME}/test_library
-    COMMAND "${CMAKE_COMMAND}" -E touch test_library_mol_marker
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
-        )
-
-
-add_custom_target(
-    test_library
-    DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/manifest.xml
-)
+set(LONG_FOLDER_NAME "X01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
 
 if(UNIX)
     set(CHMOD chmod +x)
@@ -524,26 +469,41 @@ else()
 endif()
 
 add_custom_command(
-    OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/manifest.xml
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test_resources_created_marker_file
+    COMMAND "${CMAKE_COMMAND}" -E echo "Creating resources for testing"
+    COMMAND "${CMAKE_COMMAND}" -E echo "Copying LVE to LVE dir"
+    COMMAND "${CMAKE_COMMAND}" -E echo "Copying: $<TARGET_FILE:${LVETARGET}> to $<TARGET_FILE_DIR:packagetool>/LVE"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory $<TARGET_FILE_DIR:packagetool>/LVE
+    COMMAND "${CMAKE_COMMAND}" -E make_directory $<TARGET_FILE_DIR:packagetool>/LVE
+    COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:${LVETARGET}> $<TARGET_FILE_DIR:packagetool>/LVE/
+
+    COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_library.mol"
+    COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit ${CMAKE_CURRENT_BINARY_DIR}/test_library
+    COMMAND "${CMAKE_COMMAND}" -E echo  "Running: $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/test_library -version \"2.0\" -language \"3.2\" -encrypt \"true\""
+    COMMAND $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/test_library -version "2.0" -language "3.2" -encrypt "true"
+
+    COMMAND "${CMAKE_COMMAND}" -E echo "Extracting from test_library.mol to test_library"
     COMMAND "${CMAKE_COMMAND}" -E remove_directory test_library
-    COMMAND "${CMAKE_COMMAND}" -E echo "Extracting from test_library.mol"
     COMMAND "${CMAKE_COMMAND}" -E tar xvz test_library.mol
     COMMAND "${CMAKE_COMMAND}" -E copy_directory test_library/Module test_library/${LONG_FOLDER_NAME}    
     COMMAND ${CHMOD} ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/${LVETARGET}
 
+    COMMAND "${CMAKE_COMMAND}" -E echo "Copying test_library into folder with long name"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}
+    COMMAND "${CMAKE_COMMAND}" -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
+
+    COMMAND "${CMAKE_COMMAND}" -E echo "Touching file test_resources_created_marker_file to indicate that resources used for testing have been successfully created"
+    COMMAND "${CMAKE_COMMAND}" -E touch ${CMAKE_CURRENT_BINARY_DIR}/test_resources_created_marker_file 
     DEPENDS
-        test_library_mol
         packagetool
         ${LVETARGET}
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
 
-# --------------------
-# POST_BUILD
-# --------------------
 
 if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
     # Ensure that OpenSSL DLLs can be found when running 'ctest' by copying them to the same directory as the executables.
@@ -608,12 +568,8 @@ if(NOT SKIP_SEMLA_SRC_TESTS)
     add_test( NAME run_test_tool COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
             
-    add_test(NAME package_test_lib
-        COMMAND "${CMAKE_COMMAND}" --build . --target test_library --config $<CONFIGURATION>
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 
-    SET_TESTS_PROPERTIES (run_test_tool PROPERTIES DEPENDS package_test_lib)
 
     if(DO_LONG_FILENAME_TEST OR UNIX)
         add_test( NAME run_test_tool_single_file 
@@ -624,20 +580,10 @@ if(NOT SKIP_SEMLA_SRC_TESTS)
                         Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-        SET_TESTS_PROPERTIES (
-            run_test_tool_single_file PROPERTIES DEPENDS package_test_lib)
-
         add_test( NAME run_test_tool_long_path 
                 COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
                     --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-        add_test(NAME package_test_lib_long_path
-            COMMAND "${CMAKE_COMMAND}" --build . --target test_library_long_path --config $<CONFIGURATION>
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-            
-        SET_TESTS_PROPERTIES (
-            run_test_tool_long_path PROPERTIES DEPENDS package_test_lib_long_path)
     else()
         file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_facit/Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo) 
     endif()

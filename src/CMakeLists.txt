@@ -477,12 +477,12 @@ add_custom_command(
     COMMAND "${CMAKE_COMMAND}" -E make_directory $<TARGET_FILE_DIR:packagetool>/LVE
     COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:${LVETARGET}> $<TARGET_FILE_DIR:packagetool>/LVE/
 
-    COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_library.mol"
+    COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_library.mol from packagetool_input/test_library"
     COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit ${CMAKE_CURRENT_BINARY_DIR}/test_library
-    COMMAND "${CMAKE_COMMAND}" -E echo  "Running: $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/test_library -version \"2.0\" -language \"3.2\" -encrypt \"true\""
-    COMMAND $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/test_library -version "2.0" -language "3.2" -encrypt "true"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input/test_library
+    COMMAND "${CMAKE_COMMAND}" -E echo  "Running: $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input/test_library -version \"2.0\" -language \"3.2\" -encrypt \"true\""
+    COMMAND $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input/test_library -version "2.0" -language "3.2" -encrypt "true"
 
     COMMAND "${CMAKE_COMMAND}" -E echo "Extracting from test_library.mol to test_library"
     COMMAND "${CMAKE_COMMAND}" -E remove_directory test_library

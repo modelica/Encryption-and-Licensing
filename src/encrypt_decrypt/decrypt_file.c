@@ -27,6 +27,13 @@
 #include <openssl/err.h>
 #include "mlle_cr_decrypt.h"
 
+#ifdef INCLUDE_OPENSSL_APPLINK
+#ifndef __INCLUDE_OPENSSL_APPLINK
+#define __INCLUDE_OPENSSL_APPLINK
+#include <openssl/applink.c>
+#endif /* __INCLUDE_OPENSSL_APPLINK */
+#endif /* INCLUDE_OPENSSL_APPLINK */
+
 #define BUF_SIZE 10*1024*1024
 char in_buf[BUF_SIZE];
 char out_buf[BUF_SIZE];

@@ -30,7 +30,6 @@
 #include "private_key_tool.h"
 
 
-
 /********************************************************
  * Setup the SSL structure for the Tool (client).
  *

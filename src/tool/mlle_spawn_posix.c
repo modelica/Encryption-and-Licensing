@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 #include "mlle_types.h"
 #include "mlle_error.h"
 #include "mlle_spawn.h"
@@ -43,6 +44,17 @@ mlle_spawn(const char *exec_name,
     int child_to_parent_pipe_fd[2] = { -1, -1 };
     int status = 0;
     struct mlle_connections *connections = NULL;
+
+    status = access(exec_name, F_OK);
+    if (status == -1) {
+        mlle_error_set(error, 1, 1, "LVE file does not exist \"%s\": Error: %s", exec_name, strerror(errno));
+        return NULL;
+    }
+    status = access(exec_name, X_OK);
+    if (status == -1) {
+        mlle_error_set(error, 1, 1, "execute permission is not set on LVE \"%s\": Error: %s", exec_name, strerror(errno));
+        return NULL;
+    }
 
     fflush(NULL);
     status = pipe(parent_to_child_pipe_fd);

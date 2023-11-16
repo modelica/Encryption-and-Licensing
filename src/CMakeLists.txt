@@ -18,7 +18,7 @@
 # This is the make-file for the public version of LibraryEncryption.
 # -------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.20)
 project(MLLE)
 
 
@@ -29,32 +29,9 @@ elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
 elseif ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
 endif()
 
-set(USE_OPENSSL_10_API FALSE)
-
-if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-    message(STATUS "Will rely on OpenSSL conan package")
-    set(USE_CONAN_OPENSSL TRUE)
-    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup()
-    message(STATUS "CMAKE_C_FLAGS_RELEASE=${CMAKE_C_FLAGS_RELEASE}" )
-    add_custom_target(openssl DEPENDS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-else()
-    include(ExternalProject)
-    set(USE_CONAN_OPENSSL FALSE)
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
-
-set(CMAKE_BUILD_TYPE Release)
-if(WIN32 AND NOT DYNAMIC)
-	foreach(flag_var
-			CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-			CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
-			CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-			CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-		if(${flag_var} MATCHES "/MD")
-			string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-		endif(${flag_var} MATCHES "/MD")
-	endforeach(flag_var)
-endif(WIN32 AND NOT DYNAMIC)
 
 # Propagate value of GLOBAL_LICENSE_FEATURE to build
 if(NOT "${GLOBAL_LICENSE_FEATURE}" STREQUAL "")
@@ -93,95 +70,13 @@ if(NOT WIN32)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif()
 
-if (USE_CONAN_OPENSSL)
-    message(STATUS "CONAN_OPENSSL_ROOT=${CONAN_OPENSSL_ROOT}, CONAN_LIB_DIRS_OPENSSL=${CONAN_LIB_DIRS_OPENSSL}")
-    message(STATUS "CONAN_LIBS_OPENSSL=${CONAN_LIBS_OPENSSL}, CONAN_LIBS=${CONAN_LIBS}")
-    set(openssl_dir ${CONAN_OPENSSL_ROOT})
-    set(ssl_libs ${CONAN_LIBS} )
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+find_package(SemlaOpenSSL)
+set(ssl_libs ssl crypto)
+if(WIN32)
+    set(extra_ssl_libs      crypt32 ws2_32)
 else()
-	set(openssl_dir ${CMAKE_CURRENT_BINARY_DIR}/openssl)
-	# - OS
-	if(WIN32)
-		# Values for Windows
-		if(BITS64)
-			if (MSVC)
-				set(openssl_conf_cmd    perl Configure VC-WIN64A)
-				set(openssl_conf_extra  perl configdata.pm --dump)
-			else()
-				set(openssl_conf_cmd    perl Configure mingw64)
-				set(openssl_conf_extra  make depend)
-			endif()
-		else()
-			if (MSVC)
-				set(openssl_conf_cmd    perl Configure no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl VC-WIN32 )
-				set(openssl_conf_extra  perl configdata.pm --dump)
-			else()
-				set(openssl_conf_cmd    perl Configure mingw)
-				set(openssl_conf_extra  make depend)
-			endif()
-		endif()
-		
-		if (MSVC)
-			set(openssl_make        nmake)
-			set(openssl_crypto_lib  libcrypto.lib)
-			set(openssl_ssl_lib     libssl.lib)
-		else()
-			set(openssl_make        make)
-			set(openssl_crypto_lib  libcrypto.a)
-			set(openssl_ssl_lib     libssl.a)
-		endif()
-		
-		set(extra_ssl_libs      crypt32 ws2_32)
-
-	else()
-		# Values for Linux, etc
-		set(openssl_conf_cmd    ./config shared)
-		set(openssl_conf_extra  make depend)
-		set(openssl_make        make)
-		set(openssl_crypto_lib  libcrypto.a)
-		set(openssl_ssl_lib     libssl.a)
-		set(extra_ssl_libs      dl pthread)
-	endif()
-
-	# - OpenSSL as external project
-	if (USE_OPENSSL_10_API)
-		message(STATUS "Will build OpenSSL 1.0.2 as external project")
-		
-		ExternalProject_Add(openssl
-			PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl
-			URL ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.0.2
-			BUILD_IN_SOURCE 1
-			CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl
-			COMMAND ${openssl_conf_extra}
-			BUILD_COMMAND ${openssl_make}
-			INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
-			)
-	else()
-		message(STATUS "Will build OpenSSL 1.1.1g as external project")
-		execute_process(COMMAND "chmod" "a+x" "${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g/config")
-		
-		ExternalProject_Add(openssl
-			PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openssl
-			URL  ${CMAKE_CURRENT_LIST_DIR}/../ThirdParty/openssl-1.1.1g
-			BUILD_IN_SOURCE 1
-			CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --openssldir=. --prefix=${CMAKE_CURRENT_BINARY_DIR}/openssl
-			COMMAND ${openssl_conf_extra}
-			BUILD_COMMAND ${openssl_make}
-			INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs
-            BUILD_BYPRODUCTS  ${openssl_dir}/lib/${openssl_ssl_lib} ${openssl_dir}/lib/${openssl_crypto_lib}
-		)
-	endif()
-	
-	add_library(ssl STATIC IMPORTED)
-	add_library(crypto STATIC IMPORTED)
-	set_property(TARGET ssl PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_ssl_lib})
-	set_property(TARGET crypto PROPERTY IMPORTED_LOCATION ${openssl_dir}/lib/${openssl_crypto_lib})
-	add_dependencies(ssl openssl)
-	add_dependencies(crypto openssl)
-
-	set(ssl_libs ssl crypto)
-
-	include_directories(${CMAKE_CURRENT_BINARY_DIR}/openssl/include )
+    set(extra_ssl_libs      dl pthread)
 endif()
 
 if(WIN32)
@@ -377,10 +272,11 @@ else()
 
 endif()
 
+ENABLE_TESTING()
+
 # Modules
 set(MLLE_LIST_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(MLLE_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-set(MLLE_THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/../ThirdParty") # TODO: Need to be included?
 
 # - License manager
 if(NOT TEST_LICENSED_FEATURE)
@@ -391,7 +287,11 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/license_managers ${CMAKE_CURRENT_BINA
 # - Decryptor
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/decryptors ${CMAKE_CURRENT_BINARY_DIR}/decryptors)
 
-add_dependencies(decryptor  openssl)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    add_dependencies(decryptor  openssl)
+endif()
 
 # - Obfuscator
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/obfuscators ${CMAKE_CURRENT_BINARY_DIR}/obfuscators)
@@ -409,8 +309,13 @@ add_library(mlle_common
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.h)
 
-add_dependencies(mlle_common  openssl)
-    
+if (USE_DOWNLOADED_OPENSSL_BUILD)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    target_link_libraries(mlle_common ${ssl_libs})
+else()
+    add_dependencies(mlle_common  openssl)
+endif()
+
 # --------------
 # Create lve.
 # --------------
@@ -457,6 +362,10 @@ add_library(tool
     ${tool_platform_c}
 )
 
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    target_link_libraries(tool ${ssl_libs})
+endif()
+
 add_executable(test_tool
     ${PUBLIC_KEY_TOOL_H}
     ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.c
@@ -492,7 +401,7 @@ add_executable(packagetool
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/utils.h
 )
 
-target_link_libraries(packagetool mlle_common ${ssl_libs} ${extra_ssl_libs} decryptor)
+target_link_libraries(packagetool decryptor mlle_common ${ssl_libs} ${extra_ssl_libs})
 # --------------------
 # Create encrypt_file.
 # --------------------
@@ -528,18 +437,19 @@ if(WIN32)
     endif (MSVC)
 endif(WIN32)
 
-add_custom_command( TARGET ${LVETARGET}
-        POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E remove_directory $<TARGET_FILE_DIR:packagetool>/LVE
-        COMMAND "${CMAKE_COMMAND}" -E make_directory $<TARGET_FILE_DIR:packagetool>/LVE
-        COMMAND "${CMAKE_COMMAND}" -E touch ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-        COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-        COMMAND "${CMAKE_COMMAND}" -E echo
-        "Copying: $<TARGET_FILE:${LVETARGET}> to $<TARGET_FILE_DIR:packagetool>/LVE"
-        COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:${LVETARGET}> $<TARGET_FILE_DIR:packagetool>/LVE/
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
+
+# --------------------
+# Create test_resources
+# --------------------
+
+add_custom_target(test_resources
+    ALL # build this target when building the default target
+    DEPENDS
+        # The implementation of this target is in the add_custom_command() that has the file below as OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/test_resources_created_marker_file 
+        # Adding file-level dependencies below so that this target is not built before the files that it needs to use are built
+        packagetool
+        ${LVETARGET}
 )
 
 file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/test_library) 
@@ -550,63 +460,7 @@ file(RENAME         ${CMAKE_CURRENT_BINARY_DIR}/test_library ${CMAKE_CURRENT_BIN
 file(REMOVE         ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in) 
 configure_file(     ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/package.in ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo  @ONLY NEWLINE_STYLE UNIX)
 
-add_custom_target(test_library_mol
-    DEPENDS
-        packagetool
-        ${LVETARGET}
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-        )
-
-set(PACKAGE_TEST_LIB_CMD $<TARGET_FILE:packagetool>
-        -librarypath ${CMAKE_CURRENT_BINARY_DIR}/test_library -version "2.0" -language "3.2" -encrypt "true")
-
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-	
-    COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
-    COMMAND "${CMAKE_COMMAND}" -E echo  Running: ${PACKAGE_TEST_LIB_CMD}
-    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit ${CMAKE_CURRENT_BINARY_DIR}/test_library
-    COMMAND ${PACKAGE_TEST_LIB_CMD}
-    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library
-	
-    # TODO: fix, dependencies are in ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS
-        ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/binary.gif
-        packagetool
-        ${LVETARGET}
-		
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
-
-if(NOT LONG_FOLDER_NAME)
-  set(LONG_FOLDER_NAME "X01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
-endif()
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME})
-add_custom_target(test_library_long_path
-    DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library_long_path_marker
-        )
-
-add_custom_command(
-    OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library_long_path_marker
-    DEPENDS 
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/manifest.xml
-    COMMAND "${CMAKE_COMMAND}" -E echo "Copying test_library into folder with long name"
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory test_library ${LONG_FOLDER_NAME}/test_library
-    COMMAND "${CMAKE_COMMAND}" -E touch test_library_mol_marker
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
-        )
-
-
-add_custom_target(
-    test_library
-    DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/manifest.xml
-)
+set(LONG_FOLDER_NAME "X01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
 
 if(UNIX)
     set(CHMOD chmod +x)
@@ -615,23 +469,60 @@ else()
 endif()
 
 add_custom_command(
-    OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/manifest.xml
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test_resources_created_marker_file
+    COMMAND "${CMAKE_COMMAND}" -E echo "Creating resources for testing"
+    COMMAND "${CMAKE_COMMAND}" -E echo "Copying LVE to LVE dir"
+    COMMAND "${CMAKE_COMMAND}" -E echo "Copying: $<TARGET_FILE:${LVETARGET}> to $<TARGET_FILE_DIR:packagetool>/LVE"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory $<TARGET_FILE_DIR:packagetool>/LVE
+    COMMAND "${CMAKE_COMMAND}" -E make_directory $<TARGET_FILE_DIR:packagetool>/LVE
+    COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:${LVETARGET}> $<TARGET_FILE_DIR:packagetool>/LVE/
+
+    COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_library.mol from packagetool_input/test_library"
+    COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input/test_library
+    COMMAND "${CMAKE_COMMAND}" -E echo  "Running: $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input/test_library -version \"2.0\" -language \"3.2\" -encrypt \"true\""
+    COMMAND $<TARGET_FILE:packagetool> -librarypath ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input/test_library -version "2.0" -language "3.2" -encrypt "true"
+
+    COMMAND "${CMAKE_COMMAND}" -E echo "Extracting from test_library.mol to test_library"
     COMMAND "${CMAKE_COMMAND}" -E remove_directory test_library
-    COMMAND "${CMAKE_COMMAND}" -E echo "Extracting from test_library.mol"
     COMMAND "${CMAKE_COMMAND}" -E tar xvz test_library.mol
     COMMAND "${CMAKE_COMMAND}" -E copy_directory test_library/Module test_library/${LONG_FOLDER_NAME}    
     COMMAND ${CHMOD} ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/${LVETARGET}
 
+    COMMAND "${CMAKE_COMMAND}" -E echo "Copying test_library into folder with long name"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}
+    COMMAND "${CMAKE_COMMAND}" -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/test_library ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
+
+    COMMAND "${CMAKE_COMMAND}" -E echo "Touching file test_resources_created_marker_file to indicate that resources used for testing have been successfully created"
+    COMMAND "${CMAKE_COMMAND}" -E touch ${CMAKE_CURRENT_BINARY_DIR}/test_resources_created_marker_file 
     DEPENDS
-        test_library_mol
         packagetool
         ${LVETARGET}
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
 
+
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    # Ensure that OpenSSL DLLs can be found when running 'ctest' by copying them to the same directory as the executables.
+    # Ensure that OpenSSL shared libraries can be found when packaging by copying them to the same directory as the executables.
+    add_custom_command(TARGET packagetool POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${LIBSSL_IMPORTED_LOCATION}
+            ${LIBCRYPTO_IMPORTED_LOCATION}
+            $<TARGET_FILE_DIR:packagetool>
+    )
+    if (WIN32)
+        add_custom_command(TARGET packagetool POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${LIBSSL_IMPORTED_IMPLIB}
+                ${LIBCRYPTO_IMPORTED_IMPLIB}
+                $<TARGET_FILE_DIR:packagetool>
+        )
+    endif()
+endif()
 
 # --------------------
 # TEST
@@ -640,75 +531,62 @@ if(DEFINED TEST_NOT_LICENSED_FEATURE)
     set(TEST_NOT_LICENSED_FEATURE_OPTION --no-feature ${TEST_NOT_LICENSED_FEATURE})
 endif()
 
-ENABLE_TESTING()
 file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
 file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files)
 file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files/Module)
 file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module)
 
-add_test( NAME encrypt_top_level_package
-        COMMAND encrypt_file ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
+if(NOT SKIP_SEMLA_SRC_TESTS)
+    add_test( NAME encrypt_top_level_package
+            COMMAND encrypt_file ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
 
-add_test( NAME encrypt_sub_package
-        COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/package.mo Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
+    add_test( NAME encrypt_sub_package
+            COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/package.mo Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
 
-SET_TESTS_PROPERTIES ( encrypt_sub_package PROPERTIES DEPENDS encrypt_top_level_package)
+    SET_TESTS_PROPERTIES ( encrypt_sub_package PROPERTIES DEPENDS encrypt_top_level_package)
 
-add_test( NAME encrypt_submodel
-        COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/testInPackage.mo Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
+    add_test( NAME encrypt_submodel
+            COMMAND encrypt_file ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/Module/testInPackage.mo Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files)
 
-SET_TESTS_PROPERTIES ( encrypt_submodel PROPERTIES DEPENDS encrypt_sub_package)
+    SET_TESTS_PROPERTIES ( encrypt_submodel PROPERTIES DEPENDS encrypt_sub_package)
 
-add_test( NAME decrypt_top_level_package
-        COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/package.mo)
-SET_TESTS_PROPERTIES (
-    decrypt_top_level_package PROPERTIES DEPENDS encrypt_top_level_package)
-
-add_test( NAME decrypt_sub_package
-        COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/package.mo)
-SET_TESTS_PROPERTIES (
-    decrypt_sub_package PROPERTIES DEPENDS encrypt_sub_package)
-
-add_test( NAME decrypt_submodel
-        COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/testInPackage.mo)
-SET_TESTS_PROPERTIES (
-    decrypt_submodel PROPERTIES DEPENDS encrypt_submodel)
-
-add_test( NAME run_test_tool COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-		 
-add_test(NAME package_test_lib
-    COMMAND "${CMAKE_COMMAND}" --build . --target test_library --config $<CONFIGURATION>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-
-SET_TESTS_PROPERTIES (run_test_tool PROPERTIES DEPENDS package_test_lib)
-
-if(DO_LONG_FILENAME_TEST OR UNIX)
-    add_test( NAME run_test_tool_single_file 
-            COMMAND test_tool --lve ${LVETARGET}  --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-                    --libpath ${CMAKE_CURRENT_BINARY_DIR}/test_library 
-                    --file 
-                    Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.moc 
-                    Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
+    add_test( NAME decrypt_top_level_package
+            COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/package.mo)
     SET_TESTS_PROPERTIES (
-        run_test_tool_single_file PROPERTIES DEPENDS package_test_lib)
+        decrypt_top_level_package PROPERTIES DEPENDS encrypt_top_level_package)
 
-    add_test( NAME run_test_tool_long_path 
-            COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
-                --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-    add_test(NAME package_test_lib_long_path
-        COMMAND "${CMAKE_COMMAND}" --build . --target test_library_long_path --config $<CONFIGURATION>
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-        
+    add_test( NAME decrypt_sub_package
+            COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/package.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/package.mo)
     SET_TESTS_PROPERTIES (
-        run_test_tool_long_path PROPERTIES DEPENDS package_test_lib_long_path)
-else()
-    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_facit/Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo) 
+        decrypt_sub_package PROPERTIES DEPENDS encrypt_sub_package)
+
+    add_test( NAME decrypt_submodel
+            COMMAND decrypt_file  ${CMAKE_CURRENT_BINARY_DIR}/test_encrypt_files Module/testInPackage.moc ${CMAKE_CURRENT_BINARY_DIR}/test_decrypt_files/Module/testInPackage.mo)
+    SET_TESTS_PROPERTIES (
+        decrypt_submodel PROPERTIES DEPENDS encrypt_submodel)
+
+    add_test( NAME run_test_tool COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+            
+
+
+
+    if(DO_LONG_FILENAME_TEST OR UNIX)
+        add_test( NAME run_test_tool_single_file 
+                COMMAND test_tool --lve ${LVETARGET}  --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
+                        --libpath ${CMAKE_CURRENT_BINARY_DIR}/test_library 
+                        --file 
+                        Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.moc 
+                        Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+        add_test( NAME run_test_tool_long_path 
+                COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
+                    --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    else()
+        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_facit/Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo) 
+    endif()
 endif()
 
 # --------------------
@@ -725,11 +603,16 @@ install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
         DESTINATION include)
 
-install(DIRECTORY "${openssl_dir}/include/"
-        DESTINATION include)
-
+if (USE_DOWNLOADED_OPENSSL_BUILD)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    install(DIRECTORY "${openssl_dir}/include/"
+            DESTINATION include)
+endif()
 # Install OpenSSL libs as well, since they are needed by tool lib
-if (USE_CONAN_OPENSSL)
+if (USE_DOWNLOADED_OPENSSL_BUILD)
+elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+elseif (USE_CONAN_OPENSSL)
 else()
     install( FILES
         ${openssl_dir}/lib/${openssl_ssl_lib}

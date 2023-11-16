@@ -32,6 +32,13 @@
 #include "obfuscate_utils.h"
 #include "mlle_portability.h"
 
+#ifdef INCLUDE_OPENSSL_APPLINK
+#ifndef __INCLUDE_OPENSSL_APPLINK
+#define __INCLUDE_OPENSSL_APPLINK
+#include <openssl/applink.c>
+#endif /* __INCLUDE_OPENSSL_APPLINK */
+#endif /* INCLUDE_OPENSSL_APPLINK */
+
 void read_file(char* file, char** buf, size_t* len);
 
 FILE* open_or_exit(const char* fname, const char* mode);

@@ -28,6 +28,13 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 
+#ifdef INCLUDE_OPENSSL_APPLINK
+#ifndef __INCLUDE_OPENSSL_APPLINK
+#define __INCLUDE_OPENSSL_APPLINK
+#include <openssl/applink.c>
+#endif /* __INCLUDE_OPENSSL_APPLINK */
+#endif /* INCLUDE_OPENSSL_APPLINK */
+
 extern FILE* mlle_log;
 
 /*

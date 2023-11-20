@@ -504,16 +504,17 @@ add_custom_command(
 
 
 if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-    # Ensure that OpenSSL DLLs can be found when running 'ctest' by copying them to the same directory as the executables.
-    # Ensure that OpenSSL shared libraries can be found when packaging by copying them to the same directory as the executables.
-    add_custom_command(TARGET packagetool POST_BUILD
+    # Ensure that OpenSSL shared libraries (DLLs) can be found when running targets that depend on them such as 'obfuscate' and 'packagetool'
+    # by copying them to the same directory as the executables.
+    # We make the custom command depend on 'obfuscate', because it is the first target that gets run that depends on the OpenSSL shared libraries
+    add_custom_command(TARGET obfuscate POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
             ${LIBSSL_IMPORTED_LOCATION}
             ${LIBCRYPTO_IMPORTED_LOCATION}
             $<TARGET_FILE_DIR:packagetool>
     )
     if (WIN32)
-        add_custom_command(TARGET packagetool POST_BUILD
+        add_custom_command(TARGET obfuscate POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${LIBSSL_IMPORTED_IMPLIB}
                 ${LIBCRYPTO_IMPORTED_IMPLIB}

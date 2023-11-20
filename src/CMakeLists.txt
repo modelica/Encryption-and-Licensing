@@ -452,11 +452,8 @@ add_custom_target(test_resources
         ${LVETARGET}
 )
 
-file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/test_library) 
-file(COPY           ${CMAKE_CURRENT_LIST_DIR}/tests/test_library DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/test_facit) 
-file(RENAME         ${CMAKE_CURRENT_BINARY_DIR}/test_library ${CMAKE_CURRENT_BINARY_DIR}/test_facit)
-
+file(COPY           ${CMAKE_CURRENT_LIST_DIR}/tests/test_library DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test_facit)
 file(REMOVE         ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in) 
 configure_file(     ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/package.in ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo  @ONLY NEWLINE_STYLE UNIX)
 

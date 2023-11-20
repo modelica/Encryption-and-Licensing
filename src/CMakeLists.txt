@@ -452,10 +452,6 @@ add_custom_target(test_resources
         ${LVETARGET}
 )
 
-file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/test_facit) 
-file(COPY           ${CMAKE_CURRENT_LIST_DIR}/tests/test_library DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test_facit)
-file(REMOVE         ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in) 
-configure_file(     ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/package.in ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo  @ONLY NEWLINE_STYLE UNIX)
 
 if(DO_LONG_FILENAME_TEST OR UNIX)
     # do nothing
@@ -480,6 +476,11 @@ add_custom_command(
     COMMAND "${CMAKE_COMMAND}" -E make_directory $<TARGET_FILE_DIR:packagetool>/LVE
     COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:${LVETARGET}> $<TARGET_FILE_DIR:packagetool>/LVE/
 
+    COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_facit"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/tests/test_library ${CMAKE_CURRENT_BINARY_DIR}/test_facit
+    COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in
+    COMMAND "${CMAKE_COMMAND}" -P ${CMAKE_CURRENT_LIST_DIR}/GenTestLibraryPackageMoFile.cmake
     COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_library.mol from packagetool_input/test_library"
     COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input

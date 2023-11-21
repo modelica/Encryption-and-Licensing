@@ -1,4 +1,6 @@
-if (USE_DOWNLOADED_OPENSSL_BUILD)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+    # do nothing
+elseif (USE_DOWNLOADED_OPENSSL_BUILD)
     if(NOT DOWNLOADED_OPENSSL_BUILD_URL)
         message(FATAL_ERROR "DOWNLOADED_OPENSSL_BUILD_URL not set")
     endif()
@@ -27,8 +29,6 @@ if (USE_DOWNLOADED_OPENSSL_BUILD)
     set(DOWNLOADED_OPENSSL_BUILD_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/openssl/include)
     include_directories(${DOWNLOADED_OPENSSL_BUILD_INCLUDE_DIR})
     message(STATUS "Will use pre-built OpenSSL from ${DOWNLOADED_OPENSSL_BUILD_URL}")
-elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-    # do nothing at this point
 else()
     include(BuildSemlaOpenSSL)
 endif()

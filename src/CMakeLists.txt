@@ -498,7 +498,7 @@ add_custom_command(
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit
     COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/tests/test_library ${CMAKE_CURRENT_BINARY_DIR}/test_facit
     COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in
-    COMMAND "${CMAKE_COMMAND}" -DDO_LONG_FILENAME_TEST=${DO_LONG_FILENAME_TEST} -DTEST_LICENSED_FEATURE="${TEST_LICENSED_FEATURE}" -P ${CMAKE_CURRENT_LIST_DIR}/GenTestLibraryPackageMoFile.cmake
+    COMMAND "${CMAKE_COMMAND}" -DDO_LONG_FILENAME_TEST=${DO_LONG_FILENAME_TEST} -DTEST_LICENSED_FEATURE=${TEST_LICENSED_FEATURE} -P ${CMAKE_CURRENT_LIST_DIR}/GenTestLibraryPackageMoFile.cmake
     COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_library.mol from packagetool_input/test_library"
     COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input

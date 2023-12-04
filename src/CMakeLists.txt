@@ -106,19 +106,27 @@ add_executable(obfuscate
 add_library(obfuscate_utils  
                ${CMAKE_CURRENT_LIST_DIR}/embedfile/obfuscate_utils.c)
 target_link_libraries(   obfuscate_utils obfuscator_module        )
-target_link_libraries(obfuscate obfuscate_utils
-                      ${ssl_libs}
-                      ${extra_ssl_libs} )
-
+target_link_libraries(obfuscate
+                      obfuscate_utils)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    target_link_libraries(obfuscate 
+                        ${ssl_libs}
+                        ${extra_ssl_libs})
+endif()
 
 # Compile the randomize key program.
 add_executable(randomize_key
                ${CMAKE_CURRENT_LIST_DIR}/embedfile/randomize_key.c
                )
 target_link_libraries(randomize_key
-                      ${ssl_libs}
-                      ${extra_ssl_libs}
                       obfuscate_utils)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    target_link_libraries(randomize_key
+                        ${ssl_libs}
+                        ${extra_ssl_libs})
+endif()
 
 # ---------------
 # ENCRYPTION KEYS
@@ -311,7 +319,6 @@ add_library(mlle_common
 
 if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-    target_link_libraries(mlle_common ${ssl_libs})
 else()
     add_dependencies(mlle_common  openssl)
 endif()
@@ -337,7 +344,12 @@ add_executable(${LVETARGET}
     ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_ssl_lve.c
 )
 
-target_link_libraries(${LVETARGET} license_manager mlle_common decryptor ${ssl_libs} ${extra_ssl_libs})
+target_link_libraries(${LVETARGET} license_manager mlle_common decryptor)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    target_link_libraries(${LVETARGET} ${ssl_libs} ${extra_ssl_libs})
+endif()
+
 if(MSVC )
         # add NODEFAULTLIB:libcmt in Debug
         # into string
@@ -362,16 +374,16 @@ add_library(tool
     ${tool_platform_c}
 )
 
-if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-    target_link_libraries(tool ${ssl_libs})
-endif()
-
 add_executable(test_tool
     ${PUBLIC_KEY_TOOL_H}
     ${CMAKE_CURRENT_LIST_DIR}/tests/test_tool.c
 )
 
-target_link_libraries(test_tool tool obfuscate_utils ${ssl_libs} ${extra_ssl_libs})
+target_link_libraries(test_tool tool obfuscate_utils)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    target_link_libraries(test_tool ${ssl_libs} ${extra_ssl_libs})
+endif()
 
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_licensing.h
           ${CMAKE_CURRENT_LIST_DIR}/tool/mlle_types.h
@@ -401,7 +413,11 @@ add_executable(packagetool
     ${CMAKE_CURRENT_LIST_DIR}/packagetool/utils.h
 )
 
-target_link_libraries(packagetool decryptor mlle_common ${ssl_libs} ${extra_ssl_libs})
+target_link_libraries(packagetool decryptor mlle_common)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    target_link_libraries(packagetool ${ssl_libs} ${extra_ssl_libs})
+endif()
 # --------------------
 # Create encrypt_file.
 # --------------------
@@ -409,7 +425,11 @@ add_executable(encrypt_file
     ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt/encrypt_file.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c
 )
-target_link_libraries(encrypt_file  decryptor mlle_common ${ssl_libs} ${extra_ssl_libs})
+target_link_libraries(encrypt_file  decryptor mlle_common)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    target_link_libraries(encrypt_file ${ssl_libs} ${extra_ssl_libs})
+endif()
 
 # --------------------
 # Create decrypt_file.
@@ -418,7 +438,11 @@ add_executable(decrypt_file
     ${CMAKE_CURRENT_LIST_DIR}/encrypt_decrypt/decrypt_file.c
     ${CMAKE_CURRENT_LIST_DIR}/common/libcrypto-compat.c    
 )
-target_link_libraries(decrypt_file  decryptor mlle_common ${ssl_libs} ${extra_ssl_libs})
+target_link_libraries(decrypt_file  decryptor mlle_common)
+if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+else()
+    target_link_libraries(decrypt_file  ${ssl_libs} ${extra_ssl_libs})
+endif()
 
 if(WIN32)
     if (MSVC)
@@ -452,13 +476,6 @@ add_custom_target(test_resources
         ${LVETARGET}
 )
 
-file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/test_library) 
-file(COPY           ${CMAKE_CURRENT_LIST_DIR}/tests/test_library DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/test_facit) 
-file(RENAME         ${CMAKE_CURRENT_BINARY_DIR}/test_library ${CMAKE_CURRENT_BINARY_DIR}/test_facit)
-
-file(REMOVE         ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in) 
-configure_file(     ${CMAKE_CURRENT_LIST_DIR}/tests/test_library/package.in ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.mo  @ONLY NEWLINE_STYLE UNIX)
 
 set(LONG_FOLDER_NAME "X01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
 
@@ -477,6 +494,11 @@ add_custom_command(
     COMMAND "${CMAKE_COMMAND}" -E make_directory $<TARGET_FILE_DIR:packagetool>/LVE
     COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:${LVETARGET}> $<TARGET_FILE_DIR:packagetool>/LVE/
 
+    COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_facit"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/test_facit
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/tests/test_library ${CMAKE_CURRENT_BINARY_DIR}/test_facit
+    COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_facit/package.in
+    COMMAND "${CMAKE_COMMAND}" -DDO_LONG_FILENAME_TEST=${DO_LONG_FILENAME_TEST} -DTEST_LICENSED_FEATURE=${TEST_LICENSED_FEATURE} -P ${CMAKE_CURRENT_LIST_DIR}/GenTestLibraryPackageMoFile.cmake
     COMMAND "${CMAKE_COMMAND}" -E echo "Creating test_library.mol from packagetool_input/test_library"
     COMMAND "${CMAKE_COMMAND}" -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/test_library.mol
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/packagetool_input
@@ -504,24 +526,8 @@ add_custom_command(
     VERBATIM
 )
 
-
 if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-    # Ensure that OpenSSL DLLs can be found when running 'ctest' by copying them to the same directory as the executables.
-    # Ensure that OpenSSL shared libraries can be found when packaging by copying them to the same directory as the executables.
-    add_custom_command(TARGET packagetool POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${LIBSSL_IMPORTED_LOCATION}
-            ${LIBCRYPTO_IMPORTED_LOCATION}
-            $<TARGET_FILE_DIR:packagetool>
-    )
-    if (WIN32)
-        add_custom_command(TARGET packagetool POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                ${LIBSSL_IMPORTED_IMPLIB}
-                ${LIBCRYPTO_IMPORTED_IMPLIB}
-                $<TARGET_FILE_DIR:packagetool>
-        )
-    endif()
+    include(${CUSTOM_OPENSSL_SUBDIRECTORY}/CMakeLists.txt)
 endif()
 
 # --------------------
@@ -584,8 +590,6 @@ if(NOT SKIP_SEMLA_SRC_TESTS)
                 COMMAND test_tool --lve ${LVETARGET} --feature ${TEST_LICENSED_FEATURE} ${TEST_NOT_LICENSED_FEATURE_OPTION}
                     --libpath ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}/test_library
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    else()
-        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_facit/Module/testLongName_01_567890_02_567890_03_567890_04_567890_05_567890_06_567890_07_567890_08_567890_09_567890_10_567890_11_567890_12_567890_13_567890_14_567890_15_567890.mo) 
     endif()
 endif()
 

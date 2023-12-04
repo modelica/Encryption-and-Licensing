@@ -62,7 +62,3 @@ add_library(decryptor
             ../../include/mlle_cr_decrypt.h
             ../../include/mlle_cr_encrypt.h
 )
-
-if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
-    target_link_libraries(decryptor ${ssl_libs})
-endif()

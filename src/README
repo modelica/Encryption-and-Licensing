@@ -1,4 +1,4 @@
-#    Copyright (C) 2015-2022 Modelon AB, 2022 Modelica Association 
+#    Copyright (C) 2015-2022 Modelon AB, 2022-2023 Modelica Association 
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the BSD style license.
@@ -9,7 +9,7 @@
 #    BSD_License.txt file for more details.
 #
 #    You should have received a copy of the BSD_License.txt file
-#    along with this program. If not, contact Modelon AB <http://www.modelon.com>.
+#    along with this program. If not, contact the Modelica Association <http://www.modelica.org>.
 
 
 Building instructions
@@ -19,14 +19,14 @@ Building instructions
 Prererequisites:
 ----------------
  * For Windows:
-  * CMake 3.4 or better
+  * CMake 3.20 or better
   * Perl, e.g. from http://strawberryperl.com/
   * Nasm, from http://nasm.sourceforge.net/
   * Visual Studio (or MinGW)
   * Miniz ziplibrary (https://code.google.com/p/miniz/)
   
  * For Linux:
-  * CMake 3.4 or better
+  * CMake 3.20 or better
   * Perl
   * Normal compilation tools, e.g. GCC
   * Miniz ziplibrary (https://code.google.com/p/miniz/)

@@ -57,7 +57,7 @@ ExternalProject_Add(openssl
     TLS_VERIFY true
     NETRC OPTIONAL
     BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ${openssl_conf_cmd} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} no-shared no-idea no-mdc2 no-rc5 --libdir=lib --openssldir=.
+    CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --libdir=lib --openssldir=.
     COMMAND ${openssl_conf_extra}
     BUILD_COMMAND ${openssl_make}
     INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs DESTDIR=${openssl_dir}

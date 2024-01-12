@@ -45,15 +45,19 @@ endif()
 if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
     set(DOWNLOADED_OPENSSL_SOURCE_URL https://www.openssl.org/source/openssl-3.0.8.tar.gz)
 endif()
+if(NOT DOWNLOADED_OPENSSL_SOURCE_URL_HASH_SHA256)
+    set(DOWNLOADED_OPENSSL_SOURCE_URL_HASH_SHA256 6c13d2bf38fdf31eac3ce2a347073673f5d63263398f1f69d0df4a41253e4b3e)
+endif()
 message(STATUS "Will build OpenSSL downloaded from ${DOWNLOADED_OPENSSL_SOURCE_URL} as external project")
 
 ExternalProject_Add(openssl
     PREFIX ${openssl_dir}
     URL ${DOWNLOADED_OPENSSL_SOURCE_URL}
+    URL_HASH SHA256=${DOWNLOADED_OPENSSL_SOURCE_URL_HASH_SHA256}
     TLS_VERIFY true
     NETRC OPTIONAL
     BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ${openssl_conf_cmd} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} no-shared no-idea no-mdc2 no-rc5 --libdir=lib --openssldir=.
+    CONFIGURE_COMMAND ${openssl_conf_cmd} no-shared no-idea no-mdc2 no-rc5 --libdir=lib --openssldir=.
     COMMAND ${openssl_conf_extra}
     BUILD_COMMAND ${openssl_make}
     INSTALL_COMMAND ${openssl_make} install_sw install_ssldirs DESTDIR=${openssl_dir}

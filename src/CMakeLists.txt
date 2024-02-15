@@ -20,7 +20,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 project(MLLE)
-
+include(GNUInstallDirs)
 
 # set platform
 if (WIN32)
@@ -598,20 +598,20 @@ endif()
 # --------------------
 # TODO: Install does not work as intended - needs work or maybe it should just be removed?
 install(TARGETS test_tool encrypt_file packagetool decrypt_file
-        DESTINATION bin
-        ARCHIVE DESTINATION lib)
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(TARGETS ${LVETARGET} DESTINATION bin/LVE)
+install(TARGETS ${LVETARGET} DESTINATION ${CMAKE_INSTALL_BINDIR}/LVE)
 
 # Install header files needed when using tool library
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
-        DESTINATION include)
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 if (USE_DOWNLOADED_OPENSSL_BUILD)
 elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
-    install(DIRECTORY "${openssl_dir}/include/"
-            DESTINATION include)
+    install(DIRECTORY "${openssl_dir}${openssl_install_prefix}/include/"
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
 # Install OpenSSL libs as well, since they are needed by tool lib
 if (USE_DOWNLOADED_OPENSSL_BUILD)
@@ -619,9 +619,9 @@ elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 elseif (USE_CONAN_OPENSSL)
 else()
     install( FILES
-        ${openssl_dir}/lib/${openssl_ssl_lib}
-        ${openssl_dir}/lib/${openssl_crypto_lib}
-         DESTINATION lib)
+        ${openssl_dir}${openssl_install_prefix}/lib/${openssl_ssl_lib}
+        ${openssl_dir}${openssl_install_prefix}/lib/${openssl_crypto_lib}
+         DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-install(TARGETS tool DESTINATION lib)
+install(TARGETS tool DESTINATION ${CMAKE_INSTALL_LIBDIR})

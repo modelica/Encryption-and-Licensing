@@ -105,13 +105,16 @@ int ssl_write_message(SSL *ssl, char *message, size_t len);
  *
  * Parameters:
  *      ssl - the SSL structure with I/O information.
- *      messageBuffer - pointer to an uninitialized buffer.
+ *      messageBuffer - pointer to an initialized buffer of
+ *                      size 16 kb (i.e. an SSL record).
+ *      errorCode - pointer to an integer. If error occured,
+ *                  then this is set to the error code returned by
+ *                  SSL_get_error()
  *
  * Returns:
- *      Number of bytes read (i.e. the message length).
- *      -1 if read failed.
+ *      Number of bytes read or -1 if error occurred.
  ***********************************************************/
-int ssl_read_message(SSL *ssl, char **messageBuffer);
+int ssl_read_message(SSL *ssl, char **messageBuffer, int *errorCode);
 
 /*******************************************************
  * Get type of error and error reason as string.

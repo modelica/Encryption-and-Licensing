@@ -89,6 +89,7 @@ int mlle_read_command(SSL *ssl,
     char *token_buffer = NULL;
     enum mlle_grammar_error_t grammar_error = LE_UNKNOWN_ERROR;
     char error_msg[ERROR_SIZE] = { '\0' };
+    int errorCode = 0;
     char *messageBuffer = NULL;
 
     // The SSL buffer can hold at most 16 kb of data.
@@ -100,12 +101,12 @@ int mlle_read_command(SSL *ssl,
     }
 
     // Read data from SSL.
-    bytesRead = ssl_read_message(ssl, &messageBuffer);
+    bytesRead = ssl_read_message(ssl, &messageBuffer, &errorCode);
 
     // Check for error.
     if (bytesRead < 0 || bytesRead > SSL_RECORD_SIZE) 
     {
-        ssl_get_error_string(bytesRead, error_msg, ERROR_SIZE);
+        ssl_get_error_string(errorCode, error_msg, ERROR_SIZE);
         mlle_error_set_literal(error, 1, 1, error_msg);
         return 0;
     }
@@ -159,7 +160,7 @@ int mlle_read_command(SSL *ssl,
     while (totalBytesRead < command->length)
     {
         // Read more data.
-        bytesRead = ssl_read_message(ssl, &messageBuffer);
+        bytesRead = ssl_read_message(ssl, &messageBuffer, &errorCode);
 
         // Add data to command buffer.
         memcpy(command->data + totalBytesRead, messageBuffer, bytesRead);

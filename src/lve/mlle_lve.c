@@ -165,6 +165,7 @@ int mlle_lve_receive(struct mlle_lve_ctx *lve_ctx)
     struct mlle_command command = { 0 };
     enum mlle_grammar_error_t grammar_error = LE_UNKNOWN_ERROR;
     char error_msg[ERROR_SIZE] = { '\0' };
+    int errorCode = 0;
     char *messageBuffer = NULL;
     char *tokenBuffer = NULL;
     FILE *fd = NULL;
@@ -173,7 +174,7 @@ int mlle_lve_receive(struct mlle_lve_ctx *lve_ctx)
     mlle_lve_validate_pubkey(lve_ctx);
 
     // From the read we get a buffer and size of the buffer.
-    bytesRead = ssl_read_message(lve_ctx->ssl, &messageBuffer);
+    bytesRead = ssl_read_message(lve_ctx->ssl, &messageBuffer, &errorCode);
 
     while (bytesRead != LE_EOF)
     {
@@ -222,7 +223,7 @@ int mlle_lve_receive(struct mlle_lve_ctx *lve_ctx)
         if (SSL_get_shutdown(lve_ctx->ssl) == 0)
         {
             // Wait for next message.
-            bytesRead = ssl_read_message(lve_ctx->ssl, &messageBuffer);
+            bytesRead = ssl_read_message(lve_ctx->ssl, &messageBuffer, &errorCode);
         }
         else
         {

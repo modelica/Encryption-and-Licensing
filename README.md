@@ -2,6 +2,11 @@
 
 SEMLA is an open-source project providing means for tool-independent licensing and encryption of Modelica Libraries. 
 
+## Tools with Support for SEMLA
+
+- [Modelon Impact](https://modelon.com/modelon-impact/)
+- [OpenModelica](https://openmodelica.org)
+
 ## Specification & Contribution
 
 The working draft specification for the framework lives in a pull request to the Modelica Specification, see: https://github.com/modelica/ModelicaSpecification/pull/2931 and also the original draft specification for the framework in: [SEMLA specification](doc/SEMLA.md). 

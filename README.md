@@ -6,6 +6,7 @@ SEMLA is an open-source project providing means for tool-independent licensing a
 
 - [Modelon Impact](https://modelon.com/modelon-impact/)
 - [OpenModelica](https://openmodelica.org)
+- [Dymola](https://www.3ds.com/products/catia/dymola) Only reading MLCs, not creating them.
 
 ## Specification & Contribution
 

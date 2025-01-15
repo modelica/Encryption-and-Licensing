@@ -16,7 +16,7 @@ If you are interested to contribute to the specification, it is best to become a
 
 ## Build & Features
 
-See build instruction in: [README](src/README)
+See build instruction in: [src/README.md](src/README.md)
 
 Current implementation supports following protocol commands:
   * VERSION

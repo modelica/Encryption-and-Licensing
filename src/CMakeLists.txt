@@ -42,14 +42,12 @@ endif()
 # Platforms
 # - Bitness
 message(STATUS "CMAKE_SIZEOF_VOID_P=${CMAKE_SIZEOF_VOID_P}" )
-if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8" OR (WIN32 AND CMAKE_GENERATOR MATCHES "Win64$"))
+if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
     message(STATUS "Target is 64 bits")
     set(BITS64 1)
     set(BITS 64)
-else("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    message(STATUS "Target is 32 bits")
-    set(BITS64 0)
-    set(BITS 32)
+else()
+    message(FATAL_ERROR "Target is 32 bits - not supported")
 endif()
 
 

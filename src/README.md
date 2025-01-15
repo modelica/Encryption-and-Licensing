@@ -20,7 +20,7 @@
 
 - Start a MSVC compilation shell for the target platform (32 or 64-bit).
 
-- Add CMake, Perl and NAMS binary directories to PATH.
+- Add CMake, Perl and Nasm binary directories to PATH.
 
 - Create a build directory and cd to it.
 

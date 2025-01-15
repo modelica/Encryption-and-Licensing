@@ -64,9 +64,9 @@
     ```
 
 - To run the unit tests, execute the command:
-```
-ctest -C Release
-```
+  ```
+  ctest -C Release
+  ```
 
 # Building on Linux
 - Create a build directory and cd to it.
@@ -111,9 +111,9 @@ ctest -C Release
     ```
 
 - To run the unit tests, execute the command:
-```
-ctest -C Release
-```
+  ```
+  ctest -C Release
+  ```
 
 # Notes 
 When running the tool library test executable `test_tool` (test_tool.c):

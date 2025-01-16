@@ -69,6 +69,50 @@
   ```
 
 # Building on Linux
+
+## Building on Linux with Docker
+- Execute the command:
+  ```
+  docker run --rm -u $(id -u):$(id -g) -v $(pwd):$(pwd) -w $(pwd) -it python /bin/bash -c '
+      set -euo pipefail
+
+      pip install --target cmake cmake
+      export PYTHONPATH=$(pwd)/cmake${PYTHONPATH:+:${PYTHONPATH:-}}
+      export PATH=$(pwd)/cmake/bin:${PATH}
+      git clone https://github.com/modelica/Encryption-and-Licensing.git SEMLA
+      cd SEMLA
+      mkdir build
+      cd build
+
+      # generate keys for testing
+      mkdir openssl_keys
+      cd openssl_keys
+      openssl genrsa -out "private_key_tool.pem" 4096
+      openssl genrsa -out "private_key_lve.pem" 4096
+      openssl rsa -pubout -in "private_key_tool.pem" -out "public_key_tool.pem"
+      echo public_key_tool.pem > public_key_tools.txt 
+      cd ..
+
+      # build
+      SEMLA_DIR=$(realpath ..)
+      cmake "${SEMLA_DIR}/src" \
+          -DCMAKE_INSTALL_PREFIX="${SEMLA_DIR}/build" \
+          -DDECRYPTOR="${SEMLA_DIR}/src/decryptors/default" \
+          -DLICENSE_MANAGER="${SEMLA_DIR}/src/license_managers/testingdummy" \
+          -DOBFUSCATOR="${SEMLA_DIR}/src/obfuscators/dummy" \
+          -DTOOL_PRIVATE_KEY_DIRECTORY="${SEMLA_DIR}/build/openssl_keys" \
+          -DLVE_KEYS_DIRECTORY="${SEMLA_DIR}/build/openssl_keys" \
+          -DTOOLS_PUBLIC_KEYS_DIRECTORY="${SEMLA_DIR}/build/openssl_keys"
+
+      cmake --build .
+      cmake --build . --target install
+
+      # test
+      ctest -C Release
+  '
+  ```
+
+## Building on Linux without Docker
 - Create a build directory and cd to it.
   
 - Execute the commands:

@@ -1,0 +1,7 @@
+services:
+  semla:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspaces/SEMLA
+    command: sleep infinity

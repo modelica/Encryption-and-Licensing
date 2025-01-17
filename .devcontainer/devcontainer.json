@@ -1,0 +1,17 @@
+{
+	"name": "SEMLA devcontainer",
+	"dockerComposeFile": ["../docker-compose.yaml"],
+	"service": "semla",
+	"workspaceFolder": "/workspaces/SEMLA",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				// C
+				"ms-vscode.cpptools",
+				"ms-vscode.cmake-tools",
+				// git
+				"eamodio.gitlens"
+			]
+		}
+	}
+}

@@ -15,6 +15,11 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
+                // {
+                //     // Use this to debug in the library LVE, because it's fork()-ed from the tool process, see mlle_spawn() in mlle_spawn_posix.c
+                //     "description": "Follow fork", 
+                //     "text": "-gdb-set follow-fork-mode child"
+                // },
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",

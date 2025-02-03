@@ -112,6 +112,18 @@
   '
   ```
 
+## Building on Linux with Docker and VSCode Devcontainer
+- Clone the repo
+- Open the repo in VSCode
+- Choose `Reopen in devcontainer` 
+- Run the VSCode task `generate keys for testing`
+  - (Type `<F1>` to run VSCode commands, and then type `run task` to get to the menu where you can select tasks)
+- Open the [CMake Tools](https://code.visualstudio.com/docs/cpp/cmake-linux) view on the left.
+- Under `Configure`, click on `[No Kit Selected]` and select the one `GCC` kit that is proposed.
+  - (This also configures the project. Another way to configure the project is to use the VSCode command `CMake: Configure`)
+- Run the VSCode command `CMake: Build`
+- Run the VSCode command `Test: Run all tests`
+
 ## Building on Linux without Docker
 - Create a build directory and cd to it.
   

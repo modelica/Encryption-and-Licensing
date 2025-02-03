@@ -44,10 +44,10 @@ else()
 endif()
 
 if(NOT DOWNLOADED_OPENSSL_SOURCE_URL)
-    set(DOWNLOADED_OPENSSL_SOURCE_URL https://www.openssl.org/source/openssl-3.0.12.tar.gz)
+    set(DOWNLOADED_OPENSSL_SOURCE_URL https://github.com/openssl/openssl/releases/download/openssl-3.0.14/openssl-3.0.14.tar.gz)
 endif()
 if(NOT DOWNLOADED_OPENSSL_SOURCE_URL_HASH_SHA256)
-    set(DOWNLOADED_OPENSSL_SOURCE_URL_HASH_SHA256 f93c9e8edde5e9166119de31755fc87b4aa34863662f67ddfcba14d0b6b69b61)
+    set(DOWNLOADED_OPENSSL_SOURCE_URL_HASH_SHA256 eeca035d4dd4e84fc25846d952da6297484afa0650a6f84c682e39df3a4123ca)
 endif()
 message(STATUS "Will build OpenSSL downloaded from ${DOWNLOADED_OPENSSL_SOURCE_URL} as external project")
 

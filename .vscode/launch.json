@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) SEMLA test_tool",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/workspaces/SEMLA/build/test_tool",
+            "args": [
+                "--lve", "lve_linux64",
+                "--libpath", "/workspaces/SEMLA/build/test_library"
+            ],
+            "cwd": "/workspaces/SEMLA/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                // {
+                //     // Use this to debug in the library LVE, because it's fork()-ed from the tool process, see mlle_spawn() in mlle_spawn_posix.c
+                //     "description": "Follow fork", 
+                //     "text": "-gdb-set follow-fork-mode child"
+                // },
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

@@ -39,11 +39,18 @@ if(EXISTS ${RANDOM_KEY_DIRECTORY}/random_key_file.h)
 	)
 else()
 	message("Could not find Encryption key ${RANDOM_KEY_DIRECTORY}/random_key_file.h, generating new one")
+    if (USE_DOWNLOADED_OPENSSL_BUILD)
+        set(RANDOMIZE_KEY_COMMAND_DEPENDS randomize_key)
+    elseif (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
+        set(RANDOMIZE_KEY_COMMAND_DEPENDS randomize_key)
+    else()
+        set(RANDOMIZE_KEY_COMMAND_DEPENDS randomize_key openssl)
+    endif()
 	add_custom_command(
 		OUTPUT "${ENCRYPTION_KEY_H}"
 		COMMAND "${CMAKE_COMMAND}" -E remove -f ${MLLE_BINARY_DIR}/random_key_file.h
 		COMMAND randomize_key "${ENCRYPTION_KEY_H}" MLLE_CR_KEY
-		DEPENDS randomize_key openssl
+		DEPENDS ${RANDOMIZE_KEY_COMMAND_DEPENDS}
 		)
 endif()
 

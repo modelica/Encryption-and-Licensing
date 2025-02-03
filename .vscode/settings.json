@@ -1,0 +1,16 @@
+{
+    "cmake.configureOnOpen": false,
+    "cmake.generator": "Unix Makefiles",
+    "cmake.configureArgs": [
+        "-DCMAKE_INSTALL_PREFIX=${workspaceFolder}/build",
+        "-DDECRYPTOR=${workspaceFolder}/src/decryptors/default",
+        "-DLICENSE_MANAGER=${workspaceFolder}/src/license_managers/testingdummy",
+        "-DOBFUSCATOR=${workspaceFolder}/src/obfuscators/dummy",
+        "-DTOOL_PRIVATE_KEY_DIRECTORY=${workspaceFolder}/build/openssl_keys",
+        "-DLVE_KEYS_DIRECTORY=${workspaceFolder}/build/openssl_keys",
+        "-DTOOLS_PUBLIC_KEYS_DIRECTORY=${workspaceFolder}/build/openssl_keys"
+    ],
+    "cmake.sourceDirectory": "${workspaceFolder}/src",
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+}

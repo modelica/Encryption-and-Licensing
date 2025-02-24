@@ -64,6 +64,7 @@ mlle_lve_handle_command(struct mlle_lve_ctx *lve_ctx,
                         char *buffer,
                         size_t buffer_len)
 {
+    long tool_protocol_max_version = 0;
     enum mlle_lve_state next_state = MLLE_LVE_STATE_INVALID;
 
     // Get next state.
@@ -84,8 +85,6 @@ mlle_lve_handle_command(struct mlle_lve_ctx *lve_ctx,
     }
 
     switch (current_state) {
-    long tool_protocol_max_version = 0;
-
     case MLLE_LVE_STATE_INVALID:
         mlle_send_error(lve_ctx->ssl, MLLE_PROTOCOL_UNDEFINED_ERROR,
                 "Internal error in protocol state management.");

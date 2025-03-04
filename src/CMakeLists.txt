@@ -344,7 +344,7 @@ add_executable(${LVETARGET}
     ${CMAKE_CURRENT_LIST_DIR}/lve/mlle_ssl_lve.c
 )
 
-target_link_libraries(${LVETARGET} license_manager mlle_common decryptor)
+target_link_libraries(${LVETARGET} license_manager decryptor mlle_common)
 if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     target_link_libraries(${LVETARGET} ${ssl_libs} ${extra_ssl_libs})

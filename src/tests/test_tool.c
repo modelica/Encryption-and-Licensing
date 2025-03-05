@@ -171,7 +171,7 @@ const char * facit_path, const char **facit_files
         mlle_error_free(&error);
 
         if (0 != strcmp(feature, "DONT_TEST"))
-		{
+        {
             snprintf(test_name, sizeof(test_name), "Test valid feature ('%s')", feature);
             check_mlle(mlle_tool_feature(lve, feature, &error), test_name, &error);
             mlle_error_free(&error);

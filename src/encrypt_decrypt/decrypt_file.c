@@ -83,7 +83,7 @@ int main(int argc, char** argv)
                 res = 0;
         }
         if (res > 0) {
-            fprintf(stderr, "Decryption failed for file %s.\n", argv[1]);
+            fprintf(stderr, "Decryption failed for file %s.\n", argv[2]);
         }
     }
 
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
     if (out != NULL)
         fclose(out);
     if (out != NULL && res != 0)
-        remove(argv[2]);
+        remove(argv[3]);
 
     /* OpenSSL cleanup stuff. */
     EVP_cleanup();

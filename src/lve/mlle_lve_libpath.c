@@ -104,6 +104,7 @@ int mlle_lve_libpath(struct mlle_lve_ctx *lve_ctx,
             lve_ctx->tool_error_msg = strdup(mlle_error_get_message(error));
             lve_ctx->tool_error_type = MLLE_PROTOCOL_LICENSE_ERROR;
             lve_ctx->tool_approved = 0;
+            mlle_send_error(lve_ctx->ssl, lve_ctx->tool_error_type, lve_ctx->tool_error_msg);
             mlle_error_free(&error);
             return 0;
         }

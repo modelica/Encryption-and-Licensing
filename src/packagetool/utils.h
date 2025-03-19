@@ -10,13 +10,14 @@
     BSD_License.txt file for more details.
 
     You should have received a copy of the BSD_License.txt file
-    along with this program. If not, contact Modelon AB <http://www.modelon.com>.
+    along with this program. If not, contact Modelon AB
+   <http://www.modelon.com>.
 */
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <mlle_cr_decrypt.h>
 
@@ -26,15 +27,14 @@
 #define MAX_STRING 200
 
 #if defined(DEBUG) || defined(_DEBUG)
-    #define DEBUG_PRINT(...) fprintf( stderr, __VA_ARGS__)
+#define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
 #else
-    #define DEBUG_PRINT(...)
+#define DEBUG_PRINT(...)
 #endif
 
 #if defined(WIN32) && !defined(__func__)
-    #define __func__ __FUNCTION__
+#define __func__ __FUNCTION__
 #endif
-
 
 /*************************
  * Free allocated space.
@@ -51,12 +51,10 @@ char *getDotLibraryPath();
  *************************************************************/
 char **getLveList();
 
-
 /***********************************
  * Returns path to the icon file.
  **********************************/
 char *getIconPath();
-
 
 /**********************************************
  * Create array to add copied file names.
@@ -79,7 +77,6 @@ int createCopyArray();
  ********************************************************/
 int isDirectory(char *path);
 
-
 /********************************************************
  * Validate a path.
  *
@@ -92,7 +89,6 @@ int isDirectory(char *path);
  *******************************************************/
 int validatePath(char *path);
 
-
 /***********************************************
  * Check if encryption of files is activated.
  *
@@ -101,7 +97,6 @@ int validatePath(char *path);
  *      0 - encryption is not activated.
  **********************************************/
 int usingEncryption();
-
 
 /***********************************************************
  * Create the .library folder in the top-level directory.
@@ -125,7 +120,6 @@ int createLibraryFolder();
  *************************************/
 char *stringToLower(char *str);
 
-
 /*********************************************************
  * Get the current working directory.
  *
@@ -137,7 +131,6 @@ char *stringToLower(char *str);
  *      0 - failed to get working directory.
  *********************************************************/
 int getCurrentDirectory(char **cwd);
-
 
 /**************************************************************
  * Get the directory where the executable is running from.
@@ -155,7 +148,6 @@ char *getExecutableDirectory();
  *****************************************/
 int countLVE();
 
-
 /**************************************************************
  * Copy all the LVE's from one folder to the .library folder.
  *
@@ -166,19 +158,20 @@ int countLVE();
 int copyLVE();
 
 /**************************************************************
-* Copy extra files if those are placed in .library directory next to packagetool.
-* Only done for encrypted libraries to support external Dlls in license management.
-*
-* Returns:
-*      1 - copying of files was successful.
-*      0 - copying files failed.
-*************************************************************/
+ * Copy extra files if those are placed in .library directory next to
+ * packagetool. Only done for encrypted libraries to support external Dlls in
+ * license management.
+ *
+ * Returns:
+ *      1 - copying of files was successful.
+ *      0 - copying files failed.
+ *************************************************************/
 int copyExtraFiles();
 
 /****************************************
-* Returns path to the folder where the
-* copied source files are (staging area).
-***************************************/
+ * Returns path to the folder where the
+ * copied source files are (staging area).
+ ***************************************/
 char *getCopiedSourcePath();
 
 /*********************************************
@@ -206,7 +199,6 @@ int copyFile(char *filename, char *pathFrom);
  ***************************************************************/
 int fileExists(char *pahtAndFilename);
 
-
 /***********************************************************
  * Prepares the icon file by finding it and remove the
  * tmp folder path and library folder name from the path.
@@ -228,7 +220,6 @@ int prepareIconFile();
  *************************************************************/
 int locateIconFile();
 
-
 /*************************************************************
  * Remove temp path and library name from the icon file path.
  *
@@ -237,7 +228,6 @@ int locateIconFile();
  *      0 - failed to find the file.
  **********************************************************/
 int cleanUpIconPath();
-
 
 /****************************************************************
  * Traverse a directory structure on Windows/Linux and find the file.
@@ -254,20 +244,23 @@ int findFileWin32(const char *filename, const char *path);
 int findFileLinux(const char *filename, const char *path);
 
 /****************************************************************
-* Traverse a directory structure on Windows/Linux and encrypt modelica 
-* files.
-*
-* Parameters:
-*      topLevelPath - base directory for the library.
-*      relPath      - the subdirectory to process.
-*      context_in - context for encryption (NULL for top level when relPath is NULL)
-*
-* Returns:
-*      1 - encryption succeeded.
-*      0 - failed .
-****************************************************************/
-int encryptDirectoryWin32(const char *topLevelPath, const char* relPath, mlle_cr_context* context_in);
-int encryptDirectoryLinux(const char *topLevelPath, const char* relPath, mlle_cr_context* context_in);
+ * Traverse a directory structure on Windows/Linux and encrypt modelica
+ * files.
+ *
+ * Parameters:
+ *      topLevelPath - base directory for the library.
+ *      relPath      - the subdirectory to process.
+ *      context_in - context for encryption (NULL for top level when relPath
+ *                   is NULL)
+ *
+ * Returns:
+ *      1 - encryption succeeded.
+ *      0 - failed .
+ ****************************************************************/
+int encryptDirectoryWin32(const char *topLevelPath, const char *relPath,
+                          mlle_cr_context *context_in);
+int encryptDirectoryLinux(const char *topLevelPath, const char *relPath,
+                          mlle_cr_context *context_in);
 
 /**********************************************
  * Extract the filename from a path.
@@ -291,8 +284,6 @@ char *extractFilename(char *path);
  *********************************************/
 char *extractPath(char *pathAndFilename);
 
-
-
 /************************************
  * Encrypt files.
  *
@@ -301,7 +292,6 @@ char *extractPath(char *pathAndFilename);
  *      0 - encryption failed.
  ***********************************/
 int encryptFiles();
-
 
 /*************************************************************
  * Check if a file is a Modelica file (file extension .mo).
@@ -314,7 +304,6 @@ int encryptFiles();
  *      0 - it' not a Modelica file.
  ************************************************************/
 int isModelicaFile(char *filename);
-
 
 /**************************************************
  * Check if a file is an encrypted Modelica file,
@@ -329,7 +318,6 @@ int isModelicaFile(char *filename);
  *************************************************/
 int isEncryptedFile(char *filename);
 
-
 /*****************************************************
  * Encrypt a Modelica file.
  *
@@ -342,9 +330,8 @@ int isEncryptedFile(char *filename);
  *      1 - encryption was successful.
  *      0 - encryption failed.
  ****************************************************/
-int encryptFile(mlle_cr_context*context, const char* basedir, const char *rel_file_path);
-
-
+int encryptFile(mlle_cr_context *context, const char *basedir,
+                const char *rel_file_path);
 
 /**********************************************
  * Create a zipped archive.
@@ -356,7 +343,6 @@ int encryptFile(mlle_cr_context*context, const char* basedir, const char *rel_fi
  *      0 - creating archive failed.
  *********************************************/
 int createZipArchive();
-
 
 /******************************************************************
  * Creates a zipped archive of a directory on Windows.
@@ -388,8 +374,6 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted);
  *****************************************************************/
 int zipDirectoryLinux(char *path, char *archiveName, int encrypted);
 
-
-
 /**************************************************************
  * Removes the tmp folder name from the incoming path.
  * This needs to be done before adding path to zip container.
@@ -404,9 +388,6 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted);
  *      0 - creating path failed.
  *************************************************************/
 int removeTmpFolderName(char *searchPath, char *zipPath, size_t zipPathLen);
-
-
-
 
 /*************************************************************************
  * Creates a copy of the folder structure we are making a container of.
@@ -430,7 +411,6 @@ int copyFolderStructure();
  ***********************************************************/
 int copyDirectoryWin32(char *fromPath, char *toPath);
 
-
 /*************************************************************
  * Copy a Linux directory including files and subdirectory
  * from one location to another.
@@ -444,8 +424,6 @@ int copyDirectoryWin32(char *fromPath, char *toPath);
  ***********************************************************/
 int copyDirectoryLinux(char *fromPath, char *toPath);
 
-
-
 /***********************************************
  * Delete the temporary source folder that was
  * previously copied to TEMP folder.
@@ -454,7 +432,3 @@ int copyDirectoryLinux(char *fromPath, char *toPath);
  *      1 on success, 0 otherwise.
  **********************************************/
 int deleteTemporaryStagingFolder();
-
-
-
-

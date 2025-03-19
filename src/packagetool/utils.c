@@ -1735,24 +1735,6 @@ int createStagingFolder()
     }
 
 #else
-    // Make sure any previous source folder structure is removed.
-    /*if (!deleteTemporaryStagingFolder())
-    {
-        printf("Error: couldn't remove old temporary folder at %s\n",
-    getCopiedSourcePath()); status = -1; goto out;
-    }
-
-    // Create folder with read/write/search permission for owner and group
-    // and read/search permissions for others.
-    if (mkdir(getTempStagingDirectory(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
-    < 0)
-    {
-        printf("Failed to create temporary staging folder. Abort.\n");
-        free(getCopiedSourcePath());
-        status = -1;
-        goto out;
-    }*/
-
     // Create folder with read/write/search permission for owner and group
     // and read/search permissions for others.
     if (mkdir(getCopiedSourcePath(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) <

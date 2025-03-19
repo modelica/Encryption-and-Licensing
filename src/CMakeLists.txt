@@ -416,6 +416,10 @@ if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
 else()
     target_link_libraries(packagetool ${ssl_libs} ${extra_ssl_libs})
 endif()
+
+add_subdirectory(zip) # Adds an imported target "zip::zip"
+target_link_libraries(packagetool zip::zip)
+
 # --------------------
 # Create encrypt_file.
 # --------------------

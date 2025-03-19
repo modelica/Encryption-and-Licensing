@@ -10,7 +10,8 @@
     BSD_License.txt file for more details.
 
     You should have received a copy of the BSD_License.txt file
-    along with this program. If not, contact Modelon AB <http://www.modelon.com>.
+    along with this program. If not, contact Modelon AB
+   <http://www.modelon.com>.
 */
 
 // Disable "deprecated" warning.
@@ -18,14 +19,15 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <string.h>
-#include <stdio.h>
 #include <ctype.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include "utils.h"
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+
 #include "arguments.h"
 #include "mlle_cr_decrypt.h"
+#include "utils.h"
 
 #ifdef DARWIN
 #include <mach-o/dyld.h>
@@ -33,10 +35,10 @@
 
 #ifdef WIN32
 #else
-#include <errno.h>
 #include <dirent.h>
-#include <sys/types.h>
+#include <errno.h>
 #include <limits.h>
+#include <sys/types.h>
 #endif
 
 #include "mlle_portability.h"
@@ -44,11 +46,11 @@
 // Encryption
 #include "mlle_cr_encrypt.h"
 
-
 // ------------------------------------
 // These are the LVE's currently used.
 // ------------------------------------
-char *lve[NO_OF_LVE] = {"lve_win32.exe", "lve_win64.exe", "lve_linux32", "lve_linux64", "lve_darwin64"};
+char *lve[NO_OF_LVE] = {"lve_win32.exe", "lve_win64.exe", "lve_linux32",
+                        "lve_linux64", "lve_darwin64"};
 
 // ----------------------
 // List of copied lve's.
@@ -86,10 +88,8 @@ void cleanUp()
     int j;
 
     free(dotLibraryPath);
-    if (lveList != NULL)
-    {
-        for(j = 0; j < NO_OF_LVE; ++j )
-        {
+    if (lveList != NULL) {
+        for (j = 0; j < NO_OF_LVE; ++j) {
             free(lveList[j]);
         }
     }
@@ -106,33 +106,22 @@ void cleanUp()
 /********************************************
  * Returns path to the .library directory.
  *******************************************/
-char *getDotLibraryPath()
-{
-    return dotLibraryPath;
-}
-
+char *getDotLibraryPath() { return dotLibraryPath; }
 
 /**************************************************************
  * Returns array with the lve's that was copied to .library.
  *************************************************************/
-char **getLveList()
-{
-    return lveList;
-}
-
+char **getLveList() { return lveList; }
 
 /***********************************
  * Returns path to the icon file.
  **********************************/
-char *getIconPath()
-{
-    return pathToIcon;
-}
-
+char *getIconPath() { return pathToIcon; }
 
 #ifdef WIN32
 
-static char* getTempDirWin32() {
+static char *getTempDirWin32()
+{
     char path[MAX_PATH_LENGTH + 1];
     size_t pathLength;
 
@@ -145,7 +134,7 @@ static char* getTempDirWin32() {
     if (GetTempPathA(MAX_PATH_LENGTH, path) == 0) {
         printf("%s, Failed to fetch temp path\n", __func__);
     } else {
-        const char* TEMPLATE = "semlaXXXXXX";
+        const char *TEMPLATE = "semlaXXXXXX";
         const size_t TEMPLATE_LENGTH = strlen(TEMPLATE);
         pathLength = strlen(path);
         if (pathLength + TEMPLATE_LENGTH > MAX_PATH_LENGTH) {
@@ -158,24 +147,26 @@ static char* getTempDirWin32() {
             return tempStagingFolder;
         }
         tempStagingFolder = strdup(path);
-        DEBUG_PRINT("%s, tempStagingFolder = %s\n", __func__, tempStagingFolder);
+        DEBUG_PRINT("%s, tempStagingFolder = %s\n", __func__,
+                    tempStagingFolder);
     }
 
     return tempStagingFolder;
 }
 #else
-static char* getTempDirLinux() {
-    char TEMP_DIR_TEMPLATE[]  = "/tmp/TemporaryFolderXXXXXX";
+static char *getTempDirLinux()
+{
+    char TEMP_DIR_TEMPLATE[] = "/tmp/TemporaryFolderXXXXXX";
 
     if (tempStagingFolder == NULL) {
         tempStagingFolder = strdup(mkdtemp(TEMP_DIR_TEMPLATE));
-        DEBUG_PRINT("%s, tempStagingFolder = %s\n", __func__, tempStagingFolder);
+        DEBUG_PRINT("%s, tempStagingFolder = %s\n", __func__,
+                    tempStagingFolder);
     }
 
     return tempStagingFolder;
 }
 #endif
-
 
 /************************************
  * Get the temporary staging directory.
@@ -183,7 +174,8 @@ static char* getTempDirLinux() {
  * folder, the location of this folder is platform specific.
  * The following calls will return a pointer to this folder.
  ***********************************/
-static char* getTempStagingDirectory() {
+static char *getTempStagingDirectory()
+{
     if (tempStagingFolder != NULL) {
         return tempStagingFolder;
     }
@@ -195,7 +187,6 @@ static char* getTempStagingDirectory() {
 #endif
 }
 
-
 /****************************************
  * Returns path to the folder where the
  * copied source files are.
@@ -205,18 +196,20 @@ char *getCopiedSourcePath()
     size_t size;
 
     if (sourcePathFolder == NULL) {
-        size = strlen(getTempStagingDirectory()) + 1 + strlen(getLibraryName()) + 1;
+        size = strlen(getTempStagingDirectory()) + 1 +
+               strlen(getLibraryName()) + 1;
         sourcePathFolder = malloc(size);
 #ifdef _WIN32
-        _snprintf(sourcePathFolder, size, "%s\\%s", getTempStagingDirectory(), getLibraryName());
+        _snprintf(sourcePathFolder, size, "%s\\%s", getTempStagingDirectory(),
+                  getLibraryName());
 #else
-        snprintf(sourcePathFolder, size, "%s/%s", getTempStagingDirectory(), getLibraryName());
+        snprintf(sourcePathFolder, size, "%s/%s", getTempStagingDirectory(),
+                 getLibraryName());
 #endif
     }
 
     return sourcePathFolder;
 }
-
 
 /*********************************************************
  * Check if the a path is a directory.
@@ -232,25 +225,19 @@ int isDirectory(char *path)
 {
     struct stat info;
 
-    if (stat(path, &info) != 0)
-    {
+    if (stat(path, &info) != 0) {
         // Directory does not exist.
         printf("Library path %s does not exist.\n", path);
         return 0;
-    }
-    else if (info.st_mode & S_IFDIR )
-    {
+    } else if (info.st_mode & S_IFDIR) {
         // It's a directory.
-    }
-    else
-    {
+    } else {
         printf("Library path %s is not a directory.", path);
         return 0;
     }
 
     return 1;
 }
-
 
 /********************************************************
  * Validate a path.
@@ -269,8 +256,7 @@ int validatePath(char *path)
     char last = '\0';
 
     // Is there something to check.
-    if ( (path == NULL) || (strlen(path) == 0) )
-    {
+    if ((path == NULL) || (strlen(path) == 0)) {
         printf("Path is empty!\n");
         return 0;
     }
@@ -286,8 +272,7 @@ int validatePath(char *path)
     }
 
     // Validate the directory path.
-    if (!isDirectory(path))
-    {
+    if (!isDirectory(path)) {
         return 0;
     }
 
@@ -301,14 +286,12 @@ char *stringToLower(char *str)
 {
     int i = 0;
 
-    while( str[i] )
-    {
+    while (str[i]) {
         str[i] = tolower(str[i]);
         i++;
-   }
+    }
     return str;
 }
-
 
 /**************************************
  * Get the current working directory.
@@ -317,9 +300,9 @@ int getCurrentDirectory(char **cwd)
 {
     // Space is allocated automatically.
 #ifdef WIN32
-    if ( ( *cwd = _getcwd(NULL, 0)) == NULL)
+    if ((*cwd = _getcwd(NULL, 0)) == NULL)
 #else
-    if ( ( *cwd = getcwd(NULL, 0)) == NULL)
+    if ((*cwd = getcwd(NULL, 0)) == NULL)
 #endif
     {
         printf("Current working directory not found.\n");
@@ -328,7 +311,6 @@ int getCurrentDirectory(char **cwd)
 
     return 1;
 }
-
 
 /************************************
  * Get the directory where the
@@ -343,13 +325,11 @@ char *getExecutableDirectory()
 
     // When passing NULL to GetModuleHandle, it returns handle of exe itself.
     HMODULE hModule = GetModuleHandle(NULL);
-    if (hModule != NULL)
-    {
+    if (hModule != NULL) {
         GetModuleFileName(hModule, pathAndFilename, MAX_PATH_LENGTH + 1);
 
         // Extract the path.
-        if (pathAndFilename[0] != '\0')
-        {
+        if (pathAndFilename[0] != '\0') {
             exePath = extractPath(pathAndFilename);
         }
     }
@@ -362,8 +342,7 @@ char *getExecutableDirectory()
     if (result != 0) {
         return NULL;
     }
-    if ((len = readlink(pathAndFilename, dest, MAX_PATH_LENGTH)) > -1)
-    {
+    if ((len = readlink(pathAndFilename, dest, MAX_PATH_LENGTH)) > -1) {
         dest[len] = '\0';
         exePath = extractPath(dest);
     } else {
@@ -377,8 +356,7 @@ char *getExecutableDirectory()
     pid_t pid = getpid();
     snprintf(pathAndFilename, MAX_PATH_LENGTH + 1, "/proc/%d/exe", pid);
 
-    if ((len = readlink(pathAndFilename, dest, MAX_PATH_LENGTH)) > -1)
-    {
+    if ((len = readlink(pathAndFilename, dest, MAX_PATH_LENGTH)) > -1) {
         dest[len] = '\0';
         exePath = extractPath(dest);
     }
@@ -386,7 +364,6 @@ char *getExecutableDirectory()
 
     return exePath;
 }
-
 
 /***************************
  * Count number of LVE's.
@@ -402,14 +379,12 @@ int countLVE()
     // Path to where executable is running from.
     dir_path = getExecutableDirectory();
 
-    if (dir_path == NULL)
-    {
+    if (dir_path == NULL) {
         printf("Cannot exctract the executable path.\n");
         return 0;
     }
 
-    for (i = 0; i < NO_OF_LVE; ++i)
-    {
+    for (i = 0; i < NO_OF_LVE; ++i) {
         path_len = strlen(dir_path) + strlen(lve[i]) + 5 + 1;
         path = malloc(path_len);
         snprintf(path, path_len, "%s/LVE/%s", dir_path, lve[i]);
@@ -420,21 +395,19 @@ int countLVE()
     return count;
 }
 
-
 /***********************************************************
  * Create the .library folder in the top-level directory.
  **********************************************************/
 int createLibraryFolder()
 {
-    char* copied_src_path = NULL;
+    char *copied_src_path = NULL;
     size_t dot_lib_path_len = 0;
 
     copied_src_path = getCopiedSourcePath();
     dot_lib_path_len = strlen(copied_src_path) + MAX_STRING;
 
     DEBUG_PRINT("## copied_src_path: %s\n", copied_src_path);
-    if ( (dotLibraryPath = malloc(dot_lib_path_len)) == NULL)
-    {
+    if ((dotLibraryPath = malloc(dot_lib_path_len)) == NULL) {
         printf("Error: Failed to allocate space for .library path.\n");
         return 0;
     }
@@ -450,25 +423,25 @@ int createLibraryFolder()
     if (mkdir(dotLibraryPath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
 #endif
     {
-        printf("Error: Failed to create directory with path %s: %s\n", dotLibraryPath, strerror(errno));
+        printf("Error: Failed to create directory with path %s: %s\n",
+               dotLibraryPath, strerror(errno));
         return 0;
     }
 
     return 1;
 }
 
-
 #ifndef WIN32
 /*****************************************
  * Copy file permissions from file.
  ****************************************/
-static void linuxCopyFilePermissions(const char* fromFile, const char* toFile) {
+static void linuxCopyFilePermissions(const char *fromFile, const char *toFile)
+{
     struct stat tmp;
     stat(fromFile, &tmp);
     chmod(toFile, tmp.st_mode);
 }
 #endif
-
 
 /*****************************************
  * Create array to add copied file names.
@@ -477,29 +450,22 @@ int createCopyArray()
 {
     int j;
 
-    if (lveList == NULL)
-    {
-        if ( (lveList = malloc(NO_OF_LVE * sizeof(char*))) )
-        {
-            for(j = 0; j < NO_OF_LVE; ++j )
-            {
-                if ( (lveList[j] = malloc(MAX_STRING)) == NULL)
-                {
+    if (lveList == NULL) {
+        if ((lveList = malloc(NO_OF_LVE * sizeof(char *)))) {
+            for (j = 0; j < NO_OF_LVE; ++j) {
+                if ((lveList[j] = malloc(MAX_STRING)) == NULL) {
                     printf("Failed to allocate space for copied files.\n");
                     free(lveList);
                     return 0;
                 }
             }
-        }
-        else
-        {
+        } else {
             printf("Failed to allocate space for copied files.\n");
             return 0;
         }
     }
     return 1;
 }
-
 
 /**************************************************************
  * Copy all the LVE's from one folder to the .library folder.
@@ -512,48 +478,40 @@ int copyLVE()
     size_t path_len = 0;
 
     // We are done if we are not using encryption.
-    if (!usingEncryption())
-    {
+    if (!usingEncryption()) {
         return 1;
     }
 
-    if (!createCopyArray())
-    {
+    if (!createCopyArray()) {
         printf("Failed to allocate space for copied files.\n");
         return 0;
     }
 
-	// Path to where executable is running from.
+    // Path to where executable is running from.
     dir_path = getExecutableDirectory();
-    if (dir_path == NULL)
-    {
+    if (dir_path == NULL) {
         printf("Cannot exctract the executable path.\n");
         return 0;
     }
 
-    for (i = 0; i < NO_OF_LVE; ++i)
-    {
+    for (i = 0; i < NO_OF_LVE; ++i) {
         path_len = strlen(dir_path) + strlen(lve[i]) + 5 + 1;
         path = malloc(path_len);
         snprintf(path, path_len, "%s/LVE/%s", dir_path, lve[i]);
 
         // Check if this LVE exists.
-        if (fileExists(path))
-        {
+        if (fileExists(path)) {
             // Copy the LVE to .library directory. Abort if a copy fails.
-            if (copyFile(lve[i], path) == 0)
-            {
+            if (copyFile(lve[i], path) == 0) {
                 free(path);
                 return 0;
             }
 
             // Store filename for later use.
             snprintf(lveList[i], MAX_STRING, "%s", lve[i]);
-        }
-        else
-        {
+        } else {
             // Otherwise store empty string.
-            lveList[i] ='\0';
+            lveList[i] = '\0';
         }
 
         free(path);
@@ -565,8 +523,9 @@ int copyLVE()
 }
 
 /**************************************************************
-* Copy extra files if those are placed in .library directory next to packagetool.
-*************************************************************/
+ * Copy extra files if those are placed in .library directory next to
+ *packagetool.
+ *************************************************************/
 int copyExtraFiles()
 {
     int ret = 1;
@@ -578,8 +537,7 @@ int copyExtraFiles()
 
     // Path to where executable is running from.
     dir_path = getExecutableDirectory();
-    if (dir_path == NULL)
-    {
+    if (dir_path == NULL) {
         printf("Cannot exctract the executable path.\n");
         return 0;
     }
@@ -596,12 +554,11 @@ int copyExtraFiles()
     snprintf(path, path_len, "%s/.library", dir_path);
     snprintf(dest_path, dest_path_len, "%s/.library", getCopiedSourcePath());
     // Check if this LVE exists.
-    if (fileExists(path))
-    {
-            // Copy the LVE to .library directory. Abort if a copy fails.
+    if (fileExists(path)) {
+        // Copy the LVE to .library directory. Abort if a copy fails.
         if (stageFiles(path, dest_path) == 0) {
-                ret = 0;
-                goto cleanup;
+            ret = 0;
+            goto cleanup;
         }
     }
 
@@ -613,7 +570,6 @@ cleanup:
     return ret;
 }
 
-
 /*********************************************
  * Copy a file from one location to another.
  *********************************************/
@@ -624,7 +580,7 @@ int copyFile(char *filename, char *pathFrom)
     char buffer[8192] = {'\0'};
     size_t path_len = 0;
 
-    FILE *fdRead,*fdWrite;
+    FILE *fdRead, *fdWrite;
     size_t readBytes = 0;
     size_t writeBytes = 0;
 
@@ -633,38 +589,35 @@ int copyFile(char *filename, char *pathFrom)
     pathTo = malloc(path_len);
     snprintf(pathTo, path_len, "%s/%s", getDotLibraryPath(), filename);
 
-   // Create file descriptors.
-   fdRead = fopen(pathFrom, "rb");
-   fdWrite = fopen(pathTo, "wb");
+    // Create file descriptors.
+    fdRead = fopen(pathFrom, "rb");
+    fdWrite = fopen(pathTo, "wb");
 
-   // Copy the file.
-   while( (readBytes = fread(buffer, 1, sizeof(buffer), fdRead)) > 0)
-   {
-       writeBytes = fwrite(buffer, 1, readBytes, fdWrite);
+    // Copy the file.
+    while ((readBytes = fread(buffer, 1, sizeof(buffer), fdRead)) > 0) {
+        writeBytes = fwrite(buffer, 1, readBytes, fdWrite);
 
-       if (writeBytes < readBytes)
-       {
-           // Abort on error.
-           if (ferror(fdWrite))
-           {
-               printf("Error while copying from %s to %s.\n", pathFrom, pathTo);
-               return 0;
-           }
-       }
-   }
+        if (writeBytes < readBytes) {
+            // Abort on error.
+            if (ferror(fdWrite)) {
+                printf("Error while copying from %s to %s.\n", pathFrom,
+                       pathTo);
+                return 0;
+            }
+        }
+    }
 
-   // Cleanup.
-   fclose(fdRead);
-   fclose(fdWrite);
+    // Cleanup.
+    fclose(fdRead);
+    fclose(fdWrite);
 
 #ifndef WIN32
     // if we are on linux machine we make sure that we copy file permissions
     linuxCopyFilePermissions(pathFrom, pathTo);
 #endif
 
-   return 1;
+    return 1;
 }
-
 
 /***************************************
  * Check if a file or directory exists.
@@ -673,39 +626,34 @@ int fileExists(char *pahtAndFilename)
 {
     struct stat fileStat;
 
-   // Check if the file exists.
-   if (stat(pahtAndFilename,&fileStat) == 0)
-   {
-       return 1;
-   }
+    // Check if the file exists.
+    if (stat(pahtAndFilename, &fileStat) == 0) {
+        return 1;
+    }
 
-   return 0;
+    return 0;
 }
 
 int prepareIconFile()
 {
     // Is icon an argument.
-    if (getValueOf("icon") == NULL)
-    {
+    if (getValueOf("icon") == NULL) {
         return 1;
     }
 
-    if (!locateIconFile())
-    {
+    if (!locateIconFile()) {
         printf("Unable to locate the icon file in the source folder.\n");
         return 0;
     }
 
-
-    if (!cleanUpIconPath())
-    {
-        printf("Unable to remove tmp or library path from the icon file path.\n");
+    if (!cleanUpIconPath()) {
+        printf(
+            "Unable to remove tmp or library path from the icon file path.\n");
         return 0;
     }
 
     return 1;
 }
-
 
 /*************************************************
  * Locate the icon file in the source directory.
@@ -721,8 +669,7 @@ int locateIconFile()
     value = getValueOf("icon");
 
     // If no value, return and continue with the rest.
-    if (!value)
-    {
+    if (!value) {
         return 1;
     }
 
@@ -732,78 +679,77 @@ int locateIconFile()
     // Try to find the file.
 #ifdef WIN32
     // Result is always 1.
-    result =findFileWin32(filename, getCopiedSourcePath());
+    result = findFileWin32(filename, getCopiedSourcePath());
 #else
     result = findFileLinux(filename, getCopiedSourcePath());
 #endif
 
     // Abort if we didn't find the file.
-    if (pathToIcon == NULL)
-    {
+    if (pathToIcon == NULL) {
         result = 0;
     }
 
     return result;
 }
 
-
 #ifdef WIN32
-static int removeFolderWindows(const char *path) {
+static int removeFolderWindows(const char *path)
+{
     char searchPath[MAX_PATH_LENGTH + 1];
     errno_t err;
-    HANDLE hFind            = NULL;
-    int status              = 0;
+    HANDLE hFind = NULL;
+    int status = 0;
     WIN32_FIND_DATA fdFile;
 
     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\*.*", path);
 
     // Try to find file in top-level directory.
-    if((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE)
-    {
+    if ((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE) {
         printf("Remove directory failed for path %s.\n", searchPath);
         return 0;
     }
 
-    do
-    {
+    do {
         // The first two directories are always "." and "..".
-        if(strcmp(fdFile.cFileName, ".") != 0
-                && strcmp(fdFile.cFileName, "..") != 0)
-        {
+        if (strcmp(fdFile.cFileName, ".") != 0 &&
+            strcmp(fdFile.cFileName, "..") != 0) {
             // Build up our file path using the passed in
             // [path] and the file/foldername we just found:
-            snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\%s", path, fdFile.cFileName);
+            snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\%s", path,
+                     fdFile.cFileName);
 
             DEBUG_PRINT("%s: investigating path: %s\n", __func__, searchPath);
 
-            if(fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                DEBUG_PRINT("%s: calling recursively %s\n", __func__, searchPath);
+            if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                DEBUG_PRINT("%s: calling recursively %s\n", __func__,
+                            searchPath);
 
                 // Use recursive to remove sub folder.
                 status = removeFolderWindows(searchPath);
-                DEBUG_PRINT("%s: recursive remove for %s, status:  %d\n", __func__, searchPath, status);
-            }
-            else if(fdFile.dwFileAttributes)
-            {
+                DEBUG_PRINT("%s: recursive remove for %s, status:  %d\n",
+                            __func__, searchPath, status);
+            } else if (fdFile.dwFileAttributes) {
                 status = remove(searchPath);
-                DEBUG_PRINT("%s: removed file: %s, status: %d\n", __func__, searchPath, status);
+                DEBUG_PRINT("%s: removed file: %s, status: %d\n", __func__,
+                            searchPath, status);
             }
         }
 
-    } while(FindNextFile(hFind, &fdFile) && !status); //Find the next file
+    } while (FindNextFile(hFind, &fdFile) && !status); // Find the next file
 
     FindClose(hFind);
 
     // if no error were found we remove starting path
     if (!status) {
         status = _rmdir(path);
-        DEBUG_PRINT("%s: All files and subfolders removed from: %s, status: %d\n", __func__, path, status);
+        DEBUG_PRINT(
+            "%s: All files and subfolders removed from: %s, status: %d\n",
+            __func__, path, status);
     }
 
     if (status) {
-        _get_errno( &err );
-        DEBUG_PRINT( "%s: errno = %s\n", __func__, strerror(err) );
+        _get_errno(&err);
+        DEBUG_PRINT("%s: errno = %s\n", __func__, strerror(err));
     }
 
     DEBUG_PRINT("%s: Done with %s, status: %d\n", __func__, path, status);
@@ -811,37 +757,35 @@ static int removeFolderWindows(const char *path) {
 }
 
 #else
-static int removeFolderLinux(const char *path) {
-    int status      = 0;
-    DIR *dir        = opendir(path);
+static int removeFolderLinux(const char *path)
+{
+    int status = 0;
+    DIR *dir = opendir(path);
     size_t pathLen = strlen(path);
     char *newPath;
     size_t len;
     struct dirent *dirEntry;
     struct stat statbuf;
 
-    if (!dir)
-    {
+    if (!dir) {
         printf("%s: Failed to open dir\n", __func__);
         goto out;
     }
 
-    while (!status && (dirEntry = readdir(dir)) != NULL)
-    {
+    while (!status && (dirEntry = readdir(dir)) != NULL) {
 
-        DEBUG_PRINT("%s: Reading entry: %s, entryName: %s\n", __func__, path, dirEntry->d_name);
+        DEBUG_PRINT("%s: Reading entry: %s, entryName: %s\n", __func__, path,
+                    dirEntry->d_name);
 
         /* Skip the names "." and ".." as we don't want to recurse on them. */
-        if (!strcmp(dirEntry->d_name, ".") || !strcmp(dirEntry->d_name, ".."))
-        {
+        if (!strcmp(dirEntry->d_name, ".") || !strcmp(dirEntry->d_name, "..")) {
             continue;
         }
 
         len = pathLen + strlen(dirEntry->d_name) + 2;
         newPath = malloc(len);
 
-        if (!newPath)
-        {
+        if (!newPath) {
             printf("%s: Failed to allocate memory for buffer\n", __func__);
             status = -1;
             goto out;
@@ -850,19 +794,15 @@ static int removeFolderLinux(const char *path) {
         snprintf(newPath, len, "%s/%s", path, dirEntry->d_name);
         status = stat(newPath, &statbuf);
 
-        if (status)
-        {
+        if (status) {
             printf("%s: Failed to stat on path: %d\n", __func__, status);
             status = -1;
             goto out;
         }
 
-        if (S_ISDIR(statbuf.st_mode))
-        {
+        if (S_ISDIR(statbuf.st_mode)) {
             status = removeFolderLinux(newPath);
-        }
-        else
-        {
+        } else {
             status = unlink(newPath);
         }
 
@@ -871,18 +811,17 @@ static int removeFolderLinux(const char *path) {
 
     closedir(dir);
 
-
 out:
-   if (dir && !status)
-   {
-      status = rmdir(path);
-   }
+    if (dir && !status) {
+        status = rmdir(path);
+    }
 
-   return status;
+    return status;
 }
 #endif
 
-int removeFolder(const char *path) {
+int removeFolder(const char *path)
+{
     int status = 0;
 
 #ifdef WIN32
@@ -894,15 +833,13 @@ int removeFolder(const char *path) {
     return status;
 }
 
-
 /*************************************
  * Delete the copied source folder.
  ************************************/
 int deleteTemporaryStagingFolder()
 {
     // Don't do anyting if directory doesn't exist,
-    if (!fileExists(getTempStagingDirectory()))
-    {
+    if (!fileExists(getTempStagingDirectory())) {
         return 1;
     }
 
@@ -911,8 +848,9 @@ int deleteTemporaryStagingFolder()
 
 /******************************************************
  * Find file in a directory
-***************************************************/
-int findFileWin32(const char *filename, const char *path) {
+ ***************************************************/
+int findFileWin32(const char *filename, const char *path)
+{
     int result = 1;
 #ifdef WIN32
     WIN32_FIND_DATA fdFile;
@@ -924,34 +862,31 @@ int findFileWin32(const char *filename, const char *path) {
     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\*.*", path);
 
     // Try to find file in top-level directory.
-    if ((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE)
-    {
-        printf("File lookup for %s failed for path %s.\n", filename, searchPath);
+    if ((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE) {
+        printf("File lookup for %s failed for path %s.\n", filename,
+               searchPath);
         return 0;
     }
 
-    do
-    {
+    do {
         // The first two directories are always "." and "..".
-        if (strcmp(fdFile.cFileName, ".") != 0
-            && strcmp(fdFile.cFileName, "..") != 0)
-        {
+        if (strcmp(fdFile.cFileName, ".") != 0 &&
+            strcmp(fdFile.cFileName, "..") != 0) {
             // Build up our file path using the passed in
             // [path] and the file/foldername we just found:
-            snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\%s", path, fdFile.cFileName);
+            snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\%s", path,
+                     fdFile.cFileName);
 
             // Have we found a folder?
-            if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
+            if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 // Use recursive to check the folder we found.
-                if (findFileWin32(filename, searchPath) == 1) return 1;
+                if (findFileWin32(filename, searchPath) == 1)
+                    return 1;
             }
             // Or a regular file?
-            else if (fdFile.dwFileAttributes)
-            {
+            else if (fdFile.dwFileAttributes) {
                 // Find a specific file.
-                if (strcmp(fdFile.cFileName, filename) == 0)
-                {
+                if (strcmp(fdFile.cFileName, filename) == 0) {
                     // Set path to icon file.
                     if (pathToIcon != NULL) {
                         free(pathToIcon);
@@ -961,25 +896,25 @@ int findFileWin32(const char *filename, const char *path) {
                         pathToIcon = malloc(path_len);
                         snprintf(pathToIcon, path_len, "%s", searchPath);
 
-                        //printf("pathToIcon före: %s\n", pathToIcon);
-                        //printf("searchPath: %s\n", searchPath);
-                        //removeTmpFolderName(searchPath, pathToIcon);
-                        //printf("pathToIcon efter: %s\n", pathToIcon);
+                        // printf("pathToIcon före: %s\n", pathToIcon);
+                        // printf("searchPath: %s\n", searchPath);
+                        // removeTmpFolderName(searchPath, pathToIcon);
+                        // printf("pathToIcon efter: %s\n", pathToIcon);
                     }
                     result = 1;
                 }
             }
         }
-    } while (FindNextFile(hFind, &fdFile)); //Find the next file
+    } while (FindNextFile(hFind, &fdFile)); // Find the next file
 
     FindClose(hFind);
 #endif
 
     return result;
-
 }
 
-int encryptDirectoryWin32(const char *topLevelPath, const char* relPath, mlle_cr_context* context_in)
+int encryptDirectoryWin32(const char *topLevelPath, const char *relPath,
+                          mlle_cr_context *context_in)
 {
     int result = 1;
 #ifdef WIN32
@@ -988,26 +923,25 @@ int encryptDirectoryWin32(const char *topLevelPath, const char* relPath, mlle_cr
     char fullPath[MAX_PATH_LENGTH + 1];
     char searchPath[MAX_PATH_LENGTH + 1];
     size_t path_len = 0;
-    FILE* in;
+    FILE *in;
 
-    mlle_cr_context* context = context_in;
+    mlle_cr_context *context = context_in;
 
     // Find all.
-    if (NULL == context){
+    if (NULL == context) {
         context = mlle_cr_create(topLevelPath);
         if (NULL == context) {
             printf("Could not allocated memory for encryption context\n");
             return 0;
         }
         snprintf(fullPath, MAX_PATH_LENGTH + 1, "%s", topLevelPath);
-    }
-    else {
-        snprintf(fullPath, MAX_PATH_LENGTH + 1, "%s\\%s", topLevelPath, relPath);
+    } else {
+        snprintf(fullPath, MAX_PATH_LENGTH + 1, "%s\\%s", topLevelPath,
+                 relPath);
     }
     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\*.*", fullPath);
     // Try to find file in top-level directory.
-    if((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE)
-    {
+    if ((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE) {
         printf("Encrypt directory failed for path %s.\n", searchPath);
         return 0;
     }
@@ -1017,48 +951,47 @@ int encryptDirectoryWin32(const char *topLevelPath, const char* relPath, mlle_cr
     if (in) {
         fclose(in);
         if (relPath) {
-            snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\""package.mo""", relPath);
+            snprintf(searchPath, MAX_PATH_LENGTH + 1,
+                     "%s\\"
+                     "package.mo"
+                     "",
+                     relPath);
             result = encryptFile(context, topLevelPath, searchPath);
-        }
-        else {
+        } else {
             result = encryptFile(context, topLevelPath, "package.mo");
         }
-        
     }
     if (result) {
-        do
-        {
+        do {
             // The first two directories are always "." and "..".
-            if (strcmp(fdFile.cFileName, ".") != 0
-                && strcmp(fdFile.cFileName, "..") != 0
-                && _stricmp(fdFile.cFileName, "package.mo") != 0)
-            {
+            if (strcmp(fdFile.cFileName, ".") != 0 &&
+                strcmp(fdFile.cFileName, "..") != 0 &&
+                _stricmp(fdFile.cFileName, "package.mo") != 0) {
                 if (relPath) {
-                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\%s", relPath, fdFile.cFileName);
-                }
-                else {
-                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s", fdFile.cFileName);
+                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s\\%s", relPath,
+                             fdFile.cFileName);
+                } else {
+                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s",
+                             fdFile.cFileName);
                 }
                 // Have we found a folder?
-                if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                {
+                if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                     // Use recursive to check the folder we found.
-                    if (!encryptDirectoryWin32(topLevelPath, searchPath, context)) {
+                    if (!encryptDirectoryWin32(topLevelPath, searchPath,
+                                               context)) {
                         result = 0;
                         break;
                     };
                 }
                 // Or a regular file?
-                else if (fdFile.dwFileAttributes)
-                {
+                else if (fdFile.dwFileAttributes) {
                     // Encrypt Modelica files.
-                    if (isModelicaFile(fdFile.cFileName))
-                    {
+                    if (isModelicaFile(fdFile.cFileName)) {
                         result = encryptFile(context, topLevelPath, searchPath);
                     }
                 }
             }
-        } while (FindNextFile(hFind, &fdFile) && result); //Find the next file
+        } while (FindNextFile(hFind, &fdFile) && result); // Find the next file
     }
     FindClose(hFind);
     if (context && (context_in == NULL)) {
@@ -1072,7 +1005,8 @@ int encryptDirectoryWin32(const char *topLevelPath, const char* relPath, mlle_cr
 /***********************************************************
  * Encrypt modelica files in a directory structure on Linux .
  ***********************************************************/
-int encryptDirectoryLinux(const char *topLevelPath, const char* relPath, mlle_cr_context* context_in)
+int encryptDirectoryLinux(const char *topLevelPath, const char *relPath,
+                          mlle_cr_context *context_in)
 {
     int result = 1;
 
@@ -1082,20 +1016,18 @@ int encryptDirectoryLinux(const char *topLevelPath, const char* relPath, mlle_cr
     char fullPath[MAX_PATH_LENGTH + 1];
     char searchPath[MAX_PATH_LENGTH + 1];
     size_t path_len = 0;
-    mlle_cr_context* context = context_in;
-    FILE* in;
-
+    mlle_cr_context *context = context_in;
+    FILE *in;
 
     // Find all.
-    if (NULL == context){
+    if (NULL == context) {
         context = mlle_cr_create(topLevelPath);
         if (NULL == context) {
             printf("Could not allocated memory for encryption context\n");
             return 0;
         }
         snprintf(fullPath, MAX_PATH_LENGTH + 1, "%s", topLevelPath);
-    }
-    else {
+    } else {
         snprintf(fullPath, MAX_PATH_LENGTH + 1, "%s/%s", topLevelPath, relPath);
     }
     // Find all.
@@ -1104,55 +1036,50 @@ int encryptDirectoryLinux(const char *topLevelPath, const char* relPath, mlle_cr
     if (in) {
         fclose(in);
         if (relPath) {
-           snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s/package.mo""", relPath);
-           result = encryptFile(context, topLevelPath, searchPath);
+            snprintf(searchPath, MAX_PATH_LENGTH + 1,
+                     "%s/package.mo"
+                     "",
+                     relPath);
+            result = encryptFile(context, topLevelPath, searchPath);
+        } else {
+            result = encryptFile(context, topLevelPath, "package.mo");
         }
-        else {
-           result = encryptFile(context, topLevelPath, "package.mo");
-        }
-
     }
 
-    if (result &&  (d = opendir(fullPath)) )
-    {
-        while ( (dir = readdir(d)) != NULL && (result == 1) )
-        {
+    if (result && (d = opendir(fullPath))) {
+        while ((dir = readdir(d)) != NULL && (result == 1)) {
             // The first two directories are always "." and "..".
-            if(strcmp(dir->d_name, ".") != 0
-                && strcmp(dir->d_name, "..") != 0
-                && strcasecmp(dir->d_name, "package.mo") != 0)
-            {
+            if (strcmp(dir->d_name, ".") != 0 &&
+                strcmp(dir->d_name, "..") != 0 &&
+                strcasecmp(dir->d_name, "package.mo") != 0) {
                 if (relPath) {
-                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s/%s", relPath, dir->d_name);
-                }
-                else {
-                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s", dir->d_name);
+                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s/%s", relPath,
+                             dir->d_name);
+                } else {
+                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s",
+                             dir->d_name);
                 }
 
                 // Have we found a folder?
-                if(dir->d_type == DT_DIR)
-                {
+                if (dir->d_type == DT_DIR) {
                     // Use recursive to check the folder we found.
-                    if(!encryptDirectoryLinux(topLevelPath, searchPath, context)) {
+                    if (!encryptDirectoryLinux(topLevelPath, searchPath,
+                                               context)) {
                         result = 0;
                         break;
                     }
                 }
                 // Or a file?
-                else if (dir->d_type == DT_REG)
-                {
+                else if (dir->d_type == DT_REG) {
                     // Encrypt Modelica files.
-                    if (isModelicaFile(dir->d_name))
-                    {
+                    if (isModelicaFile(dir->d_name)) {
                         result = encryptFile(context, topLevelPath, searchPath);
                     }
                 }
             }
         }
         closedir(d);
-    }
-    else
-    {
+    } else {
         printf("Failed to open directory %s\n", searchPath);
         result = 0;
     }
@@ -1166,9 +1093,9 @@ int encryptDirectoryLinux(const char *topLevelPath, const char* relPath, mlle_cr
 }
 
 /******************************************************
-* Find file in a directory
-***************************************************/
-int findFileLinux(const char *filename, const char *path) 
+ * Find file in a directory
+ ***************************************************/
+int findFileLinux(const char *filename, const char *path)
 {
     int result = 0;
 
@@ -1182,54 +1109,44 @@ int findFileLinux(const char *filename, const char *path)
     // Find all.
     snprintf(searchPath, MAX_PATH_LENGTH, "%s", path);
 
-    if ((d = opendir(searchPath)))
-    {
-        while ((dir = readdir(d)) != NULL)
-        {
+    if ((d = opendir(searchPath))) {
+        while ((dir = readdir(d)) != NULL) {
             // The first two directories are always "." and "..".
-            if (strcmp(dir->d_name, ".") != 0
-                && strcmp(dir->d_name, "..") != 0)
-            {
+            if (strcmp(dir->d_name, ".") != 0 &&
+                strcmp(dir->d_name, "..") != 0) {
                 // Build up our file path using the passed in
                 // [path] and the file/foldername we just found:
-                if (path[(strlen(path) - 1)] == '/')
-                {
-                    snprintf(searchPath, MAX_PATH_LENGTH, "%s%s", path, dir->d_name);
-                }
-                else
-                {
-                    snprintf(searchPath, MAX_PATH_LENGTH, "%s/%s", path, dir->d_name);
+                if (path[(strlen(path) - 1)] == '/') {
+                    snprintf(searchPath, MAX_PATH_LENGTH, "%s%s", path,
+                             dir->d_name);
+                } else {
+                    snprintf(searchPath, MAX_PATH_LENGTH, "%s/%s", path,
+                             dir->d_name);
                 }
 
                 // Have we found a folder?
-                if (dir->d_type == DT_DIR)
-                {
+                if (dir->d_type == DT_DIR) {
                     // Use recursive to check the folder we found.
                     findFileLinux(filename, searchPath);
                 }
                 // Or a file?
-                else if (dir->d_type == DT_REG)
-                {
-                        // Find a specific file.
-                        if (strcmp(dir->d_name, filename) == 0)
-                        {
-                            if (pathToIcon == NULL)
-                            {
-                                path_len = strlen(searchPath) + 1;
-                                pathToIcon = malloc(path_len);
-                                strcpy(pathToIcon, searchPath);
-                            }
-
-                            result = 1;
-                            break;
+                else if (dir->d_type == DT_REG) {
+                    // Find a specific file.
+                    if (strcmp(dir->d_name, filename) == 0) {
+                        if (pathToIcon == NULL) {
+                            path_len = strlen(searchPath) + 1;
+                            pathToIcon = malloc(path_len);
+                            strcpy(pathToIcon, searchPath);
                         }
+
+                        result = 1;
+                        break;
+                    }
                 }
             }
         }
         closedir(d);
-    }
-    else
-    {
+    } else {
         printf("Failed to open directory %s\n", searchPath);
         return 0;
     }
@@ -1268,7 +1185,6 @@ char *extractFilename(char *path)
     }
 
     return name;
-
 }
 
 /**************************************
@@ -1283,8 +1199,7 @@ char *extractPath(char *pathAndFilename)
     size_t len = 0;
 
     // Safety check.
-    if (!pathAndFilename)
-    {
+    if (!pathAndFilename) {
         return NULL;
     }
 
@@ -1296,15 +1211,11 @@ char *extractPath(char *pathAndFilename)
     ptr1 = strrchr(pathAndFilename, '/');
 #endif
 
-
-    if (ptr1 == NULL)
-    {
+    if (ptr1 == NULL) {
         len = strlen(ptr2) + 1;
         result = malloc(len);
         snprintf(result, len, "%s", ptr2);
-    }
-    else
-    {
+    } else {
         result = malloc((ptr1 - ptr2) + 1);
         memcpy(result, ptr2, (ptr1 - ptr2));
         result[ptr1 - ptr2] = '\0';
@@ -1320,15 +1231,13 @@ int isModelicaFile(char *filename)
 {
     char *ext;
 
-    if (filename == NULL)
-    {
+    if (filename == NULL) {
         return 0;
     }
 
     ext = strrchr(filename, '.');
 
-    if ( (ext != NULL) && (strcmp(stringToLower(ext), ".mo") == 0) )
-    {
+    if ((ext != NULL) && (strcmp(stringToLower(ext), ".mo") == 0)) {
         return 1;
     }
 
@@ -1343,27 +1252,25 @@ int isEncryptedFile(char *filename)
     char *ext;
 
     // Safety check.
-    if (filename == NULL)
-    {
+    if (filename == NULL) {
         return 0;
     }
 
     // Get file extension.
     ext = strrchr(filename, '.');
 
-    if ( (ext != NULL) && (strcmp(stringToLower(ext), ".moc") == 0) )
-    {
+    if ((ext != NULL) && (strcmp(stringToLower(ext), ".moc") == 0)) {
         return 1;
     }
 
     return 0;
 }
 
-
 /*****************************
  * Encrypt a Modelica file.
  ****************************/
-int encryptFile(mlle_cr_context*context, const char* basedir, const char *rel_file_path)
+int encryptFile(mlle_cr_context *context, const char *basedir,
+                const char *rel_file_path)
 {
     FILE *in, *out;
     int result = 1;
@@ -1376,21 +1283,18 @@ int encryptFile(mlle_cr_context*context, const char* basedir, const char *rel_fi
     snprintf(newFile, LONG_FILE_NAME_MAX, "%sc", file);
 
     // Open file to read from.
-    if ( result && ((in = fopen(file, "rb")) == NULL) )
-    {
+    if (result && ((in = fopen(file, "rb")) == NULL)) {
         printf("Error: Couldn't open file %s for reading.\n", file);
         result = 0;
     }
 
     // Open file to write to.
-    if ( result && ((out = fopen(newFile, "wb")) == NULL) )
-    {
+    if (result && ((out = fopen(newFile, "wb")) == NULL)) {
         printf("Error: Couldn't open file %s for writing.\n", newFile);
         result = 0;
     }
 
-    if (result && (!mlle_cr_encrypt(context, rel_file_path, in, out)))
-    {
+    if (result && (!mlle_cr_encrypt(context, rel_file_path, in, out))) {
         printf("Failed to encrypt file.\n");
         result = 0;
     }
@@ -1401,7 +1305,6 @@ int encryptFile(mlle_cr_context*context, const char* basedir, const char *rel_fi
     return result;
 }
 
-
 /******************
  * Encrypt files.
  *****************/
@@ -1409,8 +1312,7 @@ int encryptFiles()
 {
     int result = 1;
 
-    if (usingEncryption())
-    {
+    if (usingEncryption()) {
 #ifdef WIN32
         result = encryptDirectoryWin32(getCopiedSourcePath(), 0, 0);
 #else
@@ -1420,7 +1322,6 @@ int encryptFiles()
 
     return result;
 }
-
 
 /*****************************
  * Create a zipped archive.
@@ -1438,19 +1339,16 @@ int createZipArchive()
     snprintf(archivename, MAX_STRING, "%s.mol", getLibraryName());
 
     // Is library encrypted. If so, don't put the .mo-files in the archive.
-    if (usingEncryption())
-    {
+    if (usingEncryption()) {
         encrypted = 1;
     }
 
     // Get current directory.
-    if (getCurrentDirectory(&cwd))
-    {
+    if (getCurrentDirectory(&cwd)) {
         snprintf(pathToZipfile, MAX_PATH_LENGTH, "%s/%s", cwd, archivename);
 
         // Remove any previous zip-file.
-        if (fileExists(pathToZipfile))
-        {
+        if (fileExists(pathToZipfile)) {
             remove(pathToZipfile);
         }
     }
@@ -1462,7 +1360,6 @@ int createZipArchive()
 #endif
 
     return 1;
-
 }
 
 /******************************************************
@@ -1488,45 +1385,41 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
     // Find all.
     snprintf(searchPath, MAX_PATH_LENGTH, "%s\\*.*", path);
 
-
     // Try to find file in top-level directory.
-    if((hFind = FindFirstFile(searchPath, &fData)) == INVALID_HANDLE_VALUE)
-    {
+    if ((hFind = FindFirstFile(searchPath, &fData)) == INVALID_HANDLE_VALUE) {
         printf("Error creating archive starting from \"%s\".\n", path);
         return 0;
     }
 
-    do
-    {
+    do {
         // The first two directories are always "." and "..".
-        if(strcmp(fData.cFileName, ".") != 0
-                && strcmp(fData.cFileName, "..") != 0)
-        {
+        if (strcmp(fData.cFileName, ".") != 0 &&
+            strcmp(fData.cFileName, "..") != 0) {
             // Build up our file path using the passed in
             // [path] and the file/foldername we just found:
-            snprintf(searchPath, MAX_PATH_LENGTH, "%s\\%s", path, fData.cFileName);
+            snprintf(searchPath, MAX_PATH_LENGTH, "%s\\%s", path,
+                     fData.cFileName);
 
             // Have we found a folder?
-            if(fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
+            if (fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 // Use recursive to check the folder we found.
                 zipDirectoryWin32(searchPath, archiveName, encrypted);
             }
 
             // Or a regular file?
-            else if(fData.dwFileAttributes)
-            {
+            else if (fData.dwFileAttributes) {
                 // -------------------------------------------------------------
                 // Only add file to archive when:
                 // 1. Files are not encrypted.
                 // 2. Files are encrypted and the file is not a Modelica file.
                 // -------------------------------------------------------------
-                if ( (!encrypted) || ( (encrypted && !isModelicaFile(fData.cFileName))) )
-                {
+                if ((!encrypted) ||
+                    ((encrypted && !isModelicaFile(fData.cFileName)))) {
 
-                    if (stat(searchPath, &info) != 0)
-                    {
-                        printf("Error: Failed to read information of file \"%s\".\n", searchPath);
+                    if (stat(searchPath, &info) != 0) {
+                        printf("Error: Failed to read information of file "
+                               "\"%s\".\n",
+                               searchPath);
                         return 0;
                     }
 
@@ -1534,9 +1427,10 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
                     buffertSize = info.st_size;
 
                     // Allocate data for the whole file.
-                    if ( (data = calloc((buffertSize), 1)) == NULL)
-                    {
-                        printf("Error: Failed to allocate memory for file \"%s\".\n", searchPath);
+                    if ((data = calloc((buffertSize), 1)) == NULL) {
+                        printf("Error: Failed to allocate memory for file "
+                               "\"%s\".\n",
+                               searchPath);
                         return 0;
                     }
 
@@ -1545,9 +1439,10 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
                     bytes = fread(data, sizeof(char), buffertSize, fd);
                     fclose(fd);
 
-                    if (bytes < buffertSize)
-                    {
-                        printf("Error: Failed to copy file \"%s\" to zip-archive.\n", searchPath);
+                    if (bytes < buffertSize) {
+                        printf("Error: Failed to copy file \"%s\" to "
+                               "zip-archive.\n",
+                               searchPath);
                         free(data);
                         return 0;
                     }
@@ -1557,35 +1452,34 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
 
                     // On Windows we must change backward slash to forward slash
                     // otherwise the zip library fails to add the file.
-                    for (index = 0; index <= (signed)strlen(zipPath); ++index)
-                    {
-                        if (zipPath[index] == '\\')
-                        {
+                    for (index = 0; index <= (signed)strlen(zipPath); ++index) {
+                        if (zipPath[index] == '\\') {
                             zipPath[index] = '/';
                         }
                     }
 
                     // Add file to zip archive.
-                    result = mz_zip_add_mem_to_archive_file_in_place(archiveName, zipPath, data, buffertSize,
-                      comment, (mz_uint16)strlen(comment), MZ_BEST_COMPRESSION);
+                    result = mz_zip_add_mem_to_archive_file_in_place(
+                        archiveName, zipPath, data, buffertSize, comment,
+                        (mz_uint16)strlen(comment), MZ_BEST_COMPRESSION);
 
-                    if (!result)
-                    {
-                        printf("Error: Failed to add file \"%s\" to zip archive.\n", zipPath);
+                    if (!result) {
+                        printf("Error: Failed to add file \"%s\" to zip "
+                               "archive.\n",
+                               zipPath);
                     }
 
                     free(data);
                 }
             }
         }
-    } while(FindNextFile(hFind, &fData)); //Find the next file
+    } while (FindNextFile(hFind, &fData)); // Find the next file
 
     FindClose(hFind);
 #endif
 
     return result;
 }
-
 
 /******************************************************
  * Creates a zipped archive of a directory on Linux.
@@ -1594,7 +1488,7 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
 {
     int result = 0;
 
- #if defined linux || defined DARWIN
+#if defined linux || defined DARWIN
     DIR *d;
     struct dirent *dir;
     char searchPath[MAX_PATH_LENGTH + 1];
@@ -1608,103 +1502,102 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
     char zipPath[MAX_PATH_LENGTH + 1] = {'\0'};
     long buffertSize = 0;
 
-
     // Find all.
     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s", path);
-    //printf("**** searchPath %s\n", searchPath);
+    // printf("**** searchPath %s\n", searchPath);
 
-    if ( (d = opendir(searchPath)) )
-    {
-        while ( (dir = readdir(d)) != NULL)
-        {
-             // The first two directories are always "." and "..".
-             if (strcmp(dir->d_name, ".") != 0
-                 && strcmp(dir->d_name, "..") != 0)
-             {
-                 // Build up our file path using the passed in
-                 // [path] and the file/foldername we just found:
-                 if (path[(strlen(path)-1)] == '/')
-                 {
-                     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s%s", path, dir->d_name);
-                 }
-                 else
-                 {
-                     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s/%s", path, dir->d_name);
-                 }
+    if ((d = opendir(searchPath))) {
+        while ((dir = readdir(d)) != NULL) {
+            // The first two directories are always "." and "..".
+            if (strcmp(dir->d_name, ".") != 0 &&
+                strcmp(dir->d_name, "..") != 0) {
+                // Build up our file path using the passed in
+                // [path] and the file/foldername we just found:
+                if (path[(strlen(path) - 1)] == '/') {
+                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s%s", path,
+                             dir->d_name);
+                } else {
+                    snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s/%s", path,
+                             dir->d_name);
+                }
 
-                //printf("zip: searchpath: %s\n", searchPath);
+                // printf("zip: searchpath: %s\n", searchPath);
 
-                 // Have we found a folder?
-                 if(dir->d_type == DT_DIR)
-                 {
-                     // Use recursive to check the folder we found.
-                     zipDirectoryLinux(searchPath, archiveName, encrypted);
-                 }
-                 // Or a file?
-                 else if (dir->d_type == DT_REG)
-                 {
-                     // -----------------------------------------------------------------
-                     // Only add file to archive when:
-                     // 1. Files are not encrypted.
-                     // 2. Files are encrypted and the file is not a Modelica file(.mo).
-                     // -----------------------------------------------------------------
-                    //printf("Filename: %s, encrypted: %d\n", dir->d_name, encrypted);
+                // Have we found a folder?
+                if (dir->d_type == DT_DIR) {
+                    // Use recursive to check the folder we found.
+                    zipDirectoryLinux(searchPath, archiveName, encrypted);
+                }
+                // Or a file?
+                else if (dir->d_type == DT_REG) {
+                    // -----------------------------------------------------------------
+                    // Only add file to archive when:
+                    // 1. Files are not encrypted.
+                    // 2. Files are encrypted and the file is not a Modelica
+                    // file(.mo).
+                    // -----------------------------------------------------------------
+                    // printf("Filename: %s, encrypted: %d\n", dir->d_name,
+                    // encrypted);
 
-                     if ( (!encrypted) || ( (encrypted && !isModelicaFile(dir->d_name))) )
-                     {
-                         if (stat(searchPath, &info) != 0)
-                         {
-                             printf("Error: Failed to read information of file \"%s\".\n", searchPath);
-                             return 0;
-                         }
+                    if ((!encrypted) ||
+                        ((encrypted && !isModelicaFile(dir->d_name)))) {
+                        if (stat(searchPath, &info) != 0) {
+                            printf("Error: Failed to read information of file "
+                                   "\"%s\".\n",
+                                   searchPath);
+                            return 0;
+                        }
 
-                         buffertSize = info.st_size;
+                        buffertSize = info.st_size;
 
-                         // Allocate data for the whole file.
-                         if ( (data = calloc((buffertSize), 1)) == NULL)
-                         {
-                             printf("Error: Failed to allocate memory for file \"%s\".\n", searchPath);
-                             return 0;
-                         }
+                        // Allocate data for the whole file.
+                        if ((data = calloc((buffertSize), 1)) == NULL) {
+                            printf("Error: Failed to allocate memory for file "
+                                   "\"%s\".\n",
+                                   searchPath);
+                            return 0;
+                        }
 
-                         // Read the whole file to the buffer.
-                         fd = fopen(searchPath, "rb");
-                         bytes = fread(data, sizeof(char), buffertSize, fd);
-                         fclose(fd);
+                        // Read the whole file to the buffer.
+                        fd = fopen(searchPath, "rb");
+                        bytes = fread(data, sizeof(char), buffertSize, fd);
+                        fclose(fd);
 
-                         if (bytes < buffertSize)
-                         {
-                             printf("Error: Failed to copy file \"%s\" to zip-archive.\n", searchPath);
-                             free(data);
-                             return 0;
-                         }
+                        if (bytes < buffertSize) {
+                            printf("Error: Failed to copy file \"%s\" to "
+                                   "zip-archive.\n",
+                                   searchPath);
+                            free(data);
+                            return 0;
+                        }
 
                         // Remove the tmp path.
-                        removeTmpFolderName(searchPath, zipPath, MAX_PATH_LENGTH);
+                        removeTmpFolderName(searchPath, zipPath,
+                                            MAX_PATH_LENGTH);
 
-                         // Add file to zip archive.
-                         result = mz_zip_add_mem_to_archive_file_in_place(archiveName, zipPath, data, buffertSize,
-                           comment, strlen(comment), MZ_BEST_COMPRESSION);
+                        // Add file to zip archive.
+                        result = mz_zip_add_mem_to_archive_file_in_place(
+                            archiveName, zipPath, data, buffertSize, comment,
+                            strlen(comment), MZ_BEST_COMPRESSION);
 
-                         if (!result)
-                         {
-                             printf("Error: Failed to add file \"%s\" to zip archive.\n", zipPath);
-                         }
+                        if (!result) {
+                            printf("Error: Failed to add file \"%s\" to zip "
+                                   "archive.\n",
+                                   zipPath);
+                        }
 
-                         free(data);
-                     }
-                 }
-             }
+                        free(data);
+                    }
+                }
+            }
         }
         closedir(d);
-    }
-    else
-    {
+    } else {
         printf("Failed to open directory %s\n", searchPath);
     }
- #endif
+#endif
 
-     return result;
+    return result;
 }
 
 /**********************************************************
@@ -1719,24 +1612,22 @@ int cleanUpIconPath()
     int i = 0;
 
     // Safety check.
-    if (pathToIcon == NULL)
-    {
+    if (pathToIcon == NULL) {
         printf("Path to icon is empty.\n");
         return 0;
     }
 
     tmpBuf = pathToIcon;
 
-    // Get the tmp path.
-    #ifdef WIN32
-        tmpDir = getenv("TEMP");
-    #else
-        tmpDir = getenv("TMPDIR");
-        if (tmpDir == NULL)
-        {
-            tmpDir = "/tmp";
-        }
-    #endif
+// Get the tmp path.
+#ifdef WIN32
+    tmpDir = getenv("TEMP");
+#else
+    tmpDir = getenv("TMPDIR");
+    if (tmpDir == NULL) {
+        tmpDir = "/tmp";
+    }
+#endif
 
     // Point to icon path.
     ptr1 = tmpBuf;
@@ -1744,28 +1635,26 @@ int cleanUpIconPath()
     // Step forward to after temp folders.
     ptr1 += strlen(tmpDir) + 1;
 
-    if (ptr1 && *ptr1)
-    {
-    // Point to next slash.
+    if (ptr1 && *ptr1) {
+        // Point to next slash.
 #ifdef WIN32
-    ptr2 = strchr(ptr1, '\\');
+        ptr2 = strchr(ptr1, '\\');
 
-    // replace '\\' with '/' according to spec
-    while (ptr2[i]) {
-     if (ptr2[i] == '\\') {
-         ptr2[i] = '/';
-     }
-     i++;
-    }
+        // replace '\\' with '/' according to spec
+        while (ptr2[i]) {
+            if (ptr2[i] == '\\') {
+                ptr2[i] = '/';
+            }
+            i++;
+        }
 #else
-    ptr2 = strchr(ptr1, '/');
+        ptr2 = strchr(ptr1, '/');
 #endif
 
         // Step forward to after library name.
         ++ptr2;
 
-        if (ptr2 && *ptr2)
-        {
+        if (ptr2 && *ptr2) {
             // Create icon path without tmp or library name.
             path_len = strlen(ptr2) + 1;
             pathToIcon = malloc(path_len);
@@ -1778,7 +1667,6 @@ int cleanUpIconPath()
 
     return 0;
 }
-
 
 /*****************************************************
  * Remove the temp folder path from icon file path.
@@ -1797,15 +1685,12 @@ int removeTmpFolderName(char *searchPath, char *zipPath, size_t zipPathLen)
     ptr = searchPath;
     ptr += strlen(tmpDir) + 1;
 
-    if (ptr && *ptr)
-    {
+    if (ptr && *ptr) {
         snprintf(zipPath, zipPathLen, "%s", ptr);
     }
 
     return 1;
 }
-
-
 
 /***********************************************
  * Check if encryption of files is activated.
@@ -1815,118 +1700,113 @@ int usingEncryption()
     char *value = getValueOf(ARGUMENT_ENCRYPT);
 
     // Is encryption activated?
-    return (containsKey(ARGUMENT_ENCRYPT) && (strcmp(stringToLower(value), "true") == 0));
+    return (containsKey(ARGUMENT_ENCRYPT) &&
+            (strcmp(stringToLower(value), "true") == 0));
 }
 
-int createStagingFolder() {
+int createStagingFolder()
+{
     int status = 0;
 
-    // Create folder path.
-    #ifdef WIN32
-        // Make sure any previous source folder structure is removed.
-        if (!deleteTemporaryStagingFolder())
-        {
-            printf("Error: couldn't remove old temprary folder at %s\n", getCopiedSourcePath());
-            status =  -1;
-            goto out;
-        }
+// Create folder path.
+#ifdef WIN32
+    // Make sure any previous source folder structure is removed.
+    if (!deleteTemporaryStagingFolder()) {
+        printf("Error: couldn't remove old temprary folder at %s\n",
+               getCopiedSourcePath());
+        status = -1;
+        goto out;
+    }
 
-        // Create our generated temp folder
-        if (_mkdir(getTempStagingDirectory()))
-        {
-            printf("Failed to create temporary folder. Abort.\n");
-            free(getCopiedSourcePath());
-            status = -1;
-            goto out;
-        }
+    // Create our generated temp folder
+    if (_mkdir(getTempStagingDirectory())) {
+        printf("Failed to create temporary folder. Abort.\n");
+        free(getCopiedSourcePath());
+        status = -1;
+        goto out;
+    }
 
-        // Create our  source folder and then our subfolder.
-        if (_mkdir(getCopiedSourcePath()))
-        {
-            printf("Failed to create source folder. Abort.\n");
-            free(getCopiedSourcePath());
-            status = -1;
-            goto out;
-        }
+    // Create our  source folder and then our subfolder.
+    if (_mkdir(getCopiedSourcePath())) {
+        printf("Failed to create source folder. Abort.\n");
+        free(getCopiedSourcePath());
+        status = -1;
+        goto out;
+    }
 
-    #else
-        // Make sure any previous source folder structure is removed.
-        /*if (!deleteTemporaryStagingFolder())
-        {
-            printf("Error: couldn't remove old temporary folder at %s\n", getCopiedSourcePath());
-            status = -1;
-            goto out;
-        }
+#else
+    // Make sure any previous source folder structure is removed.
+    /*if (!deleteTemporaryStagingFolder())
+    {
+        printf("Error: couldn't remove old temporary folder at %s\n",
+    getCopiedSourcePath()); status = -1; goto out;
+    }
 
-        // Create folder with read/write/search permission for owner and group
-        // and read/search permissions for others.
-        if (mkdir(getTempStagingDirectory(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
-        {
-            printf("Failed to create temporary staging folder. Abort.\n");
-            free(getCopiedSourcePath());
-            status = -1;
-            goto out;
-        }*/
+    // Create folder with read/write/search permission for owner and group
+    // and read/search permissions for others.
+    if (mkdir(getTempStagingDirectory(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
+    < 0)
+    {
+        printf("Failed to create temporary staging folder. Abort.\n");
+        free(getCopiedSourcePath());
+        status = -1;
+        goto out;
+    }*/
 
-        // Create folder with read/write/search permission for owner and group
-        // and read/search permissions for others.
-        if (mkdir(getCopiedSourcePath(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
-        {
-            printf("Failed to create source folder. Abort.\n");
-            free(getCopiedSourcePath());
-            status = -1;
-            goto out;
-        }
-    #endif
+    // Create folder with read/write/search permission for owner and group
+    // and read/search permissions for others.
+    if (mkdir(getCopiedSourcePath(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) <
+        0) {
+        printf("Failed to create source folder. Abort.\n");
+        free(getCopiedSourcePath());
+        status = -1;
+        goto out;
+    }
+#endif
 
 out:
     return status;
 }
 
-int stageFiles(char *copyFromPath , char *copyToPath )
+int stageFiles(char *copyFromPath, char *copyToPath)
 {
-    #ifdef WIN32
-        // Copy files and folders to temporary folder on Windows.
-        return (copyDirectoryWin32(copyFromPath, copyToPath));
-    #else
-        // Copy files and folders to temporary folder on Linux
-        return (copyDirectoryLinux(copyFromPath, copyToPath));
-    #endif
+#ifdef WIN32
+    // Copy files and folders to temporary folder on Windows.
+    return (copyDirectoryWin32(copyFromPath, copyToPath));
+#else
+    // Copy files and folders to temporary folder on Linux
+    return (copyDirectoryLinux(copyFromPath, copyToPath));
+#endif
 }
-
 
 /***********************************************************************
  * Creates a copy of the folder structure we are making a container of.
  **********************************************************************/
 int copyFolderStructure()
 {
-    char  *copyFromPath = NULL;
-    int    status       = 1;
+    char *copyFromPath = NULL;
+    int status = 1;
 
-    if (getTempStagingDirectory() == NULL)
-    {
+    if (getTempStagingDirectory() == NULL) {
         printf("Unable to create temporary folder. Abort!");
         status = 0;
         goto out;
     }
 
-    if (createStagingFolder())
-    {
+    if (createStagingFolder()) {
         printf("Failed to create staging folder\n");
         status = 0;
         goto out;
     }
 
     // Get path to source folder where we will copy files from.
-    if ( (copyFromPath = getValueOf("librarypath")) == NULL)
-    {
+    if ((copyFromPath = getValueOf("librarypath")) == NULL) {
         printf("Fail to get librarypath\n");
         status = 0;
         goto out;
     }
 
-    if (!stageFiles(copyFromPath, getCopiedSourcePath()))
-    {
+    if (!stageFiles(copyFromPath, getCopiedSourcePath())) {
         printf("Failed to perform staging of files\n");
         status = 0;
         goto out;
@@ -1934,9 +1814,7 @@ int copyFolderStructure()
 
 out:
     return status;
-
 }
-
 
 /***********************************************************
  * Copy a directory including files and subdirectory from
@@ -1954,7 +1832,6 @@ int copyDirectoryWin32(char *fromPath, char *toPath)
     FILE *fdRead = NULL;
     FILE *fdWrite = NULL;
 
-
     WIN32_FIND_DATA fdFile;
     HANDLE hFind = NULL;
     char searchPath[MAX_PATH_LENGTH];
@@ -1966,33 +1843,31 @@ int copyDirectoryWin32(char *fromPath, char *toPath)
     snprintf(searchPath, MAX_PATH_LENGTH, "%s\\*.*", fromPath);
 
     // Try to find file in top-level directory.
-    if((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE)
-    {
+    if ((hFind = FindFirstFile(searchPath, &fdFile)) == INVALID_HANDLE_VALUE) {
         printf("Copy directory failed to open %s.\n", searchPath);
         return 0;
     }
 
-    do
-    {
+    do {
         // The first two directories are always "." and "..".
-        if(strcmp(fdFile.cFileName, ".") != 0
-                && strcmp(fdFile.cFileName, "..") != 0
-                && strcmp(fdFile.cFileName, ".library") != 0)
-        {
+        if (strcmp(fdFile.cFileName, ".") != 0 &&
+            strcmp(fdFile.cFileName, "..") != 0 &&
+            strcmp(fdFile.cFileName, ".library") != 0) {
 
             // Build up our file path using the passed in
             // [path] and the file/foldername we just found:
-            snprintf(searchPath, MAX_PATH_LENGTH, "%s\\%s", fromPath, fdFile.cFileName);
+            snprintf(searchPath, MAX_PATH_LENGTH, "%s\\%s", fromPath,
+                     fdFile.cFileName);
 
             // Have we found a folder?
-            if(fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                _snprintf(searchPathTo, MAX_PATH_LENGTH, "%s\\%s", toPath, fdFile.cFileName);
+            if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                _snprintf(searchPathTo, MAX_PATH_LENGTH, "%s\\%s", toPath,
+                          fdFile.cFileName);
                 // TODO Create folder name.
 
-                if (_mkdir(searchPathTo) == -1)
-                {
-                    printf("Error: Failed to create folder %s.\n", searchPathTo);
+                if (_mkdir(searchPathTo) == -1) {
+                    printf("Error: Failed to create folder %s.\n",
+                           searchPathTo);
                 }
 
                 // Use recursive to check the folder we found.
@@ -2000,23 +1875,24 @@ int copyDirectoryWin32(char *fromPath, char *toPath)
             }
 
             // Or a regular file?
-            else if(fdFile.dwFileAttributes)
-            {
+            else if (fdFile.dwFileAttributes) {
                 {
                     fdRead = fopen(searchPath, "rb");
 
-                    if (stat(searchPath, &info) != 0)
-                    {
-                        printf("Error: Failed to read information of file \"%s\".\n", searchPath);
+                    if (stat(searchPath, &info) != 0) {
+                        printf("Error: Failed to read information of file "
+                               "\"%s\".\n",
+                               searchPath);
                         return 0;
                     }
                     // Get file size.
                     buffSize = info.st_size;
 
                     // Allocate data for the whole file.
-                    if ( (data = calloc((buffSize + 1), 1)) == NULL)
-                    {
-                        printf("Error: Failed to allocate memory for file \"%s\".\n", searchPath);
+                    if ((data = calloc((buffSize + 1), 1)) == NULL) {
+                        printf("Error: Failed to allocate memory for file "
+                               "\"%s\".\n",
+                               searchPath);
                         return 0;
                     }
 
@@ -2024,9 +1900,10 @@ int copyDirectoryWin32(char *fromPath, char *toPath)
                     bytes = fread(data, sizeof(char), buffSize, fdRead);
 
                     // Write to file in new location.
-                    if (_snprintf(folderName, MAX_PATH_LENGTH, "%s\\%s", toPath, fdFile.cFileName) == -1)
-                    {
-                        printf("Not enough memory to create folder path %s.\n", toPath);
+                    if (_snprintf(folderName, MAX_PATH_LENGTH, "%s\\%s", toPath,
+                                  fdFile.cFileName) == -1) {
+                        printf("Not enough memory to create folder path %s.\n",
+                               toPath);
                         return 0;
                     }
 
@@ -2039,14 +1916,13 @@ int copyDirectoryWin32(char *fromPath, char *toPath)
                 }
             }
         }
-    } while(FindNextFile(hFind, &fdFile)); //Find the next file
+    } while (FindNextFile(hFind, &fdFile)); // Find the next file
 
     FindClose(hFind);
 
 #endif
     return result;
 }
-
 
 /***********************************************************
  * Copy a directory including files and subdirectory from
@@ -2068,59 +1944,53 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
     char searchPathTo[MAX_PATH_LENGTH];
     char folderName[MAX_PATH_LENGTH];
 
-
     // Find all.
     snprintf(searchPath, MAX_PATH_LENGTH, "%s", fromPath);
 
-    //printf("searchPath: %s\n", searchPath);
+    // printf("searchPath: %s\n", searchPath);
 
-    if ( (d = opendir(searchPath)) )
-    {
-        while ( (dir = readdir(d)) != NULL)
-        {
+    if ((d = opendir(searchPath))) {
+        while ((dir = readdir(d)) != NULL) {
             // The first two directories are always "." and "..".
-            if(strcmp(dir->d_name, ".") != 0
-                && strcmp(dir->d_name, "..") != 0
-                && strcmp(dir->d_name, ".library") != 0)
-            {
+            if (strcmp(dir->d_name, ".") != 0 &&
+                strcmp(dir->d_name, "..") != 0 &&
+                strcmp(dir->d_name, ".library") != 0) {
                 // Build up our file path using the passed in
                 // [path] and the file/foldername we just found:
-                if (fromPath[(strlen(fromPath)-1)] == '/')
-                {
-                    snprintf(searchPath, MAX_PATH_LENGTH, "%s%s", fromPath, dir->d_name);
-                }
-                else
-                {
-                    snprintf(searchPath, MAX_PATH_LENGTH, "%s/%s", fromPath, dir->d_name);
+                if (fromPath[(strlen(fromPath) - 1)] == '/') {
+                    snprintf(searchPath, MAX_PATH_LENGTH, "%s%s", fromPath,
+                             dir->d_name);
+                } else {
+                    snprintf(searchPath, MAX_PATH_LENGTH, "%s/%s", fromPath,
+                             dir->d_name);
                 }
 
                 // Have we found a folder?
-                if(dir->d_type == DT_DIR)
-                {
+                if (dir->d_type == DT_DIR) {
 
-
-                    snprintf(searchPathTo, MAX_PATH_LENGTH, "%s/%s", toPath, dir->d_name);
+                    snprintf(searchPathTo, MAX_PATH_LENGTH, "%s/%s", toPath,
+                             dir->d_name);
                     // TODO Create folder name.
 
-                    if (mkdir(searchPathTo, 0777) == -1)
-                    {
-                        printf("Error: Failed to create folder %s.\n", searchPathTo);
+                    if (mkdir(searchPathTo, 0777) == -1) {
+                        printf("Error: Failed to create folder %s.\n",
+                               searchPathTo);
                     }
 
                     // Use recursive to check the folder we found.
                     copyDirectoryLinux(searchPath, searchPathTo);
                 }
                 // Or a file?
-                else if (dir->d_type == DT_REG)
-                {
-                    //printf("Filnamn: %s\n", dir->d_name);
+                else if (dir->d_type == DT_REG) {
+                    // printf("Filnamn: %s\n", dir->d_name);
                     {
-                        //printf("Read - searchPath: %s\n", searchPath);
+                        // printf("Read - searchPath: %s\n", searchPath);
                         fdRead = fopen(searchPath, "rb");
 
-                        if (stat(searchPath, &info) != 0)
-                        {
-                            printf("Error: Failed to read information of file \"%s\".\n", searchPath);
+                        if (stat(searchPath, &info) != 0) {
+                            printf("Error: Failed to read information of file "
+                                   "\"%s\".\n",
+                                   searchPath);
                             return 0;
                         }
 
@@ -2128,9 +1998,10 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
                         buffSize = info.st_size;
 
                         // Allocate data for the whole file.
-                        if ( (data = calloc((buffSize + 1), 1)) == NULL)
-                        {
-                            printf("Error: Failed to allocate memory for file \"%s\".\n", searchPath);
+                        if ((data = calloc((buffSize + 1), 1)) == NULL) {
+                            printf("Error: Failed to allocate memory for file "
+                                   "\"%s\".\n",
+                                   searchPath);
                             return 0;
                         }
 
@@ -2138,7 +2009,8 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
                         bytes = fread(data, sizeof(char), buffSize, fdRead);
 
                         // Write to file in new location.
-                        snprintf(folderName, MAX_PATH_LENGTH, "%s/%s", toPath, dir->d_name);
+                        snprintf(folderName, MAX_PATH_LENGTH, "%s/%s", toPath,
+                                 dir->d_name);
 
                         fdWrite = fopen(folderName, "wb");
                         fwrite(data, sizeof(char), buffSize, fdWrite);
@@ -2151,9 +2023,7 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
             }
         }
         closedir(d);
-    }
-    else
-    {
+    } else {
         printf("Failed to open directory %s\n", searchPath);
         return 0;
     }
@@ -2161,8 +2031,3 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
 
     return result;
 }
-
-
-
-
-

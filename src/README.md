@@ -7,13 +7,11 @@
 - Perl, e.g. from http://strawberryperl.com/
 - Nasm, from http://nasm.sourceforge.net/
 - Visual Studio (or MinGW)
-- Miniz ziplibrary (https://code.google.com/p/miniz/)
   
 ### Linux
 - CMake 3.20 or better
 - Perl
 - Normal compilation tools, e.g. GCC
-- Miniz ziplibrary (https://code.google.com/p/miniz/)
 
 
 ## Building on Windows with Visual Studio

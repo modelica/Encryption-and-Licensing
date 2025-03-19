@@ -44,9 +44,6 @@
 // Encryption
 #include "mlle_cr_encrypt.h"
 
-// Zip.
-#include "../../ThirdParty/miniz/miniz.c"
-
 
 // ------------------------------------
 // These are the LVE's currently used.

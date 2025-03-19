@@ -481,12 +481,6 @@ add_custom_target(test_resources
 
 set(LONG_FOLDER_NAME "X01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
 
-if(UNIX)
-    set(CHMOD chmod +x)
-else()
-    set(CHMOD "${CMAKE_COMMAND}" -E echo )
-endif()
-
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test_resources_created_marker_file
     COMMAND "${CMAKE_COMMAND}" -E echo "Creating resources for testing"
@@ -512,7 +506,6 @@ add_custom_command(
     COMMAND "${CMAKE_COMMAND}" -E remove_directory test_library
     COMMAND "${CMAKE_COMMAND}" -E tar xvz test_library.mol
     COMMAND "${CMAKE_COMMAND}" -E copy_directory test_library/Module test_library/${LONG_FOLDER_NAME}    
-    COMMAND ${CHMOD} ${CMAKE_CURRENT_BINARY_DIR}/test_library/.library/${LVETARGET}
 
     COMMAND "${CMAKE_COMMAND}" -E echo "Copying test_library into folder with long name"
     COMMAND "${CMAKE_COMMAND}" -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/${LONG_FOLDER_NAME}

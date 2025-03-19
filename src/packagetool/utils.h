@@ -364,6 +364,7 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted);
  * Creates a zipped archive of a directory on Linux.
  *
  * Parameters:
+ *      zip         - zip archive handler
  *      path - path to the top-level directory.
  *      archiveName - the name of the archive.
  *      encrypted - does the archive contains encrypted files (1)
@@ -373,7 +374,8 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted);
  *      1 - successfully created the archive.
  *      0 - creating archive failed.
  *****************************************************************/
-int zipDirectoryLinux(char *path, char *archiveName, int encrypted);
+int zipDirectoryLinux(struct zip_t *zip, char *path, char *archiveName,
+                      int encrypted);
 
 /**************************************************************
  * Removes the tmp folder name from the incoming path.
@@ -389,6 +391,46 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted);
  *      0 - creating path failed.
  *************************************************************/
 int removeTmpFolderName(char *searchPath, char *zipPath, size_t zipPathLen);
+
+/**************************************************************
+ * Open zip archive
+ *
+ * Parameters:
+ *      zip         - zip archive handler
+ *      archiveName - path to zip file
+ *
+ * Returns:
+ *      1 - success
+ *      0 - failure
+ *************************************************************/
+int openZipArchive(struct zip_t **zip, char *archiveName);
+
+/**************************************************************
+ * Close zip archive
+ *
+ * Parameters:
+ *      zip - zip archive handler (can be NULL)
+ *
+ * Returns:
+ *      (void)
+ *************************************************************/
+void closeZipArchive(struct zip_t *zip);
+
+/**************************************************************
+ * Add file to zip archive.
+ *
+ * Parameters:
+ *      zip         - zip archive handler
+ *      archiveName - path to zip file
+ *      zipPath    - path to file within the zip file
+ *      searchPath - path to input file
+ *
+ * Returns:
+ *      1 - success
+ *      0 - failure
+ *************************************************************/
+int addFileToZipArchive(struct zip_t *zip, char *archiveName, char *zipPath,
+                        char *searchPath);
 
 /*************************************************************************
  * Creates a copy of the folder structure we are making a container of.

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <zip.h>
 
 #include "arguments.h"
 #include "mlle_cr_decrypt.h"
@@ -40,6 +41,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/types.h>
+#include <unistd.h>
 #endif
 
 #include "mlle_portability.h"
@@ -1329,15 +1331,18 @@ int encryptFiles()
  ****************************/
 int createZipArchive()
 {
+    int result = 0;
+    int status = 0;
     char *cwd = NULL;
-    char archivename[MAX_STRING] = {'\0'};
+    char archiveName[MAX_STRING] = {'\0'};
     char pathToZipfile[MAX_PATH_LENGTH] = {'\0'};
     char currentDir[MAX_PATH_LENGTH] = {'\0'};
     int encrypted = 0;
+    struct zip_t *zip = NULL;
 
     // Get last folder name in library path. This will
     // be the name of the archive.
-    snprintf(archivename, MAX_STRING, "%s.mol", getLibraryName());
+    snprintf(archiveName, MAX_STRING, "%s.mol", getLibraryName());
 
     // Is library encrypted. If so, don't put the .mo-files in the archive.
     if (usingEncryption()) {
@@ -1346,7 +1351,7 @@ int createZipArchive()
 
     // Get current directory.
     if (getCurrentDirectory(&cwd)) {
-        snprintf(pathToZipfile, MAX_PATH_LENGTH, "%s/%s", cwd, archivename);
+        snprintf(pathToZipfile, MAX_PATH_LENGTH, "%s/%s", cwd, archiveName);
 
         // Remove any previous zip-file.
         if (fileExists(pathToZipfile)) {
@@ -1354,13 +1359,20 @@ int createZipArchive()
         }
     }
 
+    status = openZipArchive(&zip, archiveName);
+    if (1 != status) {
+        goto error;
+    }
 #ifdef WIN32
-    zipDirectoryWin32(getTempStagingDirectory(), archivename, encrypted);
+    result =
+        zipDirectoryWin32(getTempStagingDirectory(), archivename, encrypted);
 #else
-    zipDirectoryLinux(getTempStagingDirectory(), archivename, encrypted);
+    result = zipDirectoryLinux(zip, getTempStagingDirectory(), archiveName,
+                               encrypted);
 #endif
-
-    return 1;
+error:
+    closeZipArchive(zip);
+    return result;
 }
 
 /******************************************************
@@ -1485,23 +1497,17 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
 /******************************************************
  * Creates a zipped archive of a directory on Linux.
  *****************************************************/
-int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
+int zipDirectoryLinux(struct zip_t *zip, char *path, char *archiveName,
+                      int encrypted)
 {
     int result = 0;
+    int status = 0;
 
 #if defined linux || defined DARWIN
     DIR *d;
     struct dirent *dir;
     char searchPath[MAX_PATH_LENGTH + 1];
-
-    FILE *fd = NULL;
-    struct stat info;
-    char *data = NULL;
-    int bytes = 0;
-    char *comment = "Modelica_archive";
-
     char zipPath[MAX_PATH_LENGTH + 1] = {'\0'};
-    long buffertSize = 0;
 
     // Find all.
     snprintf(searchPath, MAX_PATH_LENGTH + 1, "%s", path);
@@ -1527,7 +1533,11 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
                 // Have we found a folder?
                 if (dir->d_type == DT_DIR) {
                     // Use recursive to check the folder we found.
-                    zipDirectoryLinux(searchPath, archiveName, encrypted);
+                    result = zipDirectoryLinux(zip, searchPath, archiveName,
+                                               encrypted);
+                    if (1 != result) {
+                        break;
+                    }
                 }
                 // Or a file?
                 else if (dir->d_type == DT_REG) {
@@ -1542,52 +1552,18 @@ int zipDirectoryLinux(char *path, char *archiveName, int encrypted)
 
                     if ((!encrypted) ||
                         ((encrypted && !isModelicaFile(dir->d_name)))) {
-                        if (stat(searchPath, &info) != 0) {
-                            printf("Error: Failed to read information of file "
-                                   "\"%s\".\n",
-                                   searchPath);
-                            return 0;
-                        }
-
-                        buffertSize = info.st_size;
-
-                        // Allocate data for the whole file.
-                        if ((data = calloc((buffertSize), 1)) == NULL) {
-                            printf("Error: Failed to allocate memory for file "
-                                   "\"%s\".\n",
-                                   searchPath);
-                            return 0;
-                        }
-
-                        // Read the whole file to the buffer.
-                        fd = fopen(searchPath, "rb");
-                        bytes = fread(data, sizeof(char), buffertSize, fd);
-                        fclose(fd);
-
-                        if (bytes < buffertSize) {
-                            printf("Error: Failed to copy file \"%s\" to "
-                                   "zip-archive.\n",
-                                   searchPath);
-                            free(data);
-                            return 0;
-                        }
 
                         // Remove the tmp path.
                         removeTmpFolderName(searchPath, zipPath,
                                             MAX_PATH_LENGTH);
 
                         // Add file to zip archive.
-                        result = mz_zip_add_mem_to_archive_file_in_place(
-                            archiveName, zipPath, data, buffertSize, comment,
-                            strlen(comment), MZ_BEST_COMPRESSION);
-
-                        if (!result) {
-                            printf("Error: Failed to add file \"%s\" to zip "
-                                   "archive.\n",
-                                   zipPath);
+                        status = addFileToZipArchive(zip, archiveName, zipPath,
+                                                     searchPath);
+                        result = (1 == status);
+                        if (1 != result) {
+                            break;
                         }
-
-                        free(data);
                     }
                 }
             }
@@ -1691,6 +1667,67 @@ int removeTmpFolderName(char *searchPath, char *zipPath, size_t zipPathLen)
     }
 
     return 1;
+}
+
+int openZipArchive(struct zip_t **zip, char *archiveName)
+{
+    int result = 0;
+    int status = 0;
+    const int SEMLA_ZIP_BEST_COMPRESSION_LEVEL = 9;
+    *zip = zip_openwitherror(archiveName, SEMLA_ZIP_BEST_COMPRESSION_LEVEL, 'w',
+                             &status);
+    if (*zip == NULL) {
+        printf("Error: Failed to open zip archive \"%s\". Zip Library Error: "
+               "\"%s\"\n",
+               archiveName, zip_strerror(status));
+        goto error;
+    }
+    result = 1;
+error:
+    return result;
+}
+
+void closeZipArchive(struct zip_t *zip)
+{
+    if (zip != NULL) {
+        zip_close(zip);
+    }
+}
+
+int addFileToZipArchive(struct zip_t *zip, char *archiveName, char *zipPath,
+                        char *searchPath)
+{
+    int result = 0;
+    int status = 0;
+
+    status = zip_entry_open(zip, zipPath);
+    if (status < 0) {
+        printf("Error: Failed to open zip archive entry \"%s\" (when trying to "
+               "add input file \"%s\" to "
+               "zip archive \"%s\"). Zip Library Error: \"%s\"\n",
+               zipPath, searchPath, archiveName, zip_strerror(status));
+        goto error;
+    }
+    status = zip_entry_fwrite(zip, searchPath);
+    if (status < 0) {
+        printf("Error: Failed to write input file \"%s\" to "
+               " zip archive entry \"%s\" in zip archive \"%s\". Zip Library "
+               "Error: \"%s\"\n",
+               searchPath, zipPath, archiveName, zip_strerror(status));
+        goto error;
+    }
+    status = zip_entry_close(zip);
+    if (status < 0) {
+        printf(
+            "Error: Failed to close zip archive entry \"%s\" (when trying to "
+            "add input file \"%s\" to "
+            "zip archive \"%s\"). Zip Library Error: \"%s\"\n",
+            zipPath, searchPath, archiveName, zip_strerror(status));
+        goto error;
+    }
+    result = 1;
+error:
+    return result;
 }
 
 /***********************************************

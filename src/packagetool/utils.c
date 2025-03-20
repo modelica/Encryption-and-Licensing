@@ -1364,8 +1364,8 @@ int createZipArchive()
         goto error;
     }
 #ifdef WIN32
-    result =
-        zipDirectoryWin32(getTempStagingDirectory(), archivename, encrypted);
+    result = zipDirectoryWin32(zip, getTempStagingDirectory(), archiveName,
+                               encrypted);
 #else
     result = zipDirectoryLinux(zip, getTempStagingDirectory(), archiveName,
                                encrypted);
@@ -1378,21 +1378,17 @@ error:
 /******************************************************
  * Creates a zipped archive of a directory on Windows.
  *****************************************************/
-int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
+int zipDirectoryWin32(struct zip_t *zip, char *path, char *archiveName,
+                      int encrypted)
 {
     int result = 0;
+    int status = 0;
 #ifdef WIN32
     WIN32_FIND_DATA fData;
     HANDLE hFind = NULL;
     char searchPath[MAX_PATH_LENGTH];
 
-    FILE *fd = NULL;
-    struct stat info;
-    char *data = NULL;
-    size_t bytes = 0;
     int index = 0;
-    char *comment = "Modelica_archive";
-    unsigned long buffertSize = 0;
     char zipPath[MAX_PATH_LENGTH] = {'\0'};
 
     // Find all.
@@ -1416,7 +1412,11 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
             // Have we found a folder?
             if (fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 // Use recursive to check the folder we found.
-                zipDirectoryWin32(searchPath, archiveName, encrypted);
+                result =
+                    zipDirectoryWin32(zip, searchPath, archiveName, encrypted);
+                if (1 != result) {
+                    break;
+                }
             }
 
             // Or a regular file?
@@ -1428,37 +1428,6 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
                 // -------------------------------------------------------------
                 if ((!encrypted) ||
                     ((encrypted && !isModelicaFile(fData.cFileName)))) {
-
-                    if (stat(searchPath, &info) != 0) {
-                        printf("Error: Failed to read information of file "
-                               "\"%s\".\n",
-                               searchPath);
-                        return 0;
-                    }
-
-                    // Get file size.
-                    buffertSize = info.st_size;
-
-                    // Allocate data for the whole file.
-                    if ((data = calloc((buffertSize), 1)) == NULL) {
-                        printf("Error: Failed to allocate memory for file "
-                               "\"%s\".\n",
-                               searchPath);
-                        return 0;
-                    }
-
-                    // Read the whole file to a buffer.
-                    fd = fopen(searchPath, "rb");
-                    bytes = fread(data, sizeof(char), buffertSize, fd);
-                    fclose(fd);
-
-                    if (bytes < buffertSize) {
-                        printf("Error: Failed to copy file \"%s\" to "
-                               "zip-archive.\n",
-                               searchPath);
-                        free(data);
-                        return 0;
-                    }
 
                     // Remove the tmp path.
                     removeTmpFolderName(searchPath, zipPath, MAX_PATH_LENGTH);
@@ -1472,17 +1441,12 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
                     }
 
                     // Add file to zip archive.
-                    result = mz_zip_add_mem_to_archive_file_in_place(
-                        archiveName, zipPath, data, buffertSize, comment,
-                        (mz_uint16)strlen(comment), MZ_BEST_COMPRESSION);
-
-                    if (!result) {
-                        printf("Error: Failed to add file \"%s\" to zip "
-                               "archive.\n",
-                               zipPath);
+                    status = addFileToZipArchive(zip, archiveName, zipPath,
+                                                 searchPath);
+                    result = (1 == status);
+                    if (1 != result) {
+                        break;
                     }
-
-                    free(data);
                 }
             }
         }

@@ -418,7 +418,7 @@ else()
     target_link_libraries(packagetool ${ssl_libs} ${extra_ssl_libs})
 endif()
 
-add_subdirectory(zip) # Adds an imported target "zip::zip"
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/zip ${CMAKE_CURRENT_BINARY_DIR}/zip) # Adds an imported target "zip::zip"
 target_link_libraries(packagetool zip::zip)
 
 # --------------------

@@ -1,3 +1,4 @@
+# Copyright (C) 2022 Modelica Association
 
 # Adds an imported target "zip::zip"
 

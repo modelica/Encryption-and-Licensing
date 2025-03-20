@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2022 Modelica Association
+ */
+
 #ifndef LIBCRYPTO_COMPAT_H
 #define LIBCRYPTO_COMPAT_H
 

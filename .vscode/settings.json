@@ -12,5 +12,6 @@
     ],
     "cmake.sourceDirectory": "${workspaceFolder}/src",
     "cmake.buildDirectory": "${workspaceFolder}/build",
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true
 }

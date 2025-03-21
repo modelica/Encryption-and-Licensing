@@ -1,3 +1,4 @@
+# Copyright (C) 2022 Modelica Association
 include(ExternalProject)
 
 set(openssl_dir ${CMAKE_CURRENT_BINARY_DIR}/openssl)

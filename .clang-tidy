@@ -1,0 +1,8 @@
+Checks:
+  - '-*'
+  - 'clang-analyzer-*'
+  #  silence warnings like "Call to function 'memset' is insecure" see https://stackoverflow.com/questions/76786658/missing-the-great-reason-for-memset-s-c11
+  - '-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling'
+
+ExtraArgs:
+  - '-std=gnu11'

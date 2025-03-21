@@ -1,3 +1,5 @@
+/* Copyright (C) 2022 Modelica Association
+ */
 within test_library;
 package Module
 

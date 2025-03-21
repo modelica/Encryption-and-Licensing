@@ -1,3 +1,4 @@
+# Copyright (C) 2022 Modelica Association
 if (USE_CUSTOM_OPENSSL_SUBDIRECTORY)
     # do nothing
 elseif (USE_DOWNLOADED_OPENSSL_BUILD)

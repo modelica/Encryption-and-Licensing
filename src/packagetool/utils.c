@@ -25,7 +25,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#ifdef WIN32
+#include <miniz.h>
+#else
 #include <zip.h>
+#endif
 
 #include "arguments.h"
 #include "mlle_cr_decrypt.h"

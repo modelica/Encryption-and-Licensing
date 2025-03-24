@@ -349,7 +349,6 @@ int createZipArchive();
  * Creates a zipped archive of a directory on Windows.
  *
  * Parameters:
- *      zip         - zip archive handler
  *      path - path to the top-level directory.
  *      archiveName - the name of the archive.
  *      encrypted - does the archive contains encrypted files (1)
@@ -359,8 +358,7 @@ int createZipArchive();
  *      1 - successfully created the archive.
  *      0 - creating archive failed.
  *****************************************************************/
-int zipDirectoryWin32(struct zip_t *zip, char *path, char *archiveName,
-                      int encrypted);
+int zipDirectoryWin32(char *path, char *archiveName, int encrypted);
 
 /******************************************************************
  * Creates a zipped archive of a directory on Linux.

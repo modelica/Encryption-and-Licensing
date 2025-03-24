@@ -54,7 +54,8 @@
  *      0 - some error occurred during validation of path.
  *********************************************************/
 int mlle_lve_libpath(struct mlle_lve_ctx *lve_ctx,
-                     const struct mlle_command *command)
+                     const struct mlle_command *command,
+                     const int is_in_checkout_feature_without_tool_mode)
 {
     size_t path_size = 0;
     char last = '\0';
@@ -105,15 +106,19 @@ int mlle_lve_libpath(struct mlle_lve_ctx *lve_ctx,
             lve_ctx->tool_error_msg = strdup(mlle_error_get_message(error));
             lve_ctx->tool_error_type = MLLE_PROTOCOL_LICENSE_ERROR;
             lve_ctx->tool_approved = 0;
-            mlle_send_error(lve_ctx->ssl, lve_ctx->tool_error_type,
-                            lve_ctx->tool_error_msg);
+            if(!is_in_checkout_feature_without_tool_mode) {
+                mlle_send_error(lve_ctx->ssl, lve_ctx->tool_error_type,
+                                lve_ctx->tool_error_msg);
+            }
             mlle_error_free(&error);
             return 0;
         }
     }
 #endif
     // Always send a reply.
-    mlle_send_simple_form(lve_ctx->ssl, MLLE_PROTOCOL_YES_CMD);
+    if(!is_in_checkout_feature_without_tool_mode) {
+        mlle_send_simple_form(lve_ctx->ssl, MLLE_PROTOCOL_YES_CMD);
+    }
 
     // Validate the directory path.
     if (!validate_directory(&lve_ctx)) {

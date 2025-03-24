@@ -53,7 +53,8 @@ mlle_lve_setup_licensing_check_error(struct mlle_lve_ctx *lve_ctx)
 
 int
 mlle_lve_feature(struct mlle_lve_ctx *lve_ctx,
-                 const struct mlle_command *command)
+                 const struct mlle_command *command,
+                 const int is_in_checkout_feature_without_tool_mode)
 {
     struct mlle_error *error = NULL;
     int success = 0;
@@ -65,12 +66,16 @@ mlle_lve_feature(struct mlle_lve_ctx *lve_ctx,
     success = mlle_license_checkout_feature(lve_ctx->lic_mgr, command->length,
             command->data, &error);
     if (success) {
-        mlle_send_simple_form(lve_ctx->ssl, MLLE_PROTOCOL_YES_CMD);
+        if (!is_in_checkout_feature_without_tool_mode) {
+            mlle_send_simple_form(lve_ctx->ssl, MLLE_PROTOCOL_YES_CMD);
+        }
         return 1;
     } else {
-        mlle_send_string(lve_ctx->ssl, MLLE_PROTOCOL_NO_CMD,
-                mlle_error_get_message(error));
-       mlle_error_free(&error);
+        if (!is_in_checkout_feature_without_tool_mode) {
+            mlle_send_string(lve_ctx->ssl, MLLE_PROTOCOL_NO_CMD,
+                    mlle_error_get_message(error));
+        }
+        mlle_error_free(&error);
     
         return 0;
     }

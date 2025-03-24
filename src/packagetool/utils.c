@@ -1416,7 +1416,10 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
             // Have we found a folder?
             if (fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 // Use recursive to check the folder we found.
-                zipDirectoryWin32(searchPath, archiveName, encrypted);
+                result = zipDirectoryWin32(searchPath, archiveName, encrypted);
+                if (1 != result) {
+                    return 0;
+                }
             }
 
             // Or a regular file?
@@ -1480,6 +1483,8 @@ int zipDirectoryWin32(char *path, char *archiveName, int encrypted)
                         printf("Error: Failed to add file \"%s\" to zip "
                                "archive.\n",
                                zipPath);
+                        free(data);
+                        return 0;
                     }
 
                     free(data);

@@ -1366,7 +1366,7 @@ int createZipArchive()
 
 #ifdef WIN32
     result =
-        zipDirectoryWin32(getTempStagingDirectory(), archivename, encrypted);
+        zipDirectoryWin32(getTempStagingDirectory(), archiveName, encrypted);
 #else
     status = openZipArchive(&zip, archiveName);
     if (1 != status) {

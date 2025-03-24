@@ -1708,6 +1708,8 @@ int openZipArchive(struct zip_t **zip, char *archiveName)
 {
     int result = 0;
     int status = 0;
+#ifdef WIN32
+#else
     const int SEMLA_ZIP_BEST_COMPRESSION_LEVEL = 9;
     *zip = zip_openwitherror(archiveName, SEMLA_ZIP_BEST_COMPRESSION_LEVEL, 'w',
                              &status);
@@ -1718,6 +1720,7 @@ int openZipArchive(struct zip_t **zip, char *archiveName)
         goto error;
     }
     result = 1;
+#endif
 error:
     return result;
 }

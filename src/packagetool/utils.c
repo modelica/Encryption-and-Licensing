@@ -27,7 +27,6 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-#include <miniz.h>
 #else
 #include <zip.h>
 #endif
@@ -1379,6 +1378,32 @@ error:
     closeZipArchive(zip);
     return result;
 }
+
+#ifdef WIN32
+// Duplicates declarations from <miniz.h> in 'zip' library.
+// We cannot include <miniz.h> here because it is a single-header library, so it
+// also includes the definitions of the functions. This means that if we
+// include it here, then the functions get defined twice, which leads to a
+// compilation error.
+
+typedef unsigned short mz_uint16;
+typedef unsigned int mz_uint;
+typedef int mz_bool;
+
+enum {
+  MZ_NO_COMPRESSION = 0,
+  MZ_BEST_SPEED = 1,
+  MZ_BEST_COMPRESSION = 9,
+  MZ_UBER_COMPRESSION = 10,
+  MZ_DEFAULT_LEVEL = 6,
+  MZ_DEFAULT_COMPRESSION = -1
+};
+
+mz_bool mz_zip_add_mem_to_archive_file_in_place(
+    const char *pZip_filename, const char *pArchive_name, const void *pBuf,
+    size_t buf_size, const void *pComment, mz_uint16 comment_size,
+    mz_uint level_and_flags);
+#endif
 
 /******************************************************
  * Creates a zipped archive of a directory on Windows.

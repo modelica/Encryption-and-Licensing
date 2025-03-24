@@ -1359,14 +1359,14 @@ int createZipArchive()
         }
     }
 
-    status = openZipArchive(&zip, archiveName);
-    if (1 != status) {
-        goto error;
-    }
 #ifdef WIN32
     result =
         zipDirectoryWin32(getTempStagingDirectory(), archivename, encrypted);
 #else
+    status = openZipArchive(&zip, archiveName);
+    if (1 != status) {
+        goto error;
+    }
     result = zipDirectoryLinux(zip, getTempStagingDirectory(), archiveName,
                                encrypted);
 #endif

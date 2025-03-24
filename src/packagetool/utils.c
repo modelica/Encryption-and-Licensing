@@ -1727,9 +1727,12 @@ error:
 
 void closeZipArchive(struct zip_t *zip)
 {
+#ifdef WIN32
+#else
     if (zip != NULL) {
         zip_close(zip);
     }
+#endif
 }
 
 int addFileToZipArchive(struct zip_t *zip, char *archiveName, char *zipPath,
@@ -1738,6 +1741,8 @@ int addFileToZipArchive(struct zip_t *zip, char *archiveName, char *zipPath,
     int result = 0;
     int status = 0;
 
+#ifdef WIN32
+#else
     status = zip_entry_open(zip, zipPath);
     if (status < 0) {
         printf("Error: Failed to open zip archive entry \"%s\" (when trying to "
@@ -1764,6 +1769,7 @@ int addFileToZipArchive(struct zip_t *zip, char *archiveName, char *zipPath,
         goto error;
     }
     result = 1;
+#endif
 error:
     return result;
 }

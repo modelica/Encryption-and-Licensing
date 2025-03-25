@@ -31,6 +31,16 @@
 #include "mlle_io.h"
 #include "mlle_lve_libpath.h"
 
+#ifdef MLLE_GLOBAL_LICENSE_FEATURE
+#include "mlle_lve_feature.h"
+#include "mlle_license_manager.h"
+#endif
+
+
+/* Need both due to sneaky preprocessor behavior. */
+#define STR2(x) #x
+#define STR(x) STR2(x)
+
 
 /**********************************************************
  * Handles the command for lib.
@@ -79,7 +89,27 @@ int mlle_lve_libpath(struct mlle_lve_ctx *lve_ctx,
         lve_ctx->tool_error_msg = "Failed to allocate memory for decryption context.";
         return 0;
     }
+    /* Check global licence, if defined. */
+#ifdef MLLE_GLOBAL_LICENSE_FEATURE
+    if (lve_ctx->tool_approved) {
+        struct mlle_error *error = NULL;
+        int success = 0;
 
+        success = mlle_lve_setup_licensing(lve_ctx, &error);
+        if (success) {
+            success = mlle_license_checkout_feature(lve_ctx->lic_mgr,
+                    strlen(STR(MLLE_GLOBAL_LICENSE_FEATURE)), STR(MLLE_GLOBAL_LICENSE_FEATURE), &error);
+        }
+        if (!success) {
+            lve_ctx->tool_error_msg = strdup(mlle_error_get_message(error));
+            lve_ctx->tool_error_type = MLLE_PROTOCOL_LICENSE_ERROR;
+            lve_ctx->tool_approved = 0;
+            mlle_send_error(lve_ctx->ssl, lve_ctx->tool_error_type, lve_ctx->tool_error_msg);
+            mlle_error_free(&error);
+            return 0;
+        }
+    }
+#endif
     // Always send a reply.
     mlle_send_simple_form(lve_ctx->ssl, MLLE_PROTOCOL_YES_CMD);
 

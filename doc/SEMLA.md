@@ -1,7 +1,8 @@
 Tool-independent Licensing and Encryption of Modelica Libraries
 ====
 
-This specification describes a system for distributing proprietary Modelica libraries which supports:
+## Scope of this Specification
+This draft specification describes a system for distributing proprietary Modelica libraries which supports:
 
 - Encryption
 
@@ -25,7 +26,7 @@ It is achieved by:
 
 An open source project containing:
 
-- this documentation
+- this draft specification
 
 - source code examples for
 
@@ -38,6 +39,9 @@ An open source project containing:
 		- **packagetool**, a utility you can use to create **MLC**s.
 	
 Open-source Modelica libraries, stored non encrypted, can also be distributed in the MLC format.
+
+### Limitations on the Scope
+Note that this specification leaves the details of the LVE implementation undefined, they are at the discretion of the Library Vendor. Any supplied reference implementation is only to give an example and not in any form normative part of this specification. 
 
 ## LICENSING AND ENCRYPTION
 

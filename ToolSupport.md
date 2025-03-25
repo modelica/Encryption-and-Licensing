@@ -2,7 +2,6 @@
 
 -----------------------
 
-|  | |  | | 
 |  **Name**  | **Status**   | **Link to Public Key**  |  **Comment** |  
 |---|---|---|---|
 |  Modelon Impact | In Use  | TBD  | Actively used  |

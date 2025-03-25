@@ -7,6 +7,9 @@ SEMLA is an open-source project providing means for tool-independent licensing a
 - [Modelon Impact](https://modelon.com/modelon-impact/)
 - [OpenModelica](https://openmodelica.org)
 - [Dymola](https://www.3ds.com/products/catia/dymola) Since version 2025.X, only reading MLCs, not creating them.
+- [SimulationX](https://www.esi-group.com/products/simulationx) is working on support, a release is expected in the summer of 2025
+
+The  [Tool Support](https://github.com/modelica/Encryption-and-Licensing/blob/master/ToolSupport.md) page has further details
 
 ## Specification & Contribution
 

@@ -22,7 +22,6 @@ The installer contains the 64-bit version of Strawberry Perl.
 
 The installer contains:
     - cmake-3.3.0-rc4-win32-x86
-    - miniz_v115_r4
     - nasm-2.11.08-win32
     - strawberry-perl-5.22.0.1-64bit
     

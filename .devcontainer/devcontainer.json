@@ -7,8 +7,7 @@
 		"vscode": {
 			"extensions": [
 				// C
-				"ms-vscode.cpptools",
-				"ms-vscode.cmake-tools",
+				"ms-vscode.cpptools-extension-pack",
 				// git
 				"eamodio.gitlens"
 			]

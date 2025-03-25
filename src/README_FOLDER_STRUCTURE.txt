@@ -40,12 +40,6 @@ Public
         |
         |-----> tests (Test files using the "Check - Unit testing framework for C") 
         |
-    |-----ThirdParty
-        |
-        |-----> miniz (free zip-library. Consist of 1 c-file. Used by Packagetool.)
-        |
-        |-----> openssl-1.0.2
-        |
     |-----tools (some scripts)
         |
         |-----> SDK (NSIS installer for necessary tools on Windows)

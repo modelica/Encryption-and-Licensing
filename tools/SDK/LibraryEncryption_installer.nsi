@@ -1,3 +1,4 @@
+# Copyright (C) 2022 Modelica Association
 #
 #    Copyright (C) 2015 Modelon AB
 #
@@ -27,7 +28,6 @@
 # the script.
 #
 # Components in this installer are:
-# Miniz - (https://code.google.com/p/miniz/)
 # CMake - (http://www.cmake.org/)
 # Strawberry Perl - (http://strawberryperl.com/)  32/64-bit
 # Nasm - (http://nasm.sourceforge.net/)
@@ -99,21 +99,6 @@ SectionEnd
 # --------------------
 # Installer sections.
 # --------------------
-
-Section "Miniz" SEC01
-
-	SetOutPath "$INSTDIR\Miniz"
-	
-	# Add size(in kb) manually.
-	AddSize 2300
-	
-	# Add file to install.
-	File "applications\miniz_v115_r4.7z"
-	
-	# Extract Miniz, a zip library.
-	Nsis7z::ExtractWithDetails "miniz_v115_r4.7z" "Installing package %s"
-	
-SectionEnd 
 
 Section "Perl" SEC02
 
@@ -194,7 +179,6 @@ Section "Uninstall"
 	# ----------------
 	RMDir /r "$INSTDIR\nasm-2.11.08"
 	RMDir /r "$INSTDIR\cmake-3.3.0-rc4-win32-x86"
-	RMDir /r "$INSTDIR\Miniz"	
 	RMDir /r "$INSTDIR"
 	
 	# ------------------------------

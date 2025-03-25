@@ -1,3 +1,4 @@
+# Copyright (C) 2022 Modelica Association
 cmake_minimum_required(VERSION 3.20)
 project(Obfuscator)
 

@@ -1,3 +1,4 @@
+# Copyright (C) 2022 Modelica Association
 #
 #    Copyright (C) 2015 Modelon AB
 #

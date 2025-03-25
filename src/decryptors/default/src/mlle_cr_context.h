@@ -1,3 +1,7 @@
+/*
+    Copyright (C) 2022 Modelica Association
+*/
+
 #ifndef MLLE_CR_CONTEXT_H_
 #define MLLE_CR_CONTEXT_H_
 

@@ -1,3 +1,7 @@
+/*
+    Copyright (C) 2022 Modelica Association
+*/
+
 #ifndef TEST_TOOL_H
 #define TEST_TOOL_H
 

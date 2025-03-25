@@ -1,5 +1,5 @@
-
 #!/bin/bash
+# Copyright (C) 2022 Modelica Association
 set -euo pipefail
 
 # generate keys for testing

@@ -1524,6 +1524,7 @@ int zipDirectoryLinux(struct zip_t *zip, char *path, char *archiveName,
     // printf("**** searchPath %s\n", searchPath);
 
     if ((d = opendir(searchPath))) {
+        result = 1; // return 'success' for empty directory
         while ((dir = readdir(d)) != NULL) {
             // The first two directories are always "." and "..".
             if (strcmp(dir->d_name, ".") != 0 &&

@@ -176,7 +176,7 @@ int copyExtraFiles();
 char *getCopiedSourcePath();
 
 /*********************************************
- * Copy a file from one location to another.
+ * Copy a file to .library directory
  *
  * Parameters:
  *		filename - name of file to copy.
@@ -186,7 +186,7 @@ char *getCopiedSourcePath();
  *      1 - copying of files was successful.
  *      0 - copying files failed.
  *********************************************/
-int copyFile(char *filename, char *pathFrom);
+int copyFileToDotLibraryDir(char *filename, char *pathFrom);
 
 /***************************************************************
  * Check if a file or directory exists.
@@ -475,3 +475,16 @@ int copyDirectoryLinux(char *fromPath, char *toPath);
  *      1 on success, 0 otherwise.
  **********************************************/
 int deleteTemporaryStagingFolder();
+
+
+/*************************************************************
+ * Copy a file from one location to another.
+ *
+ * Parameters:
+ *      fromPath - the path to copy from.
+ *      toPath   - the path to copy to.
+ *
+ * Returns:
+ *      1 on success, 0 otherwise.
+ ***********************************************************/
+int copyFile(char *fromPath, char *toPath);

@@ -442,12 +442,32 @@ int createLibraryFolder()
 #ifndef WIN32
 /*****************************************
  * Copy file permissions from file.
+ * Returns 1 on success, 0 otherwise.
  ****************************************/
-static void linuxCopyFilePermissions(const char *fromFile, const char *toFile)
+static int linuxCopyFilePermissions(const char *fromFile, const char *toFile)
 {
+    int result = 0;
+    int status = 0;
     struct stat tmp;
-    stat(fromFile, &tmp);
-    chmod(toFile, tmp.st_mode);
+    status = stat(fromFile, &tmp);
+    if (0 != status) {
+        printf("Error: When copying file permissions from file \"%s\" to file "
+               "\"%s\": stat() failed: Error message: \"%s\"",
+               fromFile, toFile, strerror(errno));
+        goto error;
+    }
+
+    status = chmod(toFile, tmp.st_mode);
+    if (0 != status) {
+        printf("Error: When copying file permissions from file \"%s\" to file "
+               "\"%s\": chmod() failed: Error message: \"%s\"",
+               fromFile, toFile, strerror(errno));
+        goto error;
+    }
+
+    result = 1;
+error:
+    return result;
 }
 #endif
 
@@ -510,7 +530,7 @@ int copyLVE()
         // Check if this LVE exists.
         if (fileExists(path)) {
             // Copy the LVE to .library directory. Abort if a copy fails.
-            if (copyFile(lve[i], path) == 0) {
+            if (copyFileToDotLibraryDir(lve[i], path) == 0) {
                 free(path);
                 return 0;
             }
@@ -578,53 +598,26 @@ cleanup:
     return ret;
 }
 
-/*********************************************
- * Copy a file from one location to another.
- *********************************************/
-int copyFile(char *filename, char *pathFrom)
+int copyFileToDotLibraryDir(char *filename, char *pathFrom)
 {
+    int result = 0;
     char *pathTo = NULL;
-    char *cwd = NULL;
-    char buffer[8192] = {'\0'};
     size_t path_len = 0;
 
-    FILE *fdRead, *fdWrite;
-    size_t readBytes = 0;
-    size_t writeBytes = 0;
-
-    // Copy to.
     path_len = strlen(getDotLibraryPath()) + strlen(filename) + 2;
     pathTo = malloc(path_len);
+    if (pathTo == NULL) {
+        printf("Error: Failed to allocate memory for path to file in .library folder "
+               "\"%s\".\n",
+               filename);
+        goto error;
+    }
     snprintf(pathTo, path_len, "%s/%s", getDotLibraryPath(), filename);
 
-    // Create file descriptors.
-    fdRead = fopen(pathFrom, "rb");
-    fdWrite = fopen(pathTo, "wb");
-
-    // Copy the file.
-    while ((readBytes = fread(buffer, 1, sizeof(buffer), fdRead)) > 0) {
-        writeBytes = fwrite(buffer, 1, readBytes, fdWrite);
-
-        if (writeBytes < readBytes) {
-            // Abort on error.
-            if (ferror(fdWrite)) {
-                printf("Error while copying from %s to %s.\n", pathFrom,
-                       pathTo);
-                return 0;
-            }
-        }
-    }
-
-    // Cleanup.
-    fclose(fdRead);
-    fclose(fdWrite);
-
-#ifndef WIN32
-    // if we are on linux machine we make sure that we copy file permissions
-    linuxCopyFilePermissions(pathFrom, pathTo);
-#endif
-
-    return 1;
+    result = copyFile(pathFrom, pathTo);
+    error:
+        free(pathTo);
+        return result;
 }
 
 /***************************************
@@ -2023,42 +2016,11 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
                 // Or a file?
                 else if (dir->d_type == DT_REG) {
                     // printf("Filnamn: %s\n", dir->d_name);
-                    {
-                        // printf("Read - searchPath: %s\n", searchPath);
-                        fdRead = fopen(searchPath, "rb");
 
-                        if (stat(searchPath, &info) != 0) {
-                            printf("Error: Failed to read information of file "
-                                   "\"%s\".\n",
-                                   searchPath);
-                            return 0;
-                        }
+                    // file in new location.
+                    snprintf(folderName, MAX_PATH_LENGTH, "%s/%s", toPath, dir->d_name);
+                    copyFile(searchPath, folderName);
 
-                        // Get file size.
-                        buffSize = info.st_size;
-
-                        // Allocate data for the whole file.
-                        if ((data = calloc((buffSize + 1), 1)) == NULL) {
-                            printf("Error: Failed to allocate memory for file "
-                                   "\"%s\".\n",
-                                   searchPath);
-                            return 0;
-                        }
-
-                        // Read the whole file to a buffer.
-                        bytes = fread(data, sizeof(char), buffSize, fdRead);
-
-                        // Write to file in new location.
-                        snprintf(folderName, MAX_PATH_LENGTH, "%s/%s", toPath,
-                                 dir->d_name);
-
-                        fdWrite = fopen(folderName, "wb");
-                        fwrite(data, sizeof(char), buffSize, fdWrite);
-
-                        fclose(fdRead);
-                        fclose(fdWrite);
-                        free(data);
-                    }
                 }
             }
         }
@@ -2068,6 +2030,84 @@ int copyDirectoryLinux(char *fromPath, char *toPath)
         return 0;
     }
 #endif
+
+    return result;
+}
+
+int copyFile(char *fromPath, char *toPath)
+{
+    int result = 0;
+    int status = 0;
+    struct stat info;
+    char *data = NULL;
+    int bytes = 0;
+    long buffSize = 0;
+    FILE *fdRead = NULL;
+    FILE *fdWrite = NULL;
+
+    fdRead = fopen(fromPath, "rb");
+    if (fdRead == NULL) {
+        printf("Error: When copying file: Could not open input file \"%s\": %s",
+               fromPath, strerror(errno));
+        goto error;
+    }
+
+    if (stat(fromPath, &info) != 0) {
+        printf("Error: Failed to read information of file "
+               "\"%s\".\n",
+               fromPath);
+        goto error;
+    }
+
+    // Get file size.
+    buffSize = info.st_size;
+
+    // Allocate data for the whole file.
+    if ((data = calloc((buffSize + 1), 1)) == NULL) {
+        printf("Error: When copying file: Failed to allocate memory for file "
+               "\"%s\".\n",
+               fromPath);
+        goto error;
+    }
+
+    // Read the whole file to a buffer.
+    bytes = fread(data, sizeof(char), buffSize, fdRead);
+    if (bytes != buffSize) {
+        printf("Error: When copying file: Failed to read from file "
+               "\"%s\".\n",
+               fromPath);
+    }
+
+    fdWrite = fopen(toPath, "wb");
+    if (fdWrite == NULL) {
+        printf(
+            "Error: When copying file: Could not open output file \"%s\": %s",
+            toPath, strerror(errno));
+        goto error;
+    }
+    fwrite(data, sizeof(char), buffSize, fdWrite);
+    if (bytes != buffSize) {
+        printf("Error: When copying file: Failed to write to file "
+               "\"%s\".\n",
+               toPath);
+    }
+
+#ifndef WIN32
+    status = linuxCopyFilePermissions(fromPath, toPath);
+    if (1 != status) {
+        goto error;
+    }
+#endif
+
+    result = 1;
+error:
+    if (NULL != fdRead) {
+        fclose(fdRead);
+    }
+    if (NULL != fdWrite) {
+        fclose(fdWrite);
+    }
+    free(data);
 
     return result;
 }

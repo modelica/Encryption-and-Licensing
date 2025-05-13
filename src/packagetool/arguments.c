@@ -511,56 +511,75 @@ static void printAligned(char *str, int maxLength, int level) {
  ********************************************************/
 void printArgumentHelp(void)
 {
-    int maxLength = 80;
-    int tabSz = 8;
+    typedef struct {
+        const char *argument;
+        const char *description;
+    } HelpEntry;
+
+    const int maxLength = 80;
+    const int tabSz = 8;
+    const int indentedWidth = maxLength - tabSz*2;
+    
+    // Define mandatory arguments with descriptions
+    const HelpEntry mandatoryArgs[] = {
+        {ARGUMENT_LANGUAGE_VERSION, "Version of the Modelica language the library uses."},
+        {ARGUMENT_LIBRARY_PATH, "Path to the top-level directory. If this argument is missing or the path is wrong, the "
+                               "tool will abort since it's not possible to build a container."},
+        {ARGUMENT_LIBRARY_VERSION, "The version number of the library."}
+    };
+    
+    // Define optional arguments with descriptions
+    const HelpEntry optionalArgs[] = {
+        {ARGUMENT_BUILD_NUMBER, "Build number of the library."},
+        {ARGUMENT_COPYRIGHT, "Textual copyright information."},
+        {ARGUMENT_BUILD_DATE, "Release date of the library."},
+        {ARGUMENT_DEPENDENCIES_FILE, "Adds a list of libraries (in an xml file) that this library depends on. If the supplied "
+                                    "path to the dependency-xml file is wrong the tool will abort."},
+        {ARGUMENT_DESCRIPTION, "Description of the library."},
+        {ARGUMENT_ENABLED, "If the library should be loaded by default."},
+        {ARGUMENT_ENCRYPT, "If the value of this argument is true then LVEs must be copied to the .library directory of "
+                          "the source structure. If the path to copy from is wrong or LVEs are missing or have the "
+                          "wrong names the tool will abort."},
+        {ARGUMENT_ICON_PATH, "An icon to use for the library. If the supplied path to the icon file is wrong or the file "
+                            "can't be located in the library structure the tool will abort."},
+        {ARGUMENT_LICENSE, "Textual license information."},
+        {ARGUMENT_TITLE, "Official title of the library."},
+        {ARGUMENT_TOOLS_FILE, "Adds a list of Modelica tools (in an xml file) that this library is compatible with. If the "
+                             "supplied path to the tool-xml file is wrong the tool will abort."}
+    };
+    
+    // Print synopsis
     printf("SYNOPSIS\n");
     printf("\tpackagetool <-arg1> <value1> <-arg2> <value2> ...\n");
     printf("\n");
+    
+    // Print description
     printf("DESCRIPTION\n");
     printAligned("Tool for packaging a Modelica library into a container for distribution. The container "
                 "is a zip file with a .mol file extension. It contains one top-level directory and several "
                 "subdirectories according to the Modelica structure.", maxLength - tabSz, 1);
     printf("\n");
+    
+    // Print mandatory arguments
     printf("\tMandatory:\n");
-    printf("\t-%s\n", ARGUMENT_LANGUAGE_VERSION);
-    printAligned("Version of the Modelica language the library uses.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n", ARGUMENT_LIBRARY_PATH);
-    printAligned("Path to the top-level directory. If this argument is missing or the path is wrong, the "
-                 "tool will abort since it's not possible to build a container.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n", ARGUMENT_LIBRARY_VERSION);
-    printAligned("The version number of the library.\0", maxLength - tabSz*2, 2);
+    for (int i = 0; i < sizeof(mandatoryArgs) / sizeof(HelpEntry); i++) {
+        printf("\t-%s\n", mandatoryArgs[i].argument);
+        printAligned(mandatoryArgs[i].description, indentedWidth, 2);
+    }
     printf("\n");
+    
+    // Print optional arguments
     printf("\tOptional:\n");
-    printf("\t-%s\n", ARGUMENT_BUILD_NUMBER);
-    printAligned("Build number of the library.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_COPYRIGHT);
-    printAligned("Textual copyright information.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_BUILD_DATE);
-    printAligned("Release date of the library.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_DEPENDENCIES_FILE);
-    printAligned("Adds a list of libraries (in an xml file) that this library depends on. If the supplied "
-                 "path to the dependency-xml file is wrong the tool will abort.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_DESCRIPTION);
-    printAligned("Description of the library.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n", ARGUMENT_ENABLED);
-    printAligned("If the library should be loaded by default.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_ENCRYPT);
-    printAligned("If the value of this argument is true then LVEs must be copied to the .library directory of "
-                 "the source structure. If the path to copy from is wrong or LVEs are missing or have the "
-                 "wrong names the tool will abort.\0", maxLength - tabSz*2, 2);
-    printf("\t%s, %s\n",ARGUMENT_SHORT_HELP, ARGUMENT_HELP);
-    printAligned("Print help information.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n", ARGUMENT_ICON_PATH);
-    printAligned("An icon to use for the library. If the supplied path to the icon file is wrong or the file "
-                 "can't be located in the library structure the tool will abort.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_LICENSE);
-    printAligned("Textual license information.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_TITLE);
-    printAligned("Official title of the library.\0", maxLength - tabSz*2, 2);
-    printf("\t-%s\n",ARGUMENT_TOOLS_FILE);
-    printAligned("Adds a list of Modelica tools (in an xml file) that this library is compatible with. If the "
-           "supplied path to the tool-xml file is wrong the tool will abort.\0", maxLength - tabSz*2, 2);
-
+    for (int i = 0; i < sizeof(optionalArgs) / sizeof(HelpEntry); i++) {
+        printf("\t-%s\n", optionalArgs[i].argument);
+        printAligned(optionalArgs[i].description, indentedWidth, 2);
+    }
+    
+    // Print --help argument separately since they have a different format
+    printf("\t%s, %s\n", ARGUMENT_SHORT_HELP, ARGUMENT_HELP);
+    printAligned("Print help information.", indentedWidth, 2);
+    
+    // Print footer
     printf("COPYRIGHT\n");
     printf("\tModelon 2017-2019\n");
     printf("SEE ALSO\n");
@@ -568,4 +587,3 @@ void printArgumentHelp(void)
 
     fflush(NULL);
 }
-

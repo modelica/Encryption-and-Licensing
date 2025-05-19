@@ -265,6 +265,32 @@ The **packagetool** doesn't validate the tools xml file contents.
 ## SEMLA - COMMUNICATION PROTOCOL BETWEEN A TOOL AND LVE
 
 
+```mermaid
+sequenceDiagram
+    participant Tool
+    participant LVE
+
+    rect rgb(191, 223, 255)
+        note right of Tool: Handshake<br/>(performed once)
+        Tool->>LVE: VERSION <version>
+        LVE->>Tool: VERSION <version>
+        Tool->>LVE: LIB <path>
+        LVE->>Tool: YES
+    end
+    rect rgb(191, 255, 196)
+        note right of Tool: License Check<br/>(performed once)
+        Tool->>LVE: FEATURE <feature name>
+        LVE->>Tool: YES
+        Tool->>LVE: FEATURE <feature name>
+        LVE->>Tool: NO
+    end
+    rect rgb(191, 201, 255)
+        note right of Tool:  Get Decrypted File<br/>(used as many times as needed)
+        Tool->>LVE: FILE <path>
+        LVE->>Tool: FILECONTENT <contents>
+    end
+```
+
                               ┌────┐                  ┌───┐                    
                               │Tool│                  │LVE│                    
                               └─┬──┘                  └─┬─┘                    
@@ -335,10 +361,10 @@ Messages are in 8-bit ASCII
 
 ### Simple message with no arguments
 
-Format: "\<COMMAND>LN"
+Format: "\<COMMAND>LF"
 	
 - \<COMMAND> - command name, in all caps
-- “LN” - line feed character
+- “LF” - line feed character
 		
 Messages using this form: 
 	
@@ -349,11 +375,11 @@ Messages using this form:
 
 ### Message with decimal integer data
 
-Format: "\<COMMAND> <number>LN"
+Format: "\<COMMAND> <number>LF"
 	
 - \<COMMAND> - command name in all caps
 - \<number> - a decimal number – 32-bit signed integer, string, base 10 representation
-- “LN” - line feed character
+- “LF” - line feed character
 
 Messages using this form: 
 	
@@ -361,10 +387,11 @@ Messages using this form:
 
 ### Message with variable length data
 
-Format: "\<COMMAND> \<length>LN\<data>"
+Format: "\<COMMAND> \<length>LF\<data>"
 
 - \<COMMAND> - command name in all caps
 - \<length> - data length in bytes – 32-bit signed integer, string, base 10 representation
+- “LF” - line feed character
 - \<data> - data bytes
 
 Messages using this form: 
@@ -383,11 +410,12 @@ Messages using this form:
 
 ### Message with an integer number and a variable length data
 
-Format: "\<COMMAND> \<number> \<length>LN\<data>"
+Format: "\<COMMAND> \<number> \<length>LF\<data>"
 
 - \<COMMAND> - command name in all caps
 - \<number> - 32-bit signed integer, string, base 10 representation
 - \<length> - data length in bytes – 32-bit signed integer, string, base 10 representation
+- “LF” - line feed character
 - \<data> - data bytes
 
 Messages using this form:

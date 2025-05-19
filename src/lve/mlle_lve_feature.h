@@ -28,7 +28,8 @@ extern "C" {
 
 int
 mlle_lve_feature(struct mlle_lve_ctx *lve_ctx,
-                 const struct mlle_command *command);
+                 const struct mlle_command *command,
+                 const int is_in_checkout_feature_without_tool_mode);
 
 int
 mlle_lve_returnfeature(struct mlle_lve_ctx *lve_ctx,

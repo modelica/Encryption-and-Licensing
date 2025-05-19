@@ -67,6 +67,7 @@ mlle_lve_handle_command(struct mlle_lve_ctx *lve_ctx,
 {
     long tool_protocol_max_version = 0;
     enum mlle_lve_state next_state = MLLE_LVE_STATE_INVALID;
+    const int is_in_checkout_feature_without_tool_mode = 0;
 
     // Get next state.
     next_state = mlle_next_state(current_state, command->id, error_msg, error_length);
@@ -114,16 +115,16 @@ mlle_lve_handle_command(struct mlle_lve_ctx *lve_ctx,
         }
         else
         {
-            mlle_lve_libpath(lve_ctx, command);
+            mlle_lve_libpath(lve_ctx, command, is_in_checkout_feature_without_tool_mode);
         }
         break;
     case MLLE_LVE_STATE_LIB:
-        mlle_lve_libpath(lve_ctx, command);
+        mlle_lve_libpath(lve_ctx, command, is_in_checkout_feature_without_tool_mode);
         break;
 
     case MLLE_LVE_STATE_LICENSE:
         if (command->id == MLLE_PROTOCOL_FEATURE_CMD) {
-            mlle_lve_feature(lve_ctx, command);
+            mlle_lve_feature(lve_ctx, command, is_in_checkout_feature_without_tool_mode);
         } else if (command->id == MLLE_PROTOCOL_RETURNFEATURE_CMD) {
             mlle_lve_returnfeature(lve_ctx, command);
         } else if (command->id == MLLE_PROTOCOL_LICENSE_CMD) {

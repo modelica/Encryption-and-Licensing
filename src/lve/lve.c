@@ -51,7 +51,7 @@ static void print_version()
            "    \"tools\": %s,\n"
 #endif
            "}\n",
-           STR(PROJECT_NAME), STR(PROJECT_VERSION)
+           STR(CMAKE_PROJECT_NAME), STR(CMAKE_PROJECT_VERSION)
 #ifdef TOOLS_LIST_JSON_STRING
                                   ,
            TOOLS_LIST_JSON_STRING

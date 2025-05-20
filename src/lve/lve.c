@@ -259,11 +259,11 @@ int main(int argc, char **argv)
             snprintf(libpath, libpath_sz, "%s", argv[i]);
         } else if (0 == strcmp(argv[i], "--version")) {
             print_version();
-            result = argc == 2;
+            result = (argc == 2) ? EXIT_SUCCESS : EXIT_FAILURE;
             goto error;
         } else if (0 == strcmp(argv[i], "--help")) {
             print_usage(stdout);
-            result = argc == 2;
+            result = (argc == 2) ? EXIT_SUCCESS : EXIT_FAILURE;
             goto error;
         } else {
             fprintf(stderr,

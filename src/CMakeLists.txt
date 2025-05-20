@@ -20,8 +20,11 @@
 # -------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.20)
-project(SEMLA
-        VERSION 0.0.0)
+if (NOT (CMAKE_PROJECT_NAME AND CMAKE_PROJECT_VERSION))
+    project(SEMLA
+            VERSION 0.0.0)
+endif()
+
 include(GNUInstallDirs)
 
 # set platform
@@ -348,8 +351,8 @@ add_executable(${LVETARGET}
 target_compile_definitions(
     ${LVETARGET}
     PRIVATE
-        PROJECT_NAME=${PROJECT_NAME}
-        PROJECT_VERSION=${PROJECT_VERSION}
+        CMAKE_PROJECT_NAME=${CMAKE_PROJECT_NAME}
+        CMAKE_PROJECT_VERSION=${CMAKE_PROJECT_VERSION}
 )
 # list of tools authorized with this lve.
 set(TOOLS_LIST_FILE "${TOOLS_PUBLIC_KEYS_DIRECTORY}/tools.txt")
